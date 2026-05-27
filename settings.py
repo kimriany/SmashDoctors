@@ -1,0 +1,15 @@
+# 전체 게임 설정값
+
+SCREEN_WIDTH = 1000
+SCREEN_HEIGHT = 600
+FPS = 60
+
+TITLE = "Science Smash Prototype"
+
+GRAVITY = 0.7
+MAX_FALL_SPEED = 18
+
+PLAYER_SPEED = 6
+PLAYER_JUMP_POWER = -14
+
+GROUND_Y = 500
