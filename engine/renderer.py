@@ -67,8 +67,10 @@ class Renderer:
         candidates = [
             f"assets/images/bg_{stage_id}.png",
             f"assets/images/bg_{stage_id}.jpg",
+            f"assets/images/bg_{stage_id}.jpeg",
             "assets/images/bg_default.png",
             "assets/images/bg_default.jpg",
+            "assets/images/bg_default.jpeg",
         ]
         for path in candidates:
             if os.path.exists(path):

@@ -1,20 +1,61 @@
 """
 Player 클래스 — BaseEntity 자식.
-캐릭터별 외형/능력치는 이 클래스를 상속해서 구현.
 
-입력 처리, 스킬, 스톡, 리스폰은 여기에 모두 있음.
-draw()는 기본 구현 제공 + 자식이 override 가능.
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+캐릭터 이미지(스프라이트) 사용 방법
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+각 캐릭터 클래스(DoctorBlue 등)에 아래 변수를 추가하면 됩니다.
+
+  방법 A — 단일 이미지 (정지 이미지 하나로 전부 커버):
+      SPRITE_PATH = "assets/images/char_blue.png"
+
+  방법 B — 상태별 이미지:
+      SPRITE_IDLE   = "assets/images/char_blue_idle.png"
+      SPRITE_WALK   = "assets/images/char_blue_walk.png"   # 없으면 IDLE 사용
+      SPRITE_JUMP   = "assets/images/char_blue_jump.png"   # 없으면 IDLE 사용
+      SPRITE_ATTACK = "assets/images/char_blue_atk.png"    # 없으면 IDLE 사용
+      SPRITE_SKILL  = "assets/images/char_blue_skill.png"  # 없으면 IDLE 사용
+
+  파일이 없으면 기존 도형 렌더링으로 자동 폴백합니다.
+  이미지 크기는 아무 크기나 OK — 캐릭터 히트박스(46×66)에 맞게 자동 스케일됩니다.
+  PNG 투명도(알파)를 지원합니다.
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 """
 import pygame
 import math
+import os
 from entities.base_entity import BaseEntity
 from systems.skill import Skill
+
+
+# ── 스프라이트 로더 유틸 ──────────────────────────────────────
+def _load_sprite(path: str | None) -> pygame.Surface | None:
+    """경로에서 스프라이트를 로드. 없으면 None 반환."""
+    if not path:
+        return None
+    if not os.path.exists(path):
+        return None
+    try:
+        img = pygame.image.load(path).convert_alpha()
+        return img
+    except Exception as e:
+        print(f"[Player] 스프라이트 로드 실패 ({path}): {e}")
+        return None
+
+
+def _scale_sprite(img: pygame.Surface,
+                  w: int, h: int,
+                  zoom: float = 1.0) -> pygame.Surface:
+    """스프라이트를 히트박스 크기 × zoom 으로 스케일."""
+    tw = max(1, int(w * zoom))
+    th = max(1, int(h * zoom))
+    return pygame.transform.smoothscale(img, (tw, th))
 
 
 class Player(BaseEntity):
     """기본 캐릭터 (자식 클래스의 베이스)."""
 
-    # ── 자식이 오버라이드할 스탯 ──
+    # ── 스탯 (자식이 override) ────────────────────────────────
     WEIGHT     = 100
     KB_GROWTH  = 80
     BASE_KB    = 30
@@ -27,11 +68,27 @@ class Player(BaseEntity):
     HIT_START  = 4
     HIT_END    = 16
 
-    # 캐릭터 기본 색상 (자식이 override)
+    # ── 색상 (자식이 override) ────────────────────────────────
     BODY_COLOR  = (180, 180, 180)
     TRIM_COLOR  = (100, 100, 100)
     GLOW_COLOR  = (220, 220, 220)
-    DARK_COLOR  = (60,  60,  60)
+    DARK_COLOR  = ( 60,  60,  60)
+
+    # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+    # 스프라이트 경로 (자식이 override — 없으면 도형 렌더링)
+    # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+    SPRITE_PATH   = None   # 단일 이미지 (이것만 있어도 됨)
+    SPRITE_IDLE   = None   # 상태별 이미지들 (선택)
+    SPRITE_WALK   = None
+    SPRITE_JUMP   = None
+    SPRITE_ATTACK = None
+    SPRITE_SKILL  = None
+
+    # ── 선택창 미리보기 ───────────────────────────────────────
+    DISPLAY_NAME  = "Unknown"
+    DESCRIPTION   = ""
+    PREVIEW_COLOR = (180, 180, 180)
+    SKILL_NAME    = "Skill"
 
     def __init__(self, x: int, y: int, name: str = "Player",
                  player_id: int = 1):
@@ -42,28 +99,23 @@ class Player(BaseEntity):
         self.spawn_x   = x
         self.spawn_y   = y
 
-        # 색상 (자식의 클래스 변수 사용)
         self.color      = self.BODY_COLOR
         self.trim_color = self.TRIM_COLOR
         self.glow_color = self.GLOW_COLOR
         self.dark_color = self.DARK_COLOR
 
-        # 스킬 (자식이 _init_skills 에서 설정)
         self.skills: dict[str, Skill] = {}
         self._init_skills()
 
         self.skill_timer   = 0
         self.skill_has_hit = False
 
-        # 리스폰
         self.respawning    = False
         self.respawn_timer = 0
 
-        # 애니메이션
-        self.bob_t   = 0.0
-        self.walk_t  = 0.0
+        self.bob_t  = 0.0
+        self.walk_t = 0.0
 
-        # 키 매핑
         if player_id == 1:
             self.key_left   = pygame.K_a
             self.key_right  = pygame.K_d
@@ -77,9 +129,57 @@ class Player(BaseEntity):
             self.key_attack = pygame.K_l
             self.key_skill  = pygame.K_SEMICOLON
 
-    # ── 자식이 오버라이드 ──────────────────────────────────────
+        # ── 스프라이트 로드 ──────────────────────────────────
+        self._sprites = self._load_sprites()
+        self._sprite_cache: dict[tuple, pygame.Surface] = {}
+
+    # ─── 스프라이트 로드 ─────────────────────────────────────────
+    def _load_sprites(self) -> dict[str, pygame.Surface | None]:
+        """
+        클래스 변수에 지정된 경로에서 스프라이트 로드.
+        SPRITE_PATH 하나만 있어도 모든 상태에 공유됩니다.
+        """
+        base = _load_sprite(self.SPRITE_PATH)
+        return {
+            "idle":   _load_sprite(self.SPRITE_IDLE)   or base,
+            "walk":   _load_sprite(self.SPRITE_WALK)   or base,
+            "jump":   _load_sprite(self.SPRITE_JUMP)   or base,
+            "attack": _load_sprite(self.SPRITE_ATTACK) or base,
+            "skill":  _load_sprite(self.SPRITE_SKILL)  or base,
+        }
+
+    @property
+    def _use_sprite(self) -> bool:
+        """스프라이트가 하나라도 로드됐으면 True."""
+        return any(v is not None for v in self._sprites.values())
+
+    def _get_sprite(self, state: str, w: int, h: int,
+                    zoom: float, flip: bool) -> pygame.Surface | None:
+        """상태+크기+방향에 맞는 스케일 스프라이트를 캐시해서 반환."""
+        img = self._sprites.get(state)
+        if img is None:
+            return None
+        key = (state, w, h, round(zoom, 2), flip)
+        if key not in self._sprite_cache:
+            scaled = _scale_sprite(img, w, h, zoom)
+            if flip:
+                scaled = pygame.transform.flip(scaled, True, False)
+            self._sprite_cache[key] = scaled
+        return self._sprite_cache[key]
+
+    def _current_state(self) -> str:
+        if self.attack_timer > 0:
+            return "attack"
+        if self.skill_timer > 0:
+            return "skill"
+        if not self.on_ground:
+            return "jump"
+        if abs(self.vel.x) > 0.5:
+            return "walk"
+        return "idle"
+
+    # ─── 자식 override ────────────────────────────────────────
     def _init_skills(self):
-        """스킬 등록. 자식 클래스에서 override."""
         self.skills["skill_1"] = Skill(
             name="Burst", damage=28, fatigue_cost=32, cooldown=100
         )
@@ -90,7 +190,7 @@ class Player(BaseEntity):
     # ═══════════════════════════════════════════════════════════
     #  입력
     # ═══════════════════════════════════════════════════════════
-    def handle_input(self, keys: pygame.key.ScancodeWrapper):
+    def handle_input(self, keys):
         if self.dead or self.respawning:
             return
         moving = False
@@ -107,7 +207,7 @@ class Player(BaseEntity):
             if abs(self.vel.x) < 0.25:
                 self.vel.x = 0.0
 
-    def handle_keydown(self, key: int, event_bus, psys=None, camera=None):
+    def handle_keydown(self, key, event_bus, psys=None):
         if self.dead or self.respawning:
             return
         if key == self.key_jump:
@@ -119,8 +219,8 @@ class Player(BaseEntity):
 
     def _jump(self, psys):
         if self.jump_count < self.MAX_JUMPS:
-            power           = self.JUMP_POWER if self.jump_count == 0 \
-                              else self.JUMP_POWER * 0.83
+            power = self.JUMP_POWER if self.jump_count == 0 \
+                    else self.JUMP_POWER * 0.83
             self.vel.y      = power
             self.jump_count += 1
             if psys:
@@ -150,7 +250,7 @@ class Player(BaseEntity):
     # ═══════════════════════════════════════════════════════════
     #  스킬 히트박스
     # ═══════════════════════════════════════════════════════════
-    def get_skill_hitbox(self) -> pygame.Rect | None:
+    def get_skill_hitbox(self):
         if not (6 <= self.skill_timer <= 26):
             return None
         w, h = 100, self.rect.h + 10
@@ -158,8 +258,7 @@ class Player(BaseEntity):
              else self.rect.left - w + 12
         return pygame.Rect(ox, self.rect.y - 5, w, h)
 
-    def check_skill_collision(self, target: BaseEntity, event_bus,
-                               psys=None, fsys=None):
+    def check_skill_collision(self, target, event_bus, psys=None, fsys=None):
         if self.dead or target.dead or target.invincible > 0:
             return
         sk = self.get_skill_hitbox()
@@ -178,9 +277,9 @@ class Player(BaseEntity):
     #  스톡 / 리스폰
     # ═══════════════════════════════════════════════════════════
     def lose_stock(self, event_bus):
-        self.stocks     -= 1
-        self.damage_pct  = 0.0
-        self.vel         = pygame.Vector2(0, 0)
+        self.stocks    -= 1
+        self.damage_pct = 0.0
+        self.vel        = pygame.Vector2(0, 0)
         if self.stocks <= 0:
             self.dead = True
             event_bus.emit("entity_dead", {"entity": self})
@@ -201,29 +300,25 @@ class Player(BaseEntity):
     # ═══════════════════════════════════════════════════════════
     #  update
     # ═══════════════════════════════════════════════════════════
-    def update(self, dt: float, platforms: list, event_bus, psys=None):
+    def update(self, dt, platforms, event_bus, psys=None):
         if self.respawning:
             self.respawn_timer -= 1
             if self.respawn_timer <= 0:
                 self._do_respawn(psys)
             return
-
         super().update(dt, platforms, event_bus)
-
         for sk in self.skills.values():
             sk.update()
-
         if self.skill_timer > 0:
             self.skill_timer -= 1
         if self.skill_timer <= 0:
             self.skill_has_hit = False
-
         self.bob_t  += 0.065
         if abs(self.vel.x) > 0.4:
             self.walk_t += 0.20
 
     # ═══════════════════════════════════════════════════════════
-    #  렌더링 (기본 구현 — 자식이 override 가능)
+    #  draw — 이미지 or 도형 자동 분기
     # ═══════════════════════════════════════════════════════════
     def draw(self, screen: pygame.Surface, camera):
         if self.dead:
@@ -238,61 +333,80 @@ class Player(BaseEntity):
         z   = camera.zoom
         bob = int(math.sin(self.bob_t) * 2.2 * z) if self.on_ground else 0
 
-        # 그림자
         if self.on_ground:
             self._draw_shadow(screen, dr)
 
-        # 스킬 오라
         if self.skill_timer > 0:
             self._draw_skill_aura(screen, dr, bob, z)
 
+        if self._use_sprite:
+            self._draw_sprite(screen, dr, bob, z)
+        else:
+            self._draw_shape(screen, dr, bob, z)
+
+        if self.skill_timer > 6:
+            self._draw_skill_beam(screen, dr, bob, z)
+
+    # ─── 스프라이트 렌더링 ─────────────────────────────────────
+    def _draw_sprite(self, screen, dr, bob, z):
+        """이미지 스프라이트로 캐릭터 그리기."""
+        state = self._current_state()
+        flip  = (self.facing == -1)   # 왼쪽을 향할 때 좌우 반전
+        img   = self._get_sprite(state, self.rect.w, self.rect.h, z, flip)
+
+        if img is None:
+            self._draw_shape(screen, dr, bob, z)
+            return
+
+        # 히트 플래시 — 흰색 오버레이
+        if self.hit_flash > 0 and (self.hit_flash // 3) % 2 == 0:
+            flash_img = img.copy()
+            flash_img.fill((255, 255, 255, 180), special_flags=pygame.BLEND_RGBA_MULT)
+            screen.blit(flash_img, (dr.x, dr.y + bob))
+        else:
+            screen.blit(img, (dr.x, dr.y + bob))
+
+        # 공격 시 주먹 글로우 이펙트 추가
+        if self.attack_timer > 0 and self.HIT_START <= self.attack_timer <= self.HIT_END:
+            gr = int(38 * z)
+            gs = pygame.Surface((gr, gr), pygame.SRCALPHA)
+            pygame.draw.circle(gs, (*self.glow_color, 130), (gr//2, gr//2), gr//2)
+            fist_x = dr.right if self.facing == 1 else dr.left - gr
+            screen.blit(gs, (fist_x - gr//4, dr.centery - gr//2 + bob))
+
+    # ─── 도형 렌더링 (폴백) ────────────────────────────────────
+    def _draw_shape(self, screen, dr, bob, z):
+        """이미지 없을 때 기존 도형으로 그리기."""
         flash = self._flash_color
 
-        # 다리
         self._draw_legs(screen, dr, bob, z, flash)
 
-        # 몸통
         body_r = pygame.Rect(dr.x + int(2*z), dr.y + int(dr.h*0.30) + bob,
                              dr.w - int(4*z), int(dr.h*0.45))
         pygame.draw.rect(screen, flash(self.color), body_r,
                          border_radius=int(7*z))
-
-        # 가운 라펠
         pygame.draw.rect(screen, self.trim_color,
                          (body_r.x + int(3*z), body_r.y + int(2*z),
                           int(13*z), body_r.h - int(4*z)),
                          border_radius=int(3*z))
-
-        # 벨트 라인
         belt_y = body_r.y + int(body_r.h * 0.72)
         pygame.draw.line(screen, self.dark_color,
                          (body_r.x, belt_y), (body_r.right, belt_y),
                          max(1, int(2*z)))
 
-        # 머리
         head_r = pygame.Rect(dr.x + int(dr.w*0.12),
                              dr.y + int(2*z) + bob,
                              int(dr.w*0.76), int(dr.h*0.32))
         pygame.draw.rect(screen, flash(self.color), head_r,
                          border_radius=int(10*z))
-
-        # 머리카락
         hair_r = pygame.Rect(head_r.x + int(3*z), head_r.y + int(2*z),
                              head_r.w - int(6*z), int(head_r.h*0.38))
         pygame.draw.rect(screen, self.trim_color, hair_r,
                          border_radius=int(6*z))
-
-        # 안경
         self._draw_glasses(screen, head_r, bob, z)
-
-        # 팔
         self._draw_arms(screen, dr, bob, z, flash)
 
-        # 스킬 빔
-        if self.skill_timer > 6:
-            self._draw_skill_beam(screen, dr, bob, z)
-
-    # ── 렌더링 서브 메서드 ──────────────────────────────────────
+    # ─── 서브 렌더 메서드들 ────────────────────────────────────
     def _draw_shadow(self, screen, dr):
         sh = pygame.Surface((dr.w - int(8), 9), pygame.SRCALPHA)
         pygame.draw.ellipse(sh, (0, 0, 0, 85), sh.get_rect())
@@ -304,10 +418,8 @@ class Player(BaseEntity):
         leg_top = dr.y + int(dr.h * 0.73) + bob
         swing = int(math.sin(self.walk_t) * 7 * z) \
                 if self.on_ground and abs(self.vel.x) > 0.5 else 0
-
         lw, lh = int(13*z), int(dr.h * 0.22)
         fw, fh = int(16*z), int(7*z)
-
         for side, sw in ((-1, -swing), (1, swing)):
             lx = dr.x + (int(dr.w*0.12) if side == -1 else int(dr.w*0.55))
             pygame.draw.rect(screen, lc,
@@ -317,9 +429,8 @@ class Player(BaseEntity):
                              border_radius=int(3*z))
 
     def _draw_arms(self, screen, dr, bob, z, flash):
-        ac  = flash(self.color)
+        ac    = flash(self.color)
         arm_y = dr.y + int(dr.h * 0.30) + bob + int(4*z)
-
         if self.attack_timer > 0:
             prog  = 1.0 - self.attack_timer / self.ATK_FRAMES
             swing = int(math.sin(prog * math.pi) * 14 * z)
@@ -335,17 +446,10 @@ class Player(BaseEntity):
                                    (gr//2, gr//2), gr//2)
                 screen.blit(gs, (ax + aw//2 - gr//2, ay + ah//2 - gr//2))
         else:
-            # 대기 팔
-            if self.facing == 1:
-                pygame.draw.rect(screen, ac,
-                                 (dr.x + dr.w - int(3*z), arm_y + int(2*z),
-                                  int(12*z), int(14*z)),
-                                 border_radius=int(4*z))
-            else:
-                pygame.draw.rect(screen, ac,
-                                 (dr.x - int(9*z), arm_y + int(2*z),
-                                  int(12*z), int(14*z)),
-                                 border_radius=int(4*z))
+            xoff = dr.x + dr.w - int(3*z) if self.facing == 1 else dr.x - int(9*z)
+            pygame.draw.rect(screen, ac,
+                             (xoff, arm_y + int(2*z), int(12*z), int(14*z)),
+                             border_radius=int(4*z))
 
     def _draw_glasses(self, screen, head_r, bob, z):
         ex = head_r.x + (int(head_r.w*0.62) if self.facing == 1
@@ -373,33 +477,33 @@ class Player(BaseEntity):
         screen.blit(sf, (dr.centerx - r, dr.centery - r + bob))
 
     def _draw_skill_beam(self, screen, dr, bob, z):
-        t    = self.skill_timer / 30.0
-        bl   = int(120 * z)
-        bw   = max(int(4*z), int(16 * t * z))
-        alp  = int(230 * t)
-        bx   = dr.right - int(6*z) if self.facing == 1 else dr.left - bl + int(6*z)
-        by   = dr.centery + bob - bw//2
-        bs   = pygame.Surface((bl, bw + int(14*z)), pygame.SRCALPHA)
+        t   = self.skill_timer / 30.0
+        bl  = int(120 * z)
+        bw  = max(int(4*z), int(16 * t * z))
+        alp = int(230 * t)
+        bx  = dr.right - int(6*z) if self.facing == 1 else dr.left - bl + int(6*z)
+        by  = dr.centery + bob - bw//2
+        bs  = pygame.Surface((bl, bw + int(14*z)), pygame.SRCALPHA)
         pygame.draw.rect(bs, (*self.glow_color, alp),
                          (0, int(7*z), bl, bw), border_radius=int(5*z))
         pygame.draw.rect(bs, (*self.glow_color, alp//3),
                          (0, int(2*z), bl, bw + int(10*z)),
                          border_radius=int(7*z))
-        pygame.draw.rect(bs, (255,255,255, int(alp*0.65)),
+        pygame.draw.rect(bs, (255, 255, 255, int(alp*0.65)),
                          (0, int(7*z)+bw//2-int(2*z), bl, int(4*z)),
                          border_radius=int(5*z))
         screen.blit(bs, (bx, by - int(7*z)))
 
     def _draw_respawn_ghost(self, screen):
-        t   = self.respawn_timer / 100.0
-        a   = int(180 * t)
-        x   = 38 if self.player_id == 1 else screen.get_width() - 148
-        sf  = pygame.Surface((110, 36), pygame.SRCALPHA)
+        t  = self.respawn_timer / 100.0
+        a  = int(180 * t)
+        x  = 38 if self.player_id == 1 else screen.get_width() - 148
+        sf = pygame.Surface((110, 36), pygame.SRCALPHA)
         sf.fill((0, 0, 0, 100))
         pygame.draw.rect(sf, (*self.glow_color, a), sf.get_rect(), 2,
                          border_radius=6)
-        fnt = pygame.font.SysFont("Arial", 15, bold=True)
+        fnt  = pygame.font.SysFont("Arial", 15, bold=True)
         secs = self.respawn_timer // 20 + 1
-        txt = fnt.render(f"{self.name}  ✦{secs}", True, self.glow_color)
+        txt  = fnt.render(f"{self.name}  ✦{secs}", True, self.glow_color)
         sf.blit(txt, (8, 10))
         screen.blit(sf, (x, 55))

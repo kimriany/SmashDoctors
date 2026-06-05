@@ -6,6 +6,7 @@ P1(A/D/F확정/G취소), P2(←/→/L확정/;취소)
 import pygame
 import math
 import random
+import os
 
 from entities.characters.doctor_blue   import DoctorBlue
 from entities.characters.doctor_red    import DoctorRed
@@ -49,6 +50,21 @@ class CharacterSelect:
 
         # 배경 캐시
         self._bg = self._bake_bg()
+
+        # 캐릭터 스프라이트 썸네일 캐시 (SPRITE_IDLE or SPRITE_PATH)
+        # 이미지 없으면 None → 도형 미리보기로 폴백
+        THUMB_W, THUMB_H = 90, 110
+        self._char_thumbs: dict[str, pygame.Surface | None] = {}
+        for cls in ROSTER:
+            path = getattr(cls, "SPRITE_IDLE", None) or getattr(cls, "SPRITE_PATH", None)
+            thumb = None
+            if path and os.path.exists(path):
+                try:
+                    img = pygame.image.load(path).convert_alpha()
+                    thumb = pygame.transform.smoothscale(img, (THUMB_W, THUMB_H))
+                except Exception as e:
+                    print(f"[CharSelect] 썸네일 로드 실패: {e}")
+            self._char_thumbs[cls.__name__] = thumb
 
     def _bake_bg(self) -> pygame.Surface:
         sf = pygame.Surface((self.W, self.H))
@@ -176,57 +192,51 @@ class CharacterSelect:
                                   ry + CARD_H - 30))
 
     def _draw_char_preview(self, cls, cx, cy, col, glw):
-        """캐릭터 픽셀아트 미리보기 (player.py draw() 로직 미니 버전)"""
+        """캐릭터 미리보기 — 이미지 있으면 썸네일, 없으면 도형."""
         import math as m
-        t = self._t
+        bob   = int(m.sin(self._t * 2.5) * 3)
+        thumb = self._char_thumbs.get(cls.__name__)
 
-        # 배경 원 + 글로우
-        for rr, aa in [(58, 30), (50, 55)]:
+        # 배경 원 글로우
+        for rr, aa in [(60, 28), (52, 52)]:
             gs = pygame.Surface((rr*2, rr*2), pygame.SRCALPHA)
             pygame.draw.circle(gs, (*col, aa), (rr, rr), rr)
             self.screen.blit(gs, (cx - rr, cy - rr))
 
-        bob = int(m.sin(t * 2.5) * 3)
-        sc  = 1.0  # scale (미리보기용 고정)
+        if thumb is not None:
+            # ── 이미지 썸네일 ──
+            tw, th = thumb.get_size()
+            self.screen.blit(thumb, (cx - tw//2, cy - th//2 + bob))
+            # 외곽 링
+            pygame.draw.circle(self.screen, glw, (cx, cy + bob//2), 52, 2)
+        else:
+            # ── 도형 미리보기 ──
+            sh = pygame.Surface((52, 10), pygame.SRCALPHA)
+            pygame.draw.ellipse(sh, (0, 0, 0, 70), sh.get_rect())
+            self.screen.blit(sh, (cx - 26, cy + 36 + bob))
 
-        # 그림자
-        sh = pygame.Surface((52, 10), pygame.SRCALPHA)
-        pygame.draw.ellipse(sh, (0, 0, 0, 70), sh.get_rect())
-        self.screen.blit(sh, (cx - 26, cy + 36 + bob))
-
-        # 다리
-        tc = cls.TRIM_COLOR
-        pygame.draw.rect(self.screen, tc,
-                         (cx - 18, cy + 18 + bob, 13, 18), border_radius=3)
-        pygame.draw.rect(self.screen, tc,
-                         (cx + 5,  cy + 18 + bob, 13, 18), border_radius=3)
-
-        # 몸통
-        pygame.draw.rect(self.screen, col,
-                         (cx - 20, cy - 4 + bob, 40, 24), border_radius=6)
-        # 가운 라펠
-        pygame.draw.rect(self.screen, tc,
-                         (cx - 18, cy - 2 + bob, 10, 20), border_radius=2)
-
-        # 머리
-        pygame.draw.rect(self.screen, col,
-                         (cx - 16, cy - 30 + bob, 32, 26), border_radius=9)
-        # 머리카락
-        pygame.draw.rect(self.screen, tc,
-                         (cx - 13, cy - 28 + bob, 26, 9), border_radius=5)
-
-        # 안경
-        pygame.draw.rect(self.screen, (210, 235, 255),
-                         (cx + 2, cy - 20 + bob, 11, 9), border_radius=2)
-        pygame.draw.rect(self.screen, (90, 100, 130),
-                         (cx + 2, cy - 20 + bob, 11, 9), 1, border_radius=2)
-        pygame.draw.circle(self.screen, (15, 15, 35),
-                           (cx + 8, cy - 16 + bob), 3)
-        pygame.draw.circle(self.screen, (255, 255, 255),
-                           (cx + 6, cy - 18 + bob), 1)
-
-        # 외곽 링
-        pygame.draw.circle(self.screen, glw, (cx, cy), 52, 2)
+            tc = cls.TRIM_COLOR
+            pygame.draw.rect(self.screen, tc,
+                             (cx - 18, cy + 18 + bob, 13, 18), border_radius=3)
+            pygame.draw.rect(self.screen, tc,
+                             (cx + 5,  cy + 18 + bob, 13, 18), border_radius=3)
+            pygame.draw.rect(self.screen, col,
+                             (cx - 20, cy - 4 + bob, 40, 24), border_radius=6)
+            pygame.draw.rect(self.screen, tc,
+                             (cx - 18, cy - 2 + bob, 10, 20), border_radius=2)
+            pygame.draw.rect(self.screen, col,
+                             (cx - 16, cy - 30 + bob, 32, 26), border_radius=9)
+            pygame.draw.rect(self.screen, tc,
+                             (cx - 13, cy - 28 + bob, 26, 9), border_radius=5)
+            pygame.draw.rect(self.screen, (210, 235, 255),
+                             (cx + 2, cy - 20 + bob, 11, 9), border_radius=2)
+            pygame.draw.rect(self.screen, (90, 100, 130),
+                             (cx + 2, cy - 20 + bob, 11, 9), 1, border_radius=2)
+            pygame.draw.circle(self.screen, (15, 15, 35),
+                               (cx + 8, cy - 16 + bob), 3)
+            pygame.draw.circle(self.screen, (255, 255, 255),
+                               (cx + 6, cy - 18 + bob), 1)
+            pygame.draw.circle(self.screen, glw, (cx, cy), 52, 2)
 
     def _draw_stat_bar(self, x, y, w, label, ratio, col, glw):
         lb = self.font_sm.render(label, True, (180, 180, 215))

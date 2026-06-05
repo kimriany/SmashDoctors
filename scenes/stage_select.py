@@ -78,6 +78,7 @@ class StageSelect:
             for _ in range(110)
         ]
         self._bg = self._bake_bg()
+        self._preview_bg_cache = {}
 
         # 스테이지 플랫폼 미리보기 캐시
         self._platform_cache = {}
@@ -143,6 +144,41 @@ class StageSelect:
             a = int(18 * (1 - y / self.H))
             pygame.draw.line(sf, (*col, a), (0, y), (self.W, y))
         self.screen.blit(sf, (0, 0))
+
+    def _load_preview_bg(self, stage_id: str, size: tuple[int, int]):
+        """
+        stage_01 -> assets/images/bg_stage_01.png
+        없으면 assets/images/bg_default.png
+        그것도 없으면 None
+        """
+        key = (stage_id, size)
+
+        if key in self._preview_bg_cache:
+            return self._preview_bg_cache[key]
+
+        candidates = [
+            f"assets/images/bg_{stage_id}.png",
+            f"assets/images/bg_{stage_id}.jpg",
+            f"assets/images/bg_{stage_id}.jpeg",
+            "assets/images/bg_default.png",
+            "assets/images/bg_default.jpg",
+            "assets/images/bg_default.jpeg",
+        ]
+
+        for path in candidates:
+            if not os.path.exists(path):
+                continue
+
+            try:
+                img = pygame.image.load(path).convert()
+                img = pygame.transform.smoothscale(img, size)
+                self._preview_bg_cache[key] = img
+                return img
+            except pygame.error:
+                pass
+
+        self._preview_bg_cache[key] = None
+        return None
 
     def _draw_title(self):
         t = self.font_title.render("STAGE  SELECT", True, (255, 255, 255))
@@ -216,10 +252,22 @@ class StageSelect:
         px, py = rx + 12, ry + 24
 
         # 배경 박스
-        bg = pygame.Surface((PW, PH), pygame.SRCALPHA)
-        pygame.draw.rect(bg, (8, 10, 24, 200), (0, 0, PW, PH), border_radius=8)
-        pygame.draw.rect(bg, (*col, 80), (0, 0, PW, PH), 1, border_radius=8)
-        self.screen.blit(bg, (px, py))
+        bg_img = self._load_preview_bg(stage_id, (PW, PH))
+
+        if bg_img is not None:
+            self.screen.blit(bg_img, (px, py))
+
+            shade = pygame.Surface((PW, PH), pygame.SRCALPHA)
+            shade.fill((0, 0, 0, 70))
+            self.screen.blit(shade, (px, py))
+
+            pygame.draw.rect(self.screen, (*col, 100), (px, py, PW, PH), 1, border_radius=8)
+
+        else:
+            bg = pygame.Surface((PW, PH), pygame.SRCALPHA)
+            pygame.draw.rect(bg, (8, 10, 24, 200), (0, 0, PW, PH), border_radius=8)
+            pygame.draw.rect(bg, (*col, 80), (0, 0, PW, PH), 1, border_radius=8)
+            self.screen.blit(bg, (px, py))
 
         # 스테이지 전체 범위 → 썸네일 좌표 변환
         plats = self._platform_cache.get(stage_id, [])
