@@ -1,7 +1,7 @@
 """Doctor Purple — 스킬 특화, 피로도 관리가 핵심."""
 from entities.player import Player
 from systems.skill import Skill
-from systems.skill import Ultimate_Skill
+import pygame
 
 
 class Schrödinger(Player):
@@ -51,14 +51,67 @@ class Schrödinger(Player):
         self.dark_color  = self.DARK_COLOR
         self.max_jumps   = self.MAX_JUMPS
         self.attack_damage = self.ATTACK_DMG
-        self.skills["skill_1"] = Skill(
-            name=self.SKILL_NAME, damage=20,
-            fatigue_cost=20, cooldown=60)
-        self.skills["skill_2"] = Skill(
-            name=self.SKILL_NAME, damage=20,
-            fatigue_cost=20, cooldown=60)
-        self.skills["skill_3"] = Skill(
-            name=self.SKILL_NAME, damage=20,
-            fatigue_cost=20, cooldown=60)
+
+        def _init_skills(self):
+            self.skills["skill_1"] = VoidPulseSkill()
+            self.skills["skill_2"] = CatBoxSkill()
+            self.skills["skill_R"] = QuantumShiftSkill()
 
     def get_char_name(self): return "Schrödinger"
+
+
+class VoidPulseSkill(Skill):
+    def __init__(self):
+        super().__init__(
+            name="Void Pulse",
+            damage=20,
+            fatigue_cost=20,
+            cooldown=60,
+            duration=30
+        )
+
+    def draw_front(self, owner, screen, camera, dr, bob, z):
+        # 여기서 이펙트 그리기
+        pass
+
+    def get_hitbox(self, owner):
+        # 여기서 판정 반환
+        return pygame.Rect(owner.rect.centerx, owner.rect.y, 100, 80)
+
+
+class CatBoxSkill(Skill):
+    def __init__(self):
+        super().__init__(
+            name="Void Pulse",
+            damage=20,
+            fatigue_cost=20,
+            cooldown=60,
+            duration=30
+        )
+
+    def draw_front(self, owner, screen, camera, dr, bob, z):
+        # 여기서 이펙트 그리기
+        pass
+
+    def get_hitbox(self, owner):
+        # 여기서 판정 반환
+        return pygame.Rect(owner.rect.centerx, owner.rect.y, 100, 80)
+
+
+class QuantumShiftSkill(Skill):
+    def __init__(self):
+        super().__init__(
+            name="Void Pulse",
+            damage=20,
+            fatigue_cost=20,
+            cooldown=60,
+            duration=30
+        )
+
+    def draw_front(self, owner, screen, camera, dr, bob, z):
+        # 여기서 이펙트 그리기
+        pass
+
+    def get_hitbox(self, owner):
+        # 여기서 판정 반환
+        return pygame.Rect(owner.rect.centerx, owner.rect.y, 100, 80)

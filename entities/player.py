@@ -88,8 +88,7 @@ class Player(BaseEntity):
         self.skills: dict[str, Skill] = {}
         self._init_skills()
 
-        self.skill_timer   = 0
-        self.skill_has_hit = False
+        self.active_skill = None
 
         self.respawning    = False
         self.respawn_timer = 0
@@ -102,17 +101,21 @@ class Player(BaseEntity):
         self.jump_sprite_lock = 0
 
         if player_id == 1:
-            self.key_left   = pygame.K_a
-            self.key_right  = pygame.K_d
-            self.key_jump   = pygame.K_w
+            self.key_left = pygame.K_a
+            self.key_right = pygame.K_d
+            self.key_jump = pygame.K_w
             self.key_attack = pygame.K_f
-            self.key_skill  = pygame.K_g
+            self.key_skill_1 = pygame.K_q
+            self.key_skill_2 = pygame.K_e
+            self.key_skill_R = pygame.K_r
         else:
-            self.key_left   = pygame.K_LEFT
-            self.key_right  = pygame.K_RIGHT
-            self.key_jump   = pygame.K_UP
+            self.key_left = pygame.K_LEFT
+            self.key_right = pygame.K_RIGHT
+            self.key_jump = pygame.K_UP
             self.key_attack = pygame.K_l
-            self.key_skill  = pygame.K_SEMICOLON
+            self.key_skill_1 = pygame.K_SEMICOLON
+            self.key_skill_2 = pygame.K_QUOTE
+            self.key_skill_R = pygame.K_SLASH
 
         # ── 스프라이트 로드 ──────────────────────────────────
         self._sprites = self._load_sprites()
@@ -154,7 +157,8 @@ class Player(BaseEntity):
     def _current_state(self) -> str:
         if self.attack_timer > 0:
             return "attack"
-        if self.skill_timer > 0:
+
+        if self.active_skill is not None and self.active_skill.active:
             return "skill"
 
         # 점프 버튼을 누른 직후에는 jump 이미지
@@ -203,8 +207,12 @@ class Player(BaseEntity):
             self._jump(psys)
         elif key == self.key_attack:
             self._do_attack(psys)
-        elif key == self.key_skill:
-            self._do_skill(event_bus, psys)
+        elif key == self.key_skill_1:
+            self._do_skill(event_bus, psys, "skill_1")
+        elif key == self.key_skill_2:
+            self._do_skill(event_bus, psys, "skill_2")
+        elif key == self.key_skill_R:
+            self._do_skill(event_bus, psys, "skill_R")
 
     def _jump(self, psys):
         if self.jump_count < self.MAX_JUMPS:
@@ -227,44 +235,35 @@ class Player(BaseEntity):
             psys.spawn(px, py, self.glow_color,
                        count=9, speed=5, life=18, r=4)
 
-    def _do_skill(self, event_bus, psys):
-        sk = self.skills.get("skill_1")
-        if sk and sk.can_use(self.fatigue):
-            sk.use()
-            self.fatigue       = min(self.max_fatigue,
-                                     self.fatigue + sk.fatigue_cost)
-            self.skill_timer   = 30
-            self.skill_has_hit = False
-            event_bus.emit("skill_used", {"user": self, "skill": sk})
-            if psys:
-                px, py = self._sprite_center_world()
-                psys.spawn_skill(px, py, self.glow_color)
+    def _do_skill(self, event_bus, psys, skill_key="skill_1"):
+        sk = self.skills.get(skill_key)
 
+        if sk and sk.can_use(self):
+            sk.use(self, event_bus, psys)
+            self.active_skill = sk
+
+            event_bus.emit("skill_used", {
+                "user": self,
+                "skill": sk,
+                "skill_key": skill_key
+            })
     # ═══════════════════════════════════════════════════════════
     #  스킬 히트박스
     # ═══════════════════════════════════════════════════════════
-    def get_skill_hitbox(self):
-        if not (6 <= self.skill_timer <= 26):
-            return None
-        w, h = 100, self.rect.h + 10
-        ox = self.rect.right - 12 if self.facing == 1 \
-             else self.rect.left - w + 12
-        return pygame.Rect(ox, self.rect.y - 5, w, h)
 
     def check_skill_collision(self, target, event_bus, psys=None, fsys=None):
         if self.dead or target.dead or target.invincible > 0:
             return
-        sk = self.get_skill_hitbox()
-        if sk is None or self.skill_has_hit:
+
+        if self.active_skill is None or not self.active_skill.active:
             return
-        if sk.colliderect(target.rect):
-            self.skill_has_hit = True
-            dmg = self.skills["skill_1"].damage
-            event_bus.emit("attack_hit", {
-                "attacker": self, "target": target,
-                "damage": dmg, "is_skill": True,
-                "particle_system": psys, "floater_system": fsys,
-            })
+
+        hitbox = self.active_skill.get_hitbox(self)
+        if hitbox is None:
+            return
+
+        if hitbox.colliderect(target.rect):
+            self.active_skill.on_hit(self, target, event_bus, psys, fsys)
 
     # ═══════════════════════════════════════════════════════════
     #  스톡 / 리스폰
@@ -313,11 +312,14 @@ class Player(BaseEntity):
             self.jump_sprite_lock -= 1
 
         for sk in self.skills.values():
-            sk.update()
-        if self.skill_timer > 0:
-            self.skill_timer -= 1
-        if self.skill_timer <= 0:
-            self.skill_has_hit = False
+            sk.update_cooldown()
+
+        if self.active_skill is not None:
+            self.active_skill.update_active(self, event_bus, psys)
+
+            if not self.active_skill.active:
+                self.active_skill = None
+
         self.bob_t  += 0.065
         if abs(self.vel.x) > 0.4:
             self.walk_t += 0.20
@@ -341,16 +343,16 @@ class Player(BaseEntity):
         if self.on_ground:
             self._draw_shadow(screen, dr)
 
-        if self.skill_timer > 0:
-            self._draw_skill_aura(screen, dr, bob, z)
+        if self.active_skill is not None and self.active_skill.active:
+            self.active_skill.draw_behind(self, screen, camera, dr, bob, z)
 
         if self._use_sprite:
             self._draw_sprite(screen, dr, bob, z)
         else:
             self._draw_shape(screen, dr, bob, z)
 
-        if self.skill_timer > 6:
-            self._draw_skill_beam(screen, dr, bob, z)
+        if self.active_skill is not None and self.active_skill.active:
+            self.active_skill.draw_front(self, screen, camera, dr, bob, z)
 
     # ─── 스프라이트 렌더링 ─────────────────────────────────────
     def _draw_sprite(self, screen, dr, bob, z):
@@ -395,97 +397,12 @@ class Player(BaseEntity):
 
             screen.blit(gs, (fist_x - gr // 4, fist_y - gr // 2))
 
-    # ─── 도형 렌더링 (폴백) ────────────────────────────────────
-    def _draw_shape(self, screen, dr, bob, z):
-        """이미지 없을 때 기존 도형으로 그리기."""
-        flash = self._flash_color
-
-        self._draw_legs(screen, dr, bob, z, flash)
-
-        body_r = pygame.Rect(dr.x + int(2*z), dr.y + int(dr.h*0.30) + bob,
-                             dr.w - int(4*z), int(dr.h*0.45))
-        pygame.draw.rect(screen, flash(self.color), body_r,
-                         border_radius=int(7*z))
-        pygame.draw.rect(screen, self.trim_color,
-                         (body_r.x + int(3*z), body_r.y + int(2*z),
-                          int(13*z), body_r.h - int(4*z)),
-                         border_radius=int(3*z))
-        belt_y = body_r.y + int(body_r.h * 0.72)
-        pygame.draw.line(screen, self.dark_color,
-                         (body_r.x, belt_y), (body_r.right, belt_y),
-                         max(1, int(2*z)))
-
-        head_r = pygame.Rect(dr.x + int(dr.w*0.12),
-                             dr.y + int(2*z) + bob,
-                             int(dr.w*0.76), int(dr.h*0.32))
-        pygame.draw.rect(screen, flash(self.color), head_r,
-                         border_radius=int(10*z))
-        hair_r = pygame.Rect(head_r.x + int(3*z), head_r.y + int(2*z),
-                             head_r.w - int(6*z), int(head_r.h*0.38))
-        pygame.draw.rect(screen, self.trim_color, hair_r,
-                         border_radius=int(6*z))
-        self._draw_glasses(screen, head_r, bob, z)
-        self._draw_arms(screen, dr, bob, z, flash)
 
     # ─── 서브 렌더 메서드들 ────────────────────────────────────
     def _draw_shadow(self, screen, dr):
         sh = pygame.Surface((dr.w - int(8), 9), pygame.SRCALPHA)
         pygame.draw.ellipse(sh, (0, 0, 0, 85), sh.get_rect())
         screen.blit(sh, (dr.x + 4, dr.y + dr.h - 3))
-
-
-    def _draw_skill_aura(self, screen, dr, bob, z):
-        t = self.skill_timer / 30.0
-        r = int((55 + math.sin(self.bob_t * 4) * 7) * z)
-        a = int(90 * t)
-
-        sr = self._sprite_screen_rect(dr, z, bob)
-
-        sf = pygame.Surface((r * 2, r * 2), pygame.SRCALPHA)
-        pygame.draw.circle(sf, (*self.glow_color, a), (r, r), r)
-        pygame.draw.circle(sf, (*self.glow_color, a // 2), (r, r), r, int(3 * z))
-
-        screen.blit(sf, (
-            sr.centerx - r + int(self.SKILL_AURA_OFFSET_X * z),
-            sr.centery - r + int(self.SKILL_AURA_OFFSET_Y * z)
-        ))
-
-    def _draw_skill_beam(self, screen, dr, bob, z):
-        t = self.skill_timer / 30.0
-        bl = int(120 * z)
-        bw = max(int(4 * z), int(16 * t * z))
-        alp = int(230 * t)
-
-        sr = self._sprite_screen_rect(dr, z, bob)
-
-        # 빔이 나가는 높이. 0.45면 몸통/손 근처.
-        beam_y = sr.y + int(sr.h * 0.45)
-
-        if self.facing == 1:
-            bx = sr.right - int(6 * z)
-        else:
-            bx = sr.left - bl + int(6 * z)
-
-        by = beam_y - bw // 2
-
-        bx += int(self.SKILL_BEAM_OFFSET_X * z)
-        by += int(self.SKILL_BEAM_OFFSET_Y * z)
-
-        bs = pygame.Surface((bl, bw + int(14 * z)), pygame.SRCALPHA)
-
-        pygame.draw.rect(bs, (*self.glow_color, alp),
-                         (0, int(7 * z), bl, bw),
-                         border_radius=int(5 * z))
-
-        pygame.draw.rect(bs, (*self.glow_color, alp // 3),
-                         (0, int(2 * z), bl, bw + int(10 * z)),
-                         border_radius=int(7 * z))
-
-        pygame.draw.rect(bs, (255, 255, 255, int(alp * 0.65)),
-                         (0, int(7 * z) + bw // 2 - int(2 * z), bl, int(4 * z)),
-                         border_radius=int(5 * z))
-
-        screen.blit(bs, (bx, by - int(7 * z)))
 
     def _draw_respawn_ghost(self, screen):
         t  = self.respawn_timer / 100.0
@@ -500,7 +417,6 @@ class Player(BaseEntity):
         txt  = fnt.render(f"{self.name}  ✦{secs}", True, self.glow_color)
         sf.blit(txt, (8, 10))
         screen.blit(sf, (x, 55))
-
 
     #위치 조정 메서드
     def _sprite_world_bounds(self):
