@@ -8,12 +8,12 @@ import math
 import random
 import os
 
-from entities.characters.doctor_blue   import DoctorBlue
-from entities.characters.doctor_red    import DoctorRed
-from entities.characters.doctor_green  import DoctorGreen
-from entities.characters.doctor_purple import DoctorPurple
+from entities.characters.Pita   import Pita
+from entities.characters.Nobel    import Nobel
+from entities.characters.Einstein  import Einstein
+from entities.characters.Schrödinger import Schrödinger
 
-ROSTER = [DoctorBlue, DoctorRed, DoctorGreen, DoctorPurple]
+ROSTER = [Pita, Nobel, Einstein, Schrödinger]
 
 CARD_W   = 220
 CARD_H   = 320

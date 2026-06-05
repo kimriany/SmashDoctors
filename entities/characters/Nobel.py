@@ -3,7 +3,7 @@ from entities.player import Player
 from systems.skill import Skill
 
 
-class DoctorGreen(Player):
+class Nobel(Player):
     WEIGHT     = 88
     KB_GROWTH  = 90
     BASE_KB    = 26
@@ -24,6 +24,23 @@ class DoctorGreen(Player):
     DESCRIPTION   = "3단 점프로 공중을 지배.\n경쾌하지만 한방이 약하다."
     PREVIEW_COLOR = (55, 200, 90)
     SKILL_NAME    = "Aerial Spike"
+
+    SPRITE_PATH = "assets/images/charactor/Nobel/IDL.png"
+    SPRITE_IDLE = "assets/images/charactor/Nobel/IDL.png"
+    SPRITE_JUMP = "assets/images/charactor/Nobel/jump.png"  # 없으면 IDLE 사용
+    SPRITE_ATTACK = "assets/images/charactor/Nobel/attack.png"  # 없으면 IDLE 사용
+    SPRITE_SKILL = "assets/images/charactor/Nobel/skill.png"  # 없으면 IDLE 사용
+
+    # 크기 조절 변수들
+    SPRITE_SCALE = 1.25
+    SPRITE_OFFSET_X = 0
+    SPRITE_OFFSET_Y = 6
+
+    #스킬 이펙트 위치 조정
+    SKILL_BEAM_OFFSET_X = 0
+    SKILL_BEAM_OFFSET_Y = 0
+    SKILL_AURA_OFFSET_X = 0
+    SKILL_AURA_OFFSET_Y = 0
 
     def __init__(self, x, y, name="Player", player_id=1):
         super().__init__(x, y, name, player_id)

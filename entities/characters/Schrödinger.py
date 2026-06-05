@@ -3,7 +3,7 @@ from entities.player import Player
 from systems.skill import Skill
 
 
-class DoctorPurple(Player):
+class Schrödinger(Player):
     WEIGHT     = 96
     KB_GROWTH  = 78
     BASE_KB    = 30
@@ -24,6 +24,23 @@ class DoctorPurple(Player):
     DESCRIPTION   = "스킬 쿨다운 짧고 피로도 소모 적음.\n스킬 콤보로 승부."
     PREVIEW_COLOR = (155, 60, 220)
     SKILL_NAME    = "Void Pulse"
+
+    SPRITE_PATH = "assets/images/charactor/Schrödinger/IDL.png"
+    SPRITE_IDLE = "assets/images/charactor/Schrödinger/IDL.png"
+    SPRITE_JUMP = "assets/images/charactor/Schrödinger/jump.png"  # 없으면 IDLE 사용
+    SPRITE_ATTACK = "assets/images/charactor/Schrödinger/attack.png"  # 없으면 IDLE 사용
+    SPRITE_SKILL = "assets/images/charactor/Schrödinger/skill.png"  # 없으면 IDLE 사용
+
+    # 크기 조절 변수들
+    SPRITE_SCALE = 1.25
+    SPRITE_OFFSET_X = 0
+    SPRITE_OFFSET_Y = 6
+
+    #스킬 이펙트 위치 조정
+    SKILL_BEAM_OFFSET_X = 0
+    SKILL_BEAM_OFFSET_Y = 0
+    SKILL_AURA_OFFSET_X = 0
+    SKILL_AURA_OFFSET_Y = 0
 
     def __init__(self, x, y, name="Player", player_id=1):
         super().__init__(x, y, name, player_id)

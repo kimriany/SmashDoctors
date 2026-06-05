@@ -3,7 +3,7 @@ from entities.player import Player
 from systems.skill import Skill
 
 
-class DoctorBlue(Player):
+class Pita(Player):
     WEIGHT     = 92
     KB_GROWTH  = 85
     BASE_KB    = 28
@@ -24,6 +24,23 @@ class DoctorBlue(Player):
     DESCRIPTION   = "빠르고 기민한 블루 닥터.\n연속 공격에 특화."
     PREVIEW_COLOR = (55, 130, 230)
     SKILL_NAME    = "Lightning Dash"
+
+    SPRITE_PATH = "assets/images/charactor/pita/IDL.png"
+    SPRITE_IDLE = "assets/images/charactor/pita/IDL.png"
+    SPRITE_JUMP = "assets/images/charactor/pita/jump.png"  # 없으면 IDLE 사용
+    SPRITE_ATTACK = "assets/images/charactor/pita/attack.png"  # 없으면 IDLE 사용
+    SPRITE_SKILL = "assets/images/charactor/pita/skill.png"  # 없으면 IDLE 사용
+
+    # 크기 조절 변수들
+    SPRITE_SCALE = 1.25
+    SPRITE_OFFSET_X = 0
+    SPRITE_OFFSET_Y = 6
+
+    #스킬 이펙트 위치 조정
+    SKILL_BEAM_OFFSET_X = 0
+    SKILL_BEAM_OFFSET_Y = 0
+    SKILL_AURA_OFFSET_X = 0
+    SKILL_AURA_OFFSET_Y = 0
 
     def __init__(self, x, y, name="Player", player_id=1):
         super().__init__(x, y, name, player_id)
