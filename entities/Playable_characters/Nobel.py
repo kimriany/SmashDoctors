@@ -20,7 +20,7 @@ class Nobel(Player):
     TRIM_COLOR    = (20, 120, 50)
     GLOW_COLOR    = (130, 255, 160)
     DARK_COLOR    = (15,  80, 35)
-    DISPLAY_NAME  = "Dr. Green"
+    DISPLAY_NAME  = "Nobel"
     DESCRIPTION   = "3단 점프로 공중을 지배.\n경쾌하지만 한방이 약하다."
     PREVIEW_COLOR = (55, 200, 90)
     SKILL_NAME    = "Aerial Spike"

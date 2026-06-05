@@ -20,7 +20,7 @@ class Pita(Player):
     TRIM_COLOR    = (25,  65, 155)
     GLOW_COLOR    = (110, 185, 255)
     DARK_COLOR    = (20,  45, 110)
-    DISPLAY_NAME  = "Dr. Blue"
+    DISPLAY_NAME  = "Pythagoras"
     DESCRIPTION   = "빠르고 기민한 블루 닥터.\n연속 공격에 특화."
     PREVIEW_COLOR = (55, 130, 230)
     SKILL_NAME    = "Lightning Dash"

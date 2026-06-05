@@ -20,8 +20,8 @@ class Einstein(Player):
     TRIM_COLOR    = (145, 20, 20)
     GLOW_COLOR    = (255, 130, 110)
     DARK_COLOR    = (110, 15, 15)
-    DISPLAY_NAME  = "Dr. Red"
-    DESCRIPTION   = "강력한 한방을 자랑하는 레드 닥터.\n무겁고 강하다."
+    DISPLAY_NAME  = "Einstein"
+    DESCRIPTION   = "None"
     PREVIEW_COLOR = (225, 55, 55)
     SKILL_NAME    = "Power Smash"
 

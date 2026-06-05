@@ -1,6 +1,7 @@
 """Doctor Purple — 스킬 특화, 피로도 관리가 핵심."""
 from entities.player import Player
 from systems.skill import Skill
+from systems.skill import Ultimate_Skill
 
 
 class Schrödinger(Player):
@@ -20,7 +21,7 @@ class Schrödinger(Player):
     TRIM_COLOR    = ( 90, 20, 140)
     GLOW_COLOR    = (210, 130, 255)
     DARK_COLOR    = ( 60, 10, 100)
-    DISPLAY_NAME  = "Dr. Purple"
+    DISPLAY_NAME  = "Schrödinger"
     DESCRIPTION   = "스킬 쿨다운 짧고 피로도 소모 적음.\n스킬 콤보로 승부."
     PREVIEW_COLOR = (155, 60, 220)
     SKILL_NAME    = "Void Pulse"
@@ -53,5 +54,11 @@ class Schrödinger(Player):
         self.skills["skill_1"] = Skill(
             name=self.SKILL_NAME, damage=20,
             fatigue_cost=20, cooldown=60)
+        self.skills["skill_2"] = Skill(
+            name=self.SKILL_NAME, damage=20,
+            fatigue_cost=20, cooldown=60)
+        self.skills["skill_3"] = Skill(
+            name=self.SKILL_NAME, damage=20,
+            fatigue_cost=20, cooldown=60)
 
-    def get_char_name(self): return "Dr. Purple"
+    def get_char_name(self): return "Schrödinger"

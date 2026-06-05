@@ -1,25 +1,3 @@
-"""
-Player 클래스 — BaseEntity 자식.
-
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-캐릭터 이미지(스프라이트) 사용 방법
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-각 캐릭터 클래스(DoctorBlue 등)에 아래 변수를 추가하면 됩니다.
-
-  방법 A — 단일 이미지 (정지 이미지 하나로 전부 커버):
-      SPRITE_PATH = "assets/images/char_blue.png"
-
-  방법 B — 상태별 이미지:
-      SPRITE_IDLE   = "assets/images/char_blue_idle.png"
-      SPRITE_JUMP   = "assets/images/char_blue_jump.png"   # 없으면 IDLE 사용
-      SPRITE_ATTACK = "assets/images/char_blue_atk.png"    # 없으면 IDLE 사용
-      SPRITE_SKILL  = "assets/images/char_blue_skill.png"  # 없으면 IDLE 사용
-
-  파일이 없으면 기존 도형 렌더링으로 자동 폴백합니다.
-  이미지 크기는 아무 크기나 OK — 캐릭터 히트박스(46×66)에 맞게 자동 스케일됩니다.
-  PNG 투명도(알파)를 지원합니다.
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-"""
 import pygame
 import math
 import os
@@ -321,6 +299,7 @@ class Player(BaseEntity):
             if self.respawn_timer <= 0:
                 self._do_respawn(psys)
             return
+
         super().update(dt, platforms, event_bus)
 
         # on_ground가 순간적으로 False가 되는 깜빡임 방지
@@ -454,60 +433,6 @@ class Player(BaseEntity):
         pygame.draw.ellipse(sh, (0, 0, 0, 85), sh.get_rect())
         screen.blit(sh, (dr.x + 4, dr.y + dr.h - 3))
 
-    def _draw_legs(self, screen, dr, bob, z, flash):
-        lc = flash(self.trim_color)
-        fc = flash(self.dark_color)
-        leg_top = dr.y + int(dr.h * 0.73) + bob
-        swing = int(math.sin(self.walk_t) * 7 * z) \
-                if self.on_ground and abs(self.vel.x) > 0.5 else 0
-        lw, lh = int(13*z), int(dr.h * 0.22)
-        fw, fh = int(16*z), int(7*z)
-        for side, sw in ((-1, -swing), (1, swing)):
-            lx = dr.x + (int(dr.w*0.12) if side == -1 else int(dr.w*0.55))
-            pygame.draw.rect(screen, lc,
-                             (lx, leg_top + sw, lw, lh), border_radius=int(4*z))
-            pygame.draw.rect(screen, fc,
-                             (lx - int(2*z), leg_top + sw + lh, fw, fh),
-                             border_radius=int(3*z))
-
-    def _draw_arms(self, screen, dr, bob, z, flash):
-        ac    = flash(self.color)
-        arm_y = dr.y + int(dr.h * 0.30) + bob + int(4*z)
-        if self.attack_timer > 0:
-            prog  = 1.0 - self.attack_timer / self.ATK_FRAMES
-            swing = int(math.sin(prog * math.pi) * 14 * z)
-            ax    = dr.x + dr.w if self.facing == 1 else dr.x - int(20*z)
-            ay    = arm_y - swing
-            aw, ah = int(20*z), int(17*z)
-            pygame.draw.rect(screen, ac, (ax, ay, aw, ah),
-                             border_radius=int(5*z))
-            if self.HIT_START <= self.attack_timer <= self.HIT_END:
-                gr = int(38*z)
-                gs = pygame.Surface((gr, gr), pygame.SRCALPHA)
-                pygame.draw.circle(gs, (*self.glow_color, 130),
-                                   (gr//2, gr//2), gr//2)
-                screen.blit(gs, (ax + aw//2 - gr//2, ay + ah//2 - gr//2))
-        else:
-            xoff = dr.x + dr.w - int(3*z) if self.facing == 1 else dr.x - int(9*z)
-            pygame.draw.rect(screen, ac,
-                             (xoff, arm_y + int(2*z), int(12*z), int(14*z)),
-                             border_radius=int(4*z))
-
-    def _draw_glasses(self, screen, head_r, bob, z):
-        ex = head_r.x + (int(head_r.w*0.62) if self.facing == 1
-                         else int(head_r.w*0.22))
-        ey = head_r.y + int(head_r.h * 0.42)
-        lw, lh = int(13*z), int(10*z)
-        pygame.draw.rect(screen, (210, 235, 255),
-                         (ex - lw//2, ey - lh//2, lw, lh),
-                         border_radius=int(3*z))
-        pygame.draw.rect(screen, (90, 100, 130),
-                         (ex - lw//2, ey - lh//2, lw, lh),
-                         max(1, int(1*z)), border_radius=int(3*z))
-        pygame.draw.circle(screen, (15, 15, 35),
-                           (ex + self.facing, ey), max(1, int(3*z)))
-        pygame.draw.circle(screen, (255, 255, 255),
-                           (ex - 1, ey - int(2*z)), max(1, int(1*z)))
 
     def _draw_skill_aura(self, screen, dr, bob, z):
         t = self.skill_timer / 30.0
@@ -561,6 +486,7 @@ class Player(BaseEntity):
                          border_radius=int(5 * z))
 
         screen.blit(bs, (bx, by - int(7 * z)))
+
     def _draw_respawn_ghost(self, screen):
         t  = self.respawn_timer / 100.0
         a  = int(180 * t)

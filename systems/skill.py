@@ -21,3 +21,25 @@ class Skill:
     def update(self):
         if self.current_cooldown > 0:
             self.current_cooldown -= 1
+
+class Ultimate_Skill(Skill):
+    def __init__(self, name, damage, fatigue_cost, cooldown):
+        self.name = name
+        self.damage = damage
+        self.fatigue_cost = fatigue_cost
+        
+
+
+class CC_Skill(Skill):
+    def __init__(self, name, damage, fatigue_cost, cooldown):
+        self.name = name
+        self.damage = damage
+        self.fatigue_cost = fatigue_cost
+
+
+
+class Enchance_Skill(Skill):
+    def __init__(self, name, damage, fatigue_cost, cooldown):
+        self.name = name
+        self.damage = damage
+        self.fatigue_cost = fatigue_cost

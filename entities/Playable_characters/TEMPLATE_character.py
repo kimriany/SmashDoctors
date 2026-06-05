@@ -7,7 +7,7 @@
 2. 클래스명 변경:  DoctorYellow
 3. 스탯, 색상, 스킬 수정
 4. scenes/character_select.py 상단 ROSTER에 추가:
-       from entities.characters.doctor_yellow import DoctorYellow
+       from entities.Playable_characters.doctor_yellow import DoctorYellow
        ROSTER = [DoctorBlue, DoctorRed, DoctorGreen, DoctorPurple, DoctorYellow]
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
