@@ -1,0 +1,277 @@
+"""
+Renderer — 배경·플랫폼·HUD 렌더링
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+배경 이미지 교체 방법
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+assets/images/bg_stage_01.png 등 파일을 넣으면 자동으로 사용됩니다.
+파일이 없으면 절차적 배경(그라디언트+별+도시)으로 폴백합니다.
+
+스테이지별 배경 파일 이름 규칙:
+    stage_01  →  assets/images/bg_stage_01.png
+    stage_02  →  assets/images/bg_stage_02.png
+    (없으면 assets/images/bg_default.png 시도, 그것도 없으면 절차적 배경)
+
+배경 이미지 해상도는 아무 크기나 괜찮습니다. 자동으로 1280×720에 맞게 스케일됩니다.
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+"""
+import pygame
+import math
+import random
+import os
+
+
+class Renderer:
+    def __init__(self, screen: pygame.Surface):
+        self.screen = screen
+        self.W = screen.get_width()
+        self.H = screen.get_height()
+
+        self.font_title = pygame.font.SysFont("Arial", 56, bold=True)
+        self.font_pct   = pygame.font.SysFont("Arial", 44, bold=True)
+        self.font_lg    = pygame.font.SysFont("Arial", 30, bold=True)
+        self.font_md    = pygame.font.SysFont("Arial", 18, bold=True)
+        self.font_sm    = pygame.font.SysFont("Arial", 13, bold=True)
+
+        # 절차적 배경 캐시 (이미지 없을 때 사용)
+        self._proc_bg   = self._bake_proc_bg()
+        self._city_surf = self._bake_city()
+        self._star_t    = 0.0
+        self._pulse_t   = 0.0
+        rng = random.Random(77)
+        self._stars = [(rng.randint(0,self.W), rng.randint(0, self.H*7//10),
+                        rng.uniform(0.3,1.6), rng.uniform(0.2,0.75))
+                       for _ in range(130)]
+
+        # 현재 로드된 배경 이미지 (None이면 절차적)
+        self._bg_image: pygame.Surface | None = None
+        self._stage_id: str = ""
+
+    # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+    # 배경 이미지 로드
+    # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+    def load_stage_background(self, stage_id: str):
+        """
+        스테이지 ID로 배경 이미지를 로드합니다.
+        없으면 절차적 배경으로 폴백합니다.
+
+        사용 예:
+            renderer.load_stage_background("stage_01")
+        """
+        if stage_id == self._stage_id:
+            return  # 이미 로드됨
+
+        self._stage_id = stage_id
+        self._bg_image = None
+
+        candidates = [
+            f"assets/images/bg_{stage_id}.png",
+            f"assets/images/bg_{stage_id}.jpg",
+            "assets/images/bg_default.png",
+            "assets/images/bg_default.jpg",
+        ]
+        for path in candidates:
+            if os.path.exists(path):
+                try:
+                    img = pygame.image.load(path).convert()
+                    self._bg_image = pygame.transform.scale(img, (self.W, self.H))
+                    print(f"[Renderer] 배경 로드: {path}")
+                    return
+                except Exception as e:
+                    print(f"[Renderer] 배경 로드 실패 ({path}): {e}")
+
+        print(f"[Renderer] 배경 이미지 없음 → 절차적 배경 사용")
+
+    # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+    # 배경 그리기
+    # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+    def draw_background(self):
+        self._star_t  += 0.012
+        self._pulse_t += 0.06
+
+        if self._bg_image is not None:
+            # ── 이미지 배경 ──
+            self.screen.blit(self._bg_image, (0, 0))
+        else:
+            # ── 절차적 배경 ──
+            self.screen.blit(self._proc_bg, (0, 0))
+            self.screen.blit(self._city_surf, (0, 0))
+            for sx, sy, sr, sa in self._stars:
+                fl = sa + math.sin(self._star_t*2.1 + sx*0.01) * 0.18
+                c  = int(max(0, min(255, fl*255)))
+                pygame.draw.circle(self.screen, (c,c,c), (sx,sy), int(sr))
+            # 네온 수평선
+            for col, ya in [((40,60,130,40), self.H-78), ((60,90,200,25), self.H-80)]:
+                hl = pygame.Surface((self.W, 3), pygame.SRCALPHA)
+                hl.fill(col)
+                self.screen.blit(hl, (0, ya))
+
+    # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+    # 절차적 배경 빌드 (캐시)
+    # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+    def _bake_proc_bg(self) -> pygame.Surface:
+        sf = pygame.Surface((self.W, self.H))
+        for y in range(self.H):
+            t = y/self.H
+            pygame.draw.line(sf, (int(6+t*14), int(8+t*14), int(20+t*28)), (0,y),(self.W,y))
+        return sf
+
+    def _bake_city(self) -> pygame.Surface:
+        sf  = pygame.Surface((self.W, self.H), pygame.SRCALPHA)
+        rng = random.Random(42)
+        x   = 0
+        while x < self.W:
+            bw = rng.randint(42,82); bh = rng.randint(45,140)
+            by = self.H - 75 - bh
+            pygame.draw.rect(sf, (12,16,36,220), (x,by,bw,bh+75))
+            pygame.draw.rect(sf, (18,24,52,120), (x,by,bw,6))
+            for wy in range(by+8, by+bh-8, 16):
+                for wx in range(x+6, x+bw-8, 11):
+                    if rng.random() > 0.52:
+                        pygame.draw.rect(sf, (30,55,110,200), (wx,wy,6,8))
+            x += bw + rng.randint(2,10)
+        return sf
+
+    # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+    # 플랫폼
+    # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+    def draw_platforms(self, platforms, camera):
+        for p in platforms:
+            dr      = camera.apply_rect(p)
+            is_main = p.h > 30
+            # 아래 글로우
+            gs = pygame.Surface((dr.w, 14), pygame.SRCALPHA)
+            gc = (70,110,220) if is_main else (50,85,180)
+            for gy in range(14):
+                a = int(40*(1-gy/14))
+                pygame.draw.line(gs, (*gc,a), (0,gy), (dr.w,gy))
+            self.screen.blit(gs, (dr.x, dr.y+dr.h))
+            # 본체
+            pygame.draw.rect(self.screen,
+                             (35,50,105) if is_main else (26,40,88),
+                             dr, border_radius=6)
+            # 상단 네온
+            pygame.draw.rect(self.screen,
+                             (90,130,230) if is_main else (65,100,195),
+                             (dr.x, dr.y, dr.w, 5), border_radius=6)
+            pygame.draw.rect(self.screen, (180,210,255),
+                             (dr.x+4, dr.y+1, min(60,dr.w-8), 2), border_radius=2)
+            # 격자
+            for gx in range(dr.x+22, dr.x+dr.w-8, 24):
+                pygame.draw.line(self.screen, (55,80,155), (gx,dr.y+5),(gx,dr.y+dr.h-2))
+            pygame.draw.rect(self.screen, (65,100,190), dr, 1, border_radius=6)
+
+    # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+    # HUD
+    # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+    def draw_hud(self, players):
+        self._draw_stocks_center(players)
+        positions = [(30, self.H-148), (self.W-230, self.H-148)]
+        for i, p in enumerate(players):
+            self._draw_player_panel(p, positions[i][0], positions[i][1])
+
+    def _draw_player_panel(self, player, px, py):
+        PW, PH = 200, 138
+        panel = pygame.Surface((PW,PH), pygame.SRCALPHA)
+        pygame.draw.rect(panel, (5,8,22,195), (0,0,PW,PH), border_radius=10)
+        pygame.draw.rect(panel, (*player.glow_color,200), (0,0,4,PH), border_radius=10)
+        pygame.draw.rect(panel, (*player.glow_color,70),  (0,0,PW,PH), 1, border_radius=10)
+        self.screen.blit(panel, (px,py))
+
+        nm = self.font_md.render(player.name, True, player.glow_color)
+        self.screen.blit(nm, (px+12, py+8))
+
+        pct = int(player.damage_pct)
+        dc  = (255,255,255) if pct<60 else (255,210,60) if pct<120 else (255,130,40) if pct<180 else (255,50,50)
+        if pct >= 150:
+            pulse = abs(math.sin(self._pulse_t*2))
+            dc = (min(255, int(dc[0]+30*pulse)), dc[1], dc[2])
+
+        self.screen.blit(self.font_pct.render(f"{pct}%", True, dc), (px+12, py+28))
+        self._draw_fatigue_bar(player, px, py)
+
+        sk = list(player.skills.values())[0]
+        cd_txt = (self.font_sm.render(f"SKILL  {sk.current_cooldown//10+1}s", True, (170,90,90))
+                  if sk.current_cooldown > 0
+                  else self.font_sm.render("SKILL  READY!", True, (80,220,100)))
+        self.screen.blit(cd_txt, (px+12, py+122))
+
+    def _draw_fatigue_bar(self, player, px, py):
+        bx, by, bw, bh = px+12, py+80, 176, 16
+        ratio = player.fatigue / player.max_fatigue
+
+        self.screen.blit(self.font_sm.render("FATIGUE", True, (160,130,210)), (bx, by-16))
+        pygame.draw.rect(self.screen, (15,10,30), (bx-1,by-1,bw+2,bh+2), border_radius=5)
+        pygame.draw.rect(self.screen, (30,20,55), (bx,by,bw,bh), border_radius=4)
+
+        if ratio > 0:
+            fw = int(bw*ratio)
+            if ratio < 0.5:
+                bar_c=(120,60,220); glow_c=(150,80,240)
+            elif ratio < 0.85:
+                bar_c=(200,80,180); glow_c=(230,100,200)
+            else:
+                p = abs(math.sin(self._pulse_t*3))
+                bar_c=(int(200+55*p),30,60); glow_c=(255,int(60*p),80)
+
+            pygame.draw.rect(self.screen, bar_c,  (bx,by,fw,bh), border_radius=4)
+            pygame.draw.rect(self.screen, glow_c, (bx,by,fw,3),  border_radius=4)
+            for seg in range(1,4):
+                sx2 = bx+int(bw*seg*0.25)
+                pygame.draw.line(self.screen,(15,10,30),(sx2,by),(sx2,by+bh),1)
+
+        pygame.draw.rect(self.screen,(100,60,180),(bx,by,bw,bh),1,border_radius=4)
+        if ratio >= 0.99:
+            warn = abs(math.sin(self._pulse_t*3))
+            self.screen.blit(
+                self.font_sm.render("MAX!", True, (255,int(80+100*warn),int(60*warn))),
+                (bx+bw+4, by))
+
+    def _draw_stocks_center(self, players):
+        cx  = self.W//2
+        bar = pygame.Surface((220,38), pygame.SRCALPHA)
+        bar.fill((0,0,0,130))
+        pygame.draw.rect(bar,(60,80,160,80),bar.get_rect(),1,border_radius=8)
+        self.screen.blit(bar,(cx-110,8))
+        for i, p in enumerate(players):
+            bx = cx + (-95 if i==0 else 15)
+            for s in range(3):
+                filled = s < p.stocks
+                cc = (bx+s*28, 28)
+                pygame.draw.circle(self.screen, p.color if filled else (38,38,48), cc, 10)
+                pygame.draw.circle(self.screen, p.glow_color if filled else (70,70,80), cc, 10, 2)
+                if filled:
+                    pygame.draw.circle(self.screen,(255,255,255),(cc[0]-3,cc[1]-3),3)
+
+    # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+    # 오버레이
+    # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+    def draw_title_screen(self):
+        ov = pygame.Surface((self.W,self.H), pygame.SRCALPHA)
+        ov.fill((0,0,0,195)); self.screen.blit(ov,(0,0))
+
+        t = self.font_title.render("⚡ SMASH DOCTORS", True, (255,255,255))
+        s = self.font_md.render("SCIENCE SMASH  ·  v2.0", True, (110,140,210))
+        self.screen.blit(t,(self.W//2-t.get_width()//2, 130))
+        self.screen.blit(s,(self.W//2-s.get_width()//2, 200))
+
+        rows=[("PLAYER 1 — Blue","A/D 이동  W 점프  F 공격  G 스킬",(110,175,255)),
+              ("PLAYER 2 — Red", "←/→ 이동  ↑ 점프  L 공격  ; 스킬",(255,110,110))]
+        for i,(nm,ctrl,col) in enumerate(rows):
+            ns=self.font_md.render(nm,True,col); cs=self.font_sm.render(ctrl,True,(200,200,225))
+            by=305+i*70
+            self.screen.blit(ns,(self.W//2-ns.get_width()//2,by))
+            self.screen.blit(cs,(self.W//2-cs.get_width()//2,by+26))
+
+        tip=self.font_sm.render("화면 밖으로 날아가면 실점  |  스톡 3개 소진 시 패배",True,(140,140,160))
+        self.screen.blit(tip,(self.W//2-tip.get_width()//2,460))
+        st=self.font_lg.render("PRESS  ENTER  TO  START",True,(255,240,90))
+        self.screen.blit(st,(self.W//2-st.get_width()//2,510))
+
+    def draw_win_screen(self, winner_name, winner_color):
+        ov=pygame.Surface((self.W,self.H),pygame.SRCALPHA)
+        ov.fill((0,0,0,215)); self.screen.blit(ov,(0,0))
+        wt=self.font_title.render(f"{winner_name}  WINS!", True, winner_color)
+        rt=self.font_md.render("ENTER 다시 선택   ESC 종료", True, (170,170,195))
+        self.screen.blit(wt,(self.W//2-wt.get_width()//2,240))
+        self.screen.blit(rt,(self.W//2-rt.get_width()//2,340))
