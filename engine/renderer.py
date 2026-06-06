@@ -166,37 +166,362 @@ class Renderer:
     # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
     # HUD
     # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+    # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+    # HUD
+    # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
     def draw_hud(self, players):
         self._draw_stocks_center(players)
-        positions = [(30, self.H-148), (self.W-230, self.H-148)]
-        for i, p in enumerate(players):
-            self._draw_player_panel(p, positions[i][0], positions[i][1])
 
-    def _draw_player_panel(self, player, px, py):
-        PW, PH = 200, 138
-        panel = pygame.Surface((PW,PH), pygame.SRCALPHA)
-        pygame.draw.rect(panel, (5,8,22,195), (0,0,PW,PH), border_radius=10)
-        pygame.draw.rect(panel, (*player.glow_color,200), (0,0,4,PH), border_radius=10)
-        pygame.draw.rect(panel, (*player.glow_color,70),  (0,0,PW,PH), 1, border_radius=10)
-        self.screen.blit(panel, (px,py))
+        PW, PH = 220, 166
+        positions = [
+            (30, self.H - PH - 12),
+            (self.W - PW - 30, self.H - PH - 12)
+        ]
+
+        for i, p in enumerate(players):
+            self._draw_player_panel(p, positions[i][0], positions[i][1], PW, PH)
+
+    def _draw_player_panel(self, player, px, py, PW=220, PH=166):
+        panel = pygame.Surface((PW, PH), pygame.SRCALPHA)
+
+        pygame.draw.rect(panel, (5, 8, 22, 195), (0, 0, PW, PH), border_radius=10)
+        pygame.draw.rect(panel, (*player.glow_color, 200), (0, 0, 4, PH), border_radius=10)
+        pygame.draw.rect(panel, (*player.glow_color, 70), (0, 0, PW, PH), 1, border_radius=10)
+
+        self.screen.blit(panel, (px, py))
 
         nm = self.font_md.render(player.name, True, player.glow_color)
-        self.screen.blit(nm, (px+12, py+8))
+        self.screen.blit(nm, (px + 12, py + 8))
 
         pct = int(player.damage_pct)
-        dc  = (255,255,255) if pct<60 else (255,210,60) if pct<120 else (255,130,40) if pct<180 else (255,50,50)
-        if pct >= 150:
-            pulse = abs(math.sin(self._pulse_t*2))
-            dc = (min(255, int(dc[0]+30*pulse)), dc[1], dc[2])
 
-        self.screen.blit(self.font_pct.render(f"{pct}%", True, dc), (px+12, py+28))
+        dc = (
+            (255, 255, 255) if pct < 60 else
+            (255, 210, 60) if pct < 120 else
+            (255, 130, 40) if pct < 180 else
+            (255, 50, 50)
+        )
+
+        if pct >= 150:
+            pulse = abs(math.sin(self._pulse_t * 2))
+            dc = (min(255, int(dc[0] + 30 * pulse)), dc[1], dc[2])
+
+        self.screen.blit(
+            self.font_pct.render(f"{pct}%", True, dc),
+            (px + 12, py + 28)
+        )
+
         self._draw_fatigue_bar(player, px, py)
 
-        sk = list(player.skills.values())[0]
-        cd_txt = (self.font_sm.render(f"SKILL  {sk.current_cooldown//10+1}s", True, (170,90,90))
-                  if sk.current_cooldown > 0
-                  else self.font_sm.render("SKILL  READY!", True, (80,220,100)))
-        self.screen.blit(cd_txt, (px+12, py+122))
+        # 기존 SKILL READY 텍스트 대신 스킬 아이콘 4개 표시
+        self._draw_player_skill_icons(
+            player,
+            px + 12,
+            py + 108,
+            PW - 24,
+            48
+        )
+
+    def _draw_player_skill_icons(self, player, x, y, area_w, icon_h):
+        skills = self._get_ordered_player_skills(player)
+
+        n = 4
+        gap = 6
+        icon_w = (area_w - gap * (n - 1)) // n
+
+        for i in range(n):
+            ix = x + i * (icon_w + gap)
+            iy = y
+
+            if i < len(skills):
+                sk_key, label, skill = skills[i]
+            else:
+                sk_key, label, skill = None, "—", None
+
+            is_ult = sk_key in ("skill_U", "ultimate", "ult", "U")
+
+            if is_ult:
+                frame_col = (220, 180, 60)
+                glow_col = (255, 210, 80)
+            else:
+                frame_col = player.glow_color
+                glow_col = player.glow_color
+
+            self._draw_one_skill_icon_frame(
+                player,
+                skill,
+                label,
+                ix,
+                iy,
+                icon_w,
+                icon_h,
+                frame_col,
+                glow_col,
+                is_ult
+            )
+
+    def _draw_one_skill_icon_frame(
+            self,
+            player,
+            skill,
+            label,
+            ix,
+            iy,
+            iw,
+            ih,
+            frame_col,
+            glow_col,
+            is_ult=False
+    ):
+        # 그림자
+        shadow = pygame.Surface((iw + 6, ih + 6), pygame.SRCALPHA)
+        pygame.draw.rect(
+            shadow,
+            (0, 0, 0, 120),
+            (3, 3, iw, ih),
+            border_radius=8
+        )
+        self.screen.blit(shadow, (ix - 3, iy - 3))
+
+        # 바깥 액자
+        outer_col = (42, 34, 58) if not is_ult else (62, 48, 22)
+        pygame.draw.rect(
+            self.screen,
+            outer_col,
+            (ix, iy, iw, ih),
+            border_radius=8
+        )
+
+        # 안쪽 배경
+        inner_rect = pygame.Rect(ix + 3, iy + 3, iw - 6, ih - 6)
+        pygame.draw.rect(
+            self.screen,
+            (18, 16, 32),
+            inner_rect,
+            border_radius=6
+        )
+
+        # 액자 테두리
+        pygame.draw.rect(
+            self.screen,
+            frame_col,
+            (ix, iy, iw, ih),
+            2,
+            border_radius=8
+        )
+
+        # 은은한 내부 하이라이트
+        pygame.draw.rect(
+            self.screen,
+            (*glow_col, 70),
+            (ix + 3, iy + 3, iw - 6, 2),
+            border_radius=4
+        )
+
+        # 슬롯 라벨
+        label_col = (235, 200, 80) if is_ult else (185, 185, 225)
+        label_surf = self.font_sm.render(str(label), True, label_col)
+        label_surf = pygame.transform.smoothscale(
+            label_surf,
+            (
+                min(label_surf.get_width(), iw - 8),
+                label_surf.get_height()
+            )
+        ) if label_surf.get_width() > iw - 8 else label_surf
+
+        self.screen.blit(
+            label_surf,
+            (ix + iw // 2 - label_surf.get_width() // 2, iy + 2)
+        )
+
+        # 스킬 없음
+        if skill is None:
+            empty = self.font_sm.render("—", True, (70, 70, 90))
+            self.screen.blit(
+                empty,
+                (ix + iw // 2 - empty.get_width() // 2,
+                 iy + ih // 2 - empty.get_height() // 2)
+            )
+            return
+
+        # 아이콘 그리기
+        icon_size = min(iw - 12, ih - 22)
+        icon_x = ix + iw // 2 - icon_size // 2
+        icon_y = iy + 16
+
+        if hasattr(skill, "draw_icon"):
+            skill.draw_icon(self.screen, icon_x, icon_y, icon_size)
+        else:
+            # draw_icon이 없는 스킬용 fallback
+            pygame.draw.circle(
+                self.screen,
+                glow_col,
+                (ix + iw // 2, iy + ih // 2 + 4),
+                icon_size // 2
+            )
+            first = getattr(skill, "name", "?")[0]
+            t = self.font_sm.render(first, True, (255, 255, 255))
+            self.screen.blit(
+                t,
+                (ix + iw // 2 - t.get_width() // 2,
+                 iy + ih // 2 + 4 - t.get_height() // 2)
+            )
+
+        # 사용 가능 여부 / 쿨타임 계산
+        state = self._get_skill_hud_state(player, skill)
+
+        if state["usable"]:
+            return
+
+        # 전체를 살짝 어둡게
+        dim = pygame.Surface((iw, ih), pygame.SRCALPHA)
+        pygame.draw.rect(
+            dim,
+            (0, 0, 0, 70),
+            (0, 0, iw, ih),
+            border_radius=8
+        )
+
+        # 쿨타임이면 남은 비율만큼만 진하게 덮음
+        if state["reason"] == "cooldown":
+            ratio = state["cooldown_ratio"]
+
+            cover_h = int(ih * ratio)
+            pygame.draw.rect(
+                dim,
+                (0, 0, 0, 145),
+                (0, ih - cover_h, iw, cover_h),
+                border_radius=8
+            )
+
+            self.screen.blit(dim, (ix, iy))
+
+            txt = self.font_sm.render(state["text"], True, (245, 245, 255))
+            self.screen.blit(
+                txt,
+                (ix + iw // 2 - txt.get_width() // 2,
+                 iy + ih // 2 - txt.get_height() // 2)
+            )
+
+        else:
+            # 피로도 초과, 궁극기 게이지 부족 등
+            pygame.draw.rect(
+                dim,
+                (0, 0, 0, 150),
+                (0, 0, iw, ih),
+                border_radius=8
+            )
+            self.screen.blit(dim, (ix, iy))
+
+            txt = self.font_sm.render(state["text"], True, (230, 120, 120))
+            self.screen.blit(
+                txt,
+                (ix + iw // 2 - txt.get_width() // 2,
+                 iy + ih // 2 - txt.get_height() // 2)
+            )
+
+    def _get_ordered_player_skills(self, player):
+        skills = getattr(player, "skills", {}) or {}
+
+        ordered = []
+
+        # SKILL_SLOTS가 있으면 그 순서 사용
+        try:
+            for sk_key, slot_name, key_hint in SKILL_SLOTS:
+                if sk_key in skills:
+                    ordered.append((sk_key, slot_name, skills[sk_key]))
+        except NameError:
+            pass
+
+        # SKILL_SLOTS에 없는 스킬도 뒤에 추가
+        used = {k for k, _, _ in ordered}
+
+        for k, v in skills.items():
+            if k not in used:
+                label = self._short_skill_label(k)
+                ordered.append((k, label, v))
+
+        return ordered[:4]
+
+    def _short_skill_label(self, key):
+        key = str(key)
+
+        table = {
+            "skill_Q": "Q",
+            "skill_W": "W",
+            "skill_E": "E",
+            "skill_U": "ULT",
+            "move": "MOV",
+            "cc": "CC",
+            "beam": "BEAM",
+            "ultimate": "ULT",
+            "ult": "ULT",
+        }
+
+        return table.get(key, key[-3:].upper())
+
+    def _get_skill_hud_state(self, player, skill):
+        fps = getattr(self, "FPS", 60)
+
+        cd_left = max(0, int(getattr(skill, "current_cooldown", 0)))
+        cd_max = int(getattr(skill, "cooldown", 0) or 0)
+
+        if cd_left > 0:
+            if cd_max > 0:
+                ratio = max(0.0, min(1.0, cd_left / cd_max))
+            else:
+                ratio = 1.0
+
+            sec = cd_left / fps
+
+            return {
+                "usable": False,
+                "reason": "cooldown",
+                "cooldown_ratio": ratio,
+                "text": f"{sec:.1f}s"
+            }
+
+        # 피로도 시스템이 "사용하면 fatigue가 증가"하는 방식일 때
+        cost = int(getattr(skill, "fatigue_cost", 0) or 0)
+        fatigue = int(getattr(player, "fatigue", 0) or 0)
+        max_fatigue = int(getattr(player, "max_fatigue", 100) or 100)
+
+        if cost > 0 and fatigue + cost > max_fatigue:
+            return {
+                "usable": False,
+                "reason": "fatigue",
+                "cooldown_ratio": 1.0,
+                "text": "FAT"
+            }
+
+        # 스킬 자체에 can_use가 있으면 그것도 반영
+        can_use = getattr(skill, "can_use", None)
+
+        if callable(can_use):
+            try:
+                ok = can_use(player)
+            except TypeError:
+                try:
+                    ok = can_use()
+                except Exception:
+                    ok = True
+            except Exception:
+                ok = True
+
+            if not ok:
+                return {
+                    "usable": False,
+                    "reason": "locked",
+                    "cooldown_ratio": 1.0,
+                    "text": "NO"
+                }
+
+        return {
+            "usable": True,
+            "reason": None,
+            "cooldown_ratio": 0.0,
+            "text": ""
+        }
 
     def _draw_fatigue_bar(self, player, px, py):
         bx, by, bw, bh = px+12, py+80, 176, 16

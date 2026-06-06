@@ -13,6 +13,7 @@ from systems.skill import BeamSkill, DashSkill, EnhanceSkill
 # ── Pita 전용 스킬 클래스 ─────────────────────────────────────
 
 class LightningDash(DashSkill):
+    ICON_PATH = "assets/images/Double_domain.jpeg"  # 선택창 아이콘
     DISPLAY_NAME = "Lightning Dash"
     DESCRIPTION  = "Dash forward and deal contact damage."
     DASH_SPEED   = 20.0
@@ -89,6 +90,8 @@ class Pita(Player):
     SPRITE_JUMP   = "assets/images/charactor/pita/jump.png"
     SPRITE_ATTACK = "assets/images/charactor/pita/attack.png"
     SPRITE_SKILL  = "assets/images/charactor/pita/skill.png"
+
+
 
     SPRITE_SCALE    = 1.25
     SPRITE_OFFSET_X = 0

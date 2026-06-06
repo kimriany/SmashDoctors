@@ -160,6 +160,7 @@ class Skill:
         """
         self._ensure_images()
         if self._icon_img is not None:
+            print("YEs")
             scaled = pygame.transform.smoothscale(self._icon_img, (size, size))
             screen.blit(scaled, (x, y))
         else:
