@@ -28,8 +28,22 @@ class Camera:
         self.zoom   = 1.0
         self._tz    = 1.0
 
+        self.scripted = False
+        self.script_timer = 0
+        self.script_total = 0
+
+        self.script_target_rect = None
+        self.script_start_offset = pygame.Vector2(0, 0)
+        self.script_start_zoom = 1.0
+        self.script_end_zoom = 1.45
+
     # ─── 매 프레임 호출 ─────────────────────────────────────────
     def update(self, rects: list[pygame.Rect]):
+
+        if self.scripted:
+            self.update_scripted()
+            return
+
         """살아있는 캐릭터 rect 목록을 받아 카메라 위치·줌 갱신."""
         if not rects:
             return
@@ -74,3 +88,46 @@ class Camera:
 
     def apply_point(self, x: float, y: float) -> tuple[int, int]:
         return self.world_to_screen(x, y)
+
+    def start_focus_cutscene(self, target_rect: pygame.Rect, zoom=1.45, frames=30):
+        """
+        특정 대상에게 카메라가 이동하면서 확대되는 컷신.
+        """
+        self.scripted = True
+        self.script_timer = 0
+        self.script_total = max(1, int(frames))
+
+        self.script_target_rect = target_rect.copy()
+        self.script_start_offset = self.offset.copy()
+        self.script_start_zoom = self.zoom
+        self.script_end_zoom = zoom
+
+    def update_scripted(self):
+        """
+        컷신 중 카메라 업데이트.
+        Game의 일반 camera.update(active)는 이 동안 호출하지 않는 게 좋다.
+        """
+        if not self.scripted or self.script_target_rect is None:
+            return
+
+        t = self.script_timer / max(1, self.script_total)
+        t = max(0.0, min(1.0, t))
+
+        # ease out
+        ease = 1.0 - (1.0 - t) * (1.0 - t)
+
+        self.zoom = self.script_start_zoom + (self.script_end_zoom - self.script_start_zoom) * ease
+
+        cx = self.script_target_rect.centerx
+        cy = self.script_target_rect.centery
+
+        target_offset_x = cx - (self.sw / 2) / self.zoom
+        target_offset_y = cy - (self.sh / 2) / self.zoom
+
+        self.offset.x = self.script_start_offset.x + (target_offset_x - self.script_start_offset.x) * ease
+        self.offset.y = self.script_start_offset.y + (target_offset_y - self.script_start_offset.y) * ease
+
+        self.script_timer += 1
+
+        if self.script_timer >= self.script_total:
+            self.scripted = False

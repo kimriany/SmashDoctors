@@ -21,6 +21,14 @@ import random
 import os
 
 
+# hud.py 상단
+
+SKILL_SLOTS = [
+    ("skill_Q", "Q", "Q"),
+    ("skill_E", "E", "E"),
+    ("skill_R", "ULT", "R"),
+]
+
 class Renderer:
     def __init__(self, screen: pygame.Surface):
         self.screen = screen
@@ -211,8 +219,6 @@ class Renderer:
             (px + 12, py + 28)
         )
 
-        self._draw_fatigue_bar(player, px, py)
-
         # 기존 SKILL READY 텍스트 대신 스킬 아이콘 4개 표시
         self._draw_player_skill_icons(
             player,
@@ -225,7 +231,7 @@ class Renderer:
     def _draw_player_skill_icons(self, player, x, y, area_w, icon_h):
         skills = self._get_ordered_player_skills(player)
 
-        n = 4
+        n = 3
         gap = 6
         icon_w = (area_w - gap * (n - 1)) // n
 

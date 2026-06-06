@@ -7,7 +7,7 @@ Pythagoras (Pita) — 빠르고 기민, 연속 공격 특화
   R / /  enhance — Speed Formula    (EnhanceSkill) 일시적 이동속도 + 공격속도 강화
 """
 from entities.player import Player
-from systems.skill import BeamSkill, DashSkill, EnhanceSkill
+from systems.skill import BeamSkill, DashSkill, EnhanceSkill, DomainUltimateSkill
 
 
 # ── Pita 전용 스킬 클래스 ─────────────────────────────────────
@@ -24,7 +24,7 @@ class LightningDash(DashSkill):
 
     def __init__(self):
         super().__init__("Lightning Dash", damage=8,
-                         fatigue_cost=20, cooldown=90, duration=14)
+                         cooldown=90, duration=14)
 
     def get_hitbox(self, owner):
         if not self.active:
@@ -45,7 +45,7 @@ class ThunderBolt(BeamSkill):
 
     def __init__(self):
         super().__init__("Thunder Bolt", damage=22,
-                         fatigue_cost=28, cooldown=300, duration=22)
+                         cooldown=300, duration=22)
 
 
 class SpeedFormula(EnhanceSkill):
@@ -58,8 +58,39 @@ class SpeedFormula(EnhanceSkill):
 
     def __init__(self):
         super().__init__("Speed Formula", damage=0,
-                         fatigue_cost=35, cooldown=600, duration=240)
+                         cooldown=600, duration=240)
 
+class PitaDomain(DomainUltimateSkill):
+    DISPLAY_NAME = "Pythagorean Domain"
+    DESCRIPTION = "Open Pythagoras' special domain."
+
+    # 네가 원하는 이미지 경로로 바꾸면 됨
+    DOMAIN_BG_PATH = "assets/images/charactor/pita/domain.jpeg"
+
+    # 배경 전환 경계 파티클 색상
+    DOMAIN_PARTICLE_COLOR = (110, 185, 255)
+
+    # 이 횟수만큼 맞으면 영역 해제
+    BREAK_HITS = 5
+
+    # 카메라 워킹 설정
+    # 작을수록 빠름
+    CUTSCENE_FRAMES = 30
+    CUTSCENE_ZOOM = 1.48
+
+    # 배경 전환 속도
+    # 클수록 빠름
+    TRANSITION_SPEED = 0.055
+
+    # 배경 전환 중에도 gameplay freeze 유지
+    FREEZE_DURING_TRANSITION = True
+
+    def __init__(self):
+        super().__init__(
+            name="Pythagorean Domain",
+            damage=0,
+            duration=999999,
+        )
 
 # ── 캐릭터 클래스 ─────────────────────────────────────────────
 
@@ -114,8 +145,10 @@ class Pita(Player):
         self.attack_damage = self.ATTACK_DMG
 
     def _init_skills(self):
-        self.skills["skill_1"] = LightningDash()   # Q / ;
-        self.skills["skill_2"] = ThunderBolt()      # E / '
-        self.skills["skill_R"] = SpeedFormula()     # R / /
+        self.skills["skill_Q"] = LightningDash()
+        self.skills["skill_E"] = ThunderBolt()
+
+
+        self.skills["skill_R"] = PitaDomain()
 
     def get_char_name(self): return "Pythagoras"

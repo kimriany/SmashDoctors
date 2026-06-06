@@ -7,7 +7,7 @@ Einstein — 무겁고 강력, 한방 특화
   R / /  enhance — Mass Boost      (EnhanceSkill)   무게 + 공격력 강화, 넉백 저항
 """
 from entities.player import Player
-from systems.skill import BeamSkill, SummonZoneSkill, EnhanceSkill
+from systems.skill import BeamSkill, SummonZoneSkill, EnhanceSkill, DomainUltimateSkill
 import pygame
 
 
@@ -22,7 +22,7 @@ class GravityBeam(BeamSkill):
 
     def __init__(self):
         super().__init__("Gravity Beam", damage=35,
-                         fatigue_cost=40, cooldown=360, duration=28)
+                         cooldown=360, duration=28)
 
 
 class BlackHole(SummonZoneSkill):
@@ -37,7 +37,7 @@ class BlackHole(SummonZoneSkill):
 
     def __init__(self):
         super().__init__("Black Hole", damage=20,
-                         fatigue_cost=45, cooldown=540, duration=100)
+                          cooldown=540, duration=100)
 
     def on_update(self, owner, event_bus=None, psys=None):
         # 경고 이후 — 매 프레임 상대를 끌어당김
@@ -65,7 +65,7 @@ class MassBoost(EnhanceSkill):
 
     def __init__(self):
         super().__init__("Mass Boost", damage=0,
-                         fatigue_cost=40, cooldown=840, duration=300)
+                          cooldown=840, duration=300)
 
     def on_start(self, owner, event_bus=None, psys=None):
         super().on_start(owner, event_bus, psys)
@@ -75,6 +75,38 @@ class MassBoost(EnhanceSkill):
         super().on_end(owner)
         if hasattr(owner, '_kb_resist'):
             del owner._kb_resist
+
+class EinsteinDomain(DomainUltimateSkill):
+    DISPLAY_NAME = "Einstein Domain"
+    DESCRIPTION = "Open Einstein' special domain."
+
+    # 네가 원하는 이미지 경로로 바꾸면 됨
+    DOMAIN_BG_PATH = "assets/images/Einstein_domain.jpeg"
+
+    # 배경 전환 경계 파티클 색상
+    DOMAIN_PARTICLE_COLOR = (110, 185, 255)
+
+    # 이 횟수만큼 맞으면 영역 해제
+    BREAK_HITS = 5
+
+    # 카메라 워킹 설정
+    # 작을수록 빠름
+    CUTSCENE_FRAMES = 30
+    CUTSCENE_ZOOM = 1.48
+
+    # 배경 전환 속도
+    # 클수록 빠름
+    TRANSITION_SPEED = 0.055
+
+    # 배경 전환 중에도 gameplay freeze 유지
+    FREEZE_DURING_TRANSITION = True
+
+    def __init__(self):
+        super().__init__(
+            name="Einstein Domain",
+            damage=0,
+            duration=999999,
+        )
 
 
 class Einstein(Player):
@@ -125,8 +157,7 @@ class Einstein(Player):
         self.attack_damage = self.ATTACK_DMG
 
     def _init_skills(self):
-        self.skills["skill_1"] = GravityBeam()   # Q / ;
-        self.skills["skill_2"] = BlackHole()      # E / '
-        self.skills["skill_R"] = MassBoost()      # R / /
-
+        self.skills["skill_Q"] = GravityBeam()   # Q / ;
+        self.skills["skill_E"] = BlackHole()      # E / '
+        self.skills["skill_R"] = EinsteinDomain()
     def get_char_name(self): return "Einstein"

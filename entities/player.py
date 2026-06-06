@@ -86,6 +86,14 @@ class Player(BaseEntity):
         self.dark_color = self.DARK_COLOR
 
         self.skills: dict[str, Skill] = {}
+
+        self.ultimate_gauge = 100  # 테스트용. 나중에는 0으로 바꿔도 됨.
+
+        self.domain_active = False
+        self.domain_locked = False
+        self.domain_break_hits_taken = 0
+        self.domain_break_hits_limit = 0
+
         self._init_skills()
 
         self.active_skill = None
@@ -105,21 +113,25 @@ class Player(BaseEntity):
             self.key_right = pygame.K_d
             self.key_jump = pygame.K_w
             self.key_attack = pygame.K_f
-            self.key_skill_1 = pygame.K_q
-            self.key_skill_2 = pygame.K_e
+            self.key_skill_Q = pygame.K_q
+            self.key_skill_W = pygame.K_w
+            self.key_skill_E = pygame.K_e
             self.key_skill_R = pygame.K_r
         else:
             self.key_left = pygame.K_LEFT
             self.key_right = pygame.K_RIGHT
             self.key_jump = pygame.K_UP
             self.key_attack = pygame.K_l
-            self.key_skill_1 = pygame.K_SEMICOLON
-            self.key_skill_2 = pygame.K_QUOTE
-            self.key_skill_R = pygame.K_SLASH
+            self.key_skill_Q = pygame.K_SEMICOLON
+            self.key_skill_W = pygame.K_QUOTE
+            self.key_skill_E = pygame.K_SLASH
+            self.key_skill_R = pygame.K_m
 
         # ── 스프라이트 로드 ──────────────────────────────────
         self._sprites = self._load_sprites()
         self._sprite_cache: dict[tuple, pygame.Surface] = {}
+
+
 
     # ─── 스프라이트 로드 ─────────────────────────────────────────
     def _load_sprites(self) -> dict[str, pygame.Surface | None]:
@@ -174,7 +186,7 @@ class Player(BaseEntity):
     # ─── 자식 override ────────────────────────────────────────
     def _init_skills(self):
         self.skills["skill_1"] = Skill(
-            name="Burst", damage=28, fatigue_cost=32, cooldown=100
+            name="Burst", damage=28, cooldown=100
         )
 
     def get_char_name(self) -> str:
@@ -207,10 +219,10 @@ class Player(BaseEntity):
             self._jump(psys)
         elif key == self.key_attack:
             self._do_attack(psys)
-        elif key == self.key_skill_1:
-            self._do_skill(event_bus, psys, "skill_1")
-        elif key == self.key_skill_2:
-            self._do_skill(event_bus, psys, "skill_2")
+        elif key == self.key_skill_Q:
+            self._do_skill(event_bus, psys, "skill_Q")
+        elif key == self.key_skill_E:
+            self._do_skill(event_bus, psys, "skill_E")
         elif key == self.key_skill_R:
             self._do_skill(event_bus, psys, "skill_R")
 
@@ -247,6 +259,19 @@ class Player(BaseEntity):
                 "skill": sk,
                 "skill_key": skill_key
             })
+
+    def use_skill(self, skill_key: str, event_bus=None, psys=None):
+        skill = self.skills.get(skill_key)
+
+        if skill is None:
+            return False
+
+        if not skill.can_use(self):
+            return False
+
+        skill.use(self, event_bus, psys)
+        self.active_skill = skill
+        return True
     # ═══════════════════════════════════════════════════════════
     #  스킬 히트박스
     # ═══════════════════════════════════════════════════════════

@@ -63,11 +63,10 @@ class Skill:
     ICON_PATH     = None   # 선택창 아이콘 (48×48 권장)
 
     def __init__(self, name: str, damage: float,
-                 fatigue_cost: float, cooldown: int = 0,
+                 cooldown: int = 0,
                  duration: int = 30):
         self.name         = name
         self.damage       = damage
-        self.fatigue_cost = fatigue_cost
         self.cooldown     = cooldown        # 프레임 단위
         self.current_cooldown = 0
         self.duration     = duration
@@ -99,8 +98,6 @@ class Skill:
     def can_use(self, owner) -> bool:
         if self.has_cooldown() and self.current_cooldown > 0:
             return False
-        if owner.fatigue + self.fatigue_cost > owner.max_fatigue:
-            return False
         return self.can_activate(owner)
 
     def can_activate(self, owner) -> bool:
@@ -111,8 +108,6 @@ class Skill:
     def use(self, owner, event_bus=None, psys=None):
         if self.has_cooldown():
             self.current_cooldown = self.cooldown
-        owner.fatigue = min(owner.max_fatigue,
-                            owner.fatigue + self.fatigue_cost)
         self.timer   = self.duration
         self.has_hit = False
         self.on_start(owner, event_bus, psys)
@@ -530,9 +525,8 @@ class UltimateSkill(Skill):
     DISPLAY_NAME = "Ultimate"
     DESCRIPTION  = "Requires 100 ultimate gauge."
 
-    def __init__(self, name, damage, fatigue_cost=0, duration=60):
+    def __init__(self, name, damage,  duration=60):
         super().__init__(name=name, damage=damage,
-                         fatigue_cost=fatigue_cost,
                          cooldown=None, duration=duration)
 
     def can_activate(self, owner) -> bool:
@@ -552,3 +546,71 @@ class UltimateSkill(Skill):
         ult = fnt.render("U", True, (255, 255, 200))
         screen.blit(ult, (cx - ult.get_width()//2,
                           cy - ult.get_height()//2))
+
+class DomainUltimateSkill(UltimateSkill):
+    """
+    영역 전개형 궁극기 베이스 클래스.
+
+    실제 연출은 DomainSystem이 담당한다.
+    이 스킬은 domain_request 이벤트만 보낸다.
+    """
+
+    DOMAIN_BG_PATH = None
+
+    # 스킬별 경계 파티클 색상
+    DOMAIN_PARTICLE_COLOR = (0, 0, 0)
+
+    # 몇 대 맞으면 영역이 깨지는지
+    BREAK_HITS = 5
+
+    # 카메라 워킹 설정
+    # 작을수록 빠름
+    CUTSCENE_FRAMES = 34
+    CUTSCENE_ZOOM = 1.45
+
+    # 배경 전환 속도
+    # 클수록 빠름
+    TRANSITION_SPEED = 0.045
+
+    # 배경 전환 중에도 게임을 멈출지
+    FREEZE_DURING_TRANSITION = True
+
+    DISPLAY_NAME = "Domain Expansion"
+    DESCRIPTION = "Open a special domain."
+
+    def __init__(self, name="Domain Expansion", damage=0, duration=999999):
+        super().__init__(
+            name=name,
+            damage=damage,
+            duration=duration,
+        )
+
+    def can_activate(self, owner):
+        if not super().can_activate(owner):
+            return False
+
+        if getattr(owner, "domain_active", False):
+            return False
+
+        if getattr(owner, "domain_locked", False):
+            return False
+
+        return True
+
+    def on_start(self, owner, event_bus=None, psys=None):
+        if event_bus:
+            event_bus.emit("domain_request", {
+                "owner": owner,
+                "skill": self,
+
+                "bg_path": self.DOMAIN_BG_PATH,
+                "particle_color": self.DOMAIN_PARTICLE_COLOR,
+
+                "break_hits": self.BREAK_HITS,
+
+                "cutscene_frames": self.CUTSCENE_FRAMES,
+                "cutscene_zoom": self.CUTSCENE_ZOOM,
+
+                "transition_speed": self.TRANSITION_SPEED,
+                "freeze_during_transition": self.FREEZE_DURING_TRANSITION,
+            })

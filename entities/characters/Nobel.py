@@ -22,7 +22,7 @@ class AerialSpike(ProjectileSkill):
 
     def __init__(self):
         super().__init__("Aerial Spike", damage=18,
-                         fatigue_cost=22, cooldown=240, duration=60)
+                          cooldown=240, duration=60)
 
 
 class WindBarrier(SummonZoneSkill):
@@ -37,7 +37,7 @@ class WindBarrier(SummonZoneSkill):
 
     def __init__(self):
         super().__init__("Wind Barrier", damage=14,
-                         fatigue_cost=30, cooldown=420, duration=80)
+                          cooldown=420, duration=80)
 
     def on_hit(self, owner, target, event_bus, psys=None, fsys=None):
         # 위로 날려보내는 CC 추가
@@ -55,7 +55,7 @@ class FeatherFall(EnhanceSkill):
 
     def __init__(self):
         super().__init__("Feather Fall", damage=0,
-                         fatigue_cost=25, cooldown=720, duration=300)
+                         cooldown=720, duration=300)
 
     def on_start(self, owner, event_bus=None, psys=None):
         super().on_start(owner, event_bus, psys)
@@ -116,8 +116,7 @@ class Nobel(Player):
         self.attack_damage = self.ATTACK_DMG
 
     def _init_skills(self):
-        self.skills["skill_1"] = AerialSpike()   # Q / ;
-        self.skills["skill_2"] = WindBarrier()    # E / '
-        self.skills["skill_R"] = FeatherFall()    # R / /
+        self.skills["skill_Q"] = AerialSpike()   # Q / ;
+        self.skills["skill_E"] = WindBarrier()    # E / '
 
     def get_char_name(self): return "Nobel"

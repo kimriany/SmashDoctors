@@ -22,7 +22,7 @@ class VoidPulse(BeamSkill):
 
     def __init__(self):
         super().__init__("Void Pulse", damage=16,
-                         fatigue_cost=18, cooldown=120, duration=18)
+                         cooldown=120, duration=18)
 
 
 class CatsParadox(TeleportSkill):
@@ -34,7 +34,7 @@ class CatsParadox(TeleportSkill):
 
     def __init__(self):
         super().__init__("Cat's Paradox", damage=12,
-                         fatigue_cost=30, cooldown=360, duration=20)
+                         cooldown=360, duration=20)
 
     def on_start(self, owner, event_bus=None, psys=None):
         # active_skill에서 target을 찾아 설정
@@ -45,7 +45,7 @@ class CatsParadox(TeleportSkill):
 
 class QuantumState(EnhanceSkill):
     DISPLAY_NAME  = "Quantum State"
-    DESCRIPTION   = "Reduce all skill cooldowns by 40%.\nRecover fatigue rapidly."
+    DESCRIPTION   = "Reduce all skill cooldowns by 40%."
     SPEED_MULT    = 1.0
     DMG_BONUS     = 2
     ENHANCE_COLOR = (210, 130, 255)
@@ -53,12 +53,10 @@ class QuantumState(EnhanceSkill):
 
     def __init__(self):
         super().__init__("Quantum State", damage=0,
-                         fatigue_cost=20, cooldown=900, duration=360)
+                         cooldown=900, duration=360)
 
     def on_update(self, owner, event_bus=None, psys=None):
         super().on_update(owner, event_bus, psys)
-        # 매 프레임 피로도 빠르게 회복
-        owner.fatigue = max(0, owner.fatigue - 0.8)
         # 쿨타임 2배속 감소
         for sk in owner.skills.values():
             if sk is not self and sk.current_cooldown > 0:
@@ -83,7 +81,7 @@ class Schrödinger(Player):
     GLOW_COLOR    = (210, 130, 255)
     DARK_COLOR    = ( 60, 10, 100)
     DISPLAY_NAME  = "Schrödinger"
-    DESCRIPTION   = "Short cooldowns, low fatigue cost.\nWin with skill combos."
+    DESCRIPTION   = "Short cooldowns. \nWin with skill combos."
     PREVIEW_COLOR = (155, 60, 220)
     SKILL_NAME    = "Void Pulse"
 
@@ -113,8 +111,7 @@ class Schrödinger(Player):
         self.attack_damage = self.ATTACK_DMG
 
     def _init_skills(self):
-        self.skills["skill_1"] = VoidPulse()      # Q / ;
-        self.skills["skill_2"] = CatsParadox()    # E / '
-        self.skills["skill_R"] = QuantumState()   # R / /
+        self.skills["skill_Q"] = VoidPulse()      # Q / ;
+        self.skills["skill_E"] = CatsParadox()    # E / '
 
     def get_char_name(self): return "Schrödinger"

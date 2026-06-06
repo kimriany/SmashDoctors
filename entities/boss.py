@@ -24,7 +24,7 @@ class Boss(BaseEntity):
         self.ai_timer = 0
         self.target   = None
 
-        self.skill = Skill("Shockwave", damage=32, fatigue_cost=0, cooldown=160)
+        self.skill = Skill("Shockwave", damage=32, cooldown=160)
         self.skill_timer   = 0
         self.skill_has_hit = False
 

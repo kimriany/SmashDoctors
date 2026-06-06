@@ -45,10 +45,6 @@ class BaseEntity:
         # ── 데미지 (HP 없음) ──
         self.damage_pct  = 0.0    # 누적 % (이게 높을수록 넉백↑)
 
-        # ── 피로도 ──
-        self.fatigue     = 0.0
-        self.max_fatigue = 100.0
-
         # ── 공격 상태 ──
         self.attack_timer    = 0
         self.attack_cooldown = 0
@@ -166,7 +162,6 @@ class BaseEntity:
         조정 사항:
             1. 스케일 계수 0.026 → 0.072  (약 2.8배 상향)
             2. 최대 클램프 28 → 55
-            3. 피로도 페널티: fatigue 100% 시 넉백 +60%
             4. 넉백 저항(_kb_resist) 지원
         """
         p = self.damage_pct
@@ -183,12 +178,6 @@ class BaseEntity:
         # 기본 타격: 데미지 누적에 따라 점점 날아가는 느낌
         speed = raw * 0.32
 
-        # ── 피로도 페널티 ────────────────────────────────────
-        # fatigue 0% → ×1.0  /  fatigue 100% → ×2.0
-        # 피로도 꽉 찬 상태에서 맞으면 2배로 날아감
-        fatigue_ratio   = self.fatigue / max(self.max_fatigue, 1.0)
-        fatigue_penalty = 1.0 + fatigue_ratio * 1.0
-        speed *= fatigue_penalty
 
         # ── 넉백 저항 ────────────────────────────────────────
         resist = getattr(self, "_kb_resist", 0.0)
@@ -235,9 +224,6 @@ class BaseEntity:
         if self.invincible      > 0: self.invincible       -= 1
         if self.hit_flash       > 0: self.hit_flash        -= 1
 
-        # 피로도 자연 회복
-        if self.fatigue > 0:
-            self.fatigue = max(0.0, self.fatigue - 0.30)
 
         # 착지 스쿼시 감쇠
         if self.land_squash > 0:

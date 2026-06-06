@@ -11,6 +11,7 @@ from systems.floater   import FloaterSystem
 from scenes.mode_select      import ModeSelect
 from scenes.character_select import CharacterSelect
 from scenes.stage_select     import StageSelect
+from systems.domain_system import DomainSystem
 
 
 class GameState:
@@ -52,6 +53,8 @@ class Game:
         self.player1 = None
         self.player2 = None
 
+        self.domain_sys = None
+
     # ─── 게임 시작 ─────────────────────────────────────────────
     def _start_game(self):
         self.event_bus    = EventBus()
@@ -69,6 +72,18 @@ class Game:
         self.player2.spawn_x, self.player2.spawn_y = sp2[0], sp2[1]
 
         self.renderer.load_stage_background(self._stage_info["id"])
+
+        self.domain_sys = DomainSystem(
+            screen=self.screen,
+            renderer=self.renderer,
+            camera=self.camera,
+            event_bus=self.event_bus,
+            particle_sys=self.particle_sys,
+            dual_domain_bg_path="assets/images/Double_domain.jpeg",
+        )
+
+        self.event_bus.subscribe("domain_request", self.domain_sys.on_domain_request)
+        self.event_bus.subscribe("attack_hit", self.domain_sys.on_attack_hit)
 
         self.event_bus.subscribe("attack_hit",  self._on_attack_hit)
         self.event_bus.subscribe("entity_dead", self._on_entity_dead)
@@ -173,9 +188,10 @@ class Game:
 
                 # 플레이 중
                 elif self.state == GameState.PLAYING:
-                    self.player1.handle_keydown(k, self.event_bus, self.particle_sys)
-                    self.player2.handle_keydown(k, self.event_bus, self.particle_sys)
-
+                    # 궁극기 컷신 중에는 조작 입력 막기
+                    if not self.domain_sys or not self.domain_sys.gameplay_frozen:
+                        self.player1.handle_keydown(k, self.event_bus, self.particle_sys)
+                        self.player2.handle_keydown(k, self.event_bus, self.particle_sys)
                 # 승리 화면
                 elif self.state == GameState.WIN:
                     if k == pygame.K_RETURN:
@@ -183,6 +199,17 @@ class Game:
 
     # ─── 업데이트 ──────────────────────────────────────────────
     def _update(self):
+        # 영역 시스템은 항상 먼저 업데이트
+        if self.domain_sys:
+            self.domain_sys.update()
+
+        # 컷신 / 연출 중에는 플레이어 조작, 이동, 충돌은 멈춘다.
+        # 단, 파티클과 데미지 텍스트는 계속 업데이트한다.
+        if self.domain_sys and self.domain_sys.gameplay_frozen:
+            self.particle_sys.update()
+            self.floater_sys.update()
+            return
+
         keys = pygame.key.get_pressed()
         self.player1.handle_input(keys)
         self.player2.handle_input(keys)
@@ -249,10 +276,18 @@ class Game:
 
     # ─── 렌더링 ────────────────────────────────────────────────
     def _draw_game(self):
-        self.renderer.draw_background()
+        if self.domain_sys:
+            self.domain_sys.draw_background()
+        else:
+            self.renderer.draw_background()
+
         self.renderer.draw_platforms(self.platforms, self.camera)
+
         self.particle_sys.draw(self.screen, self.camera)
+
         self.player1.draw(self.screen, self.camera)
         self.player2.draw(self.screen, self.camera)
+
         self.floater_sys.draw(self.screen, self.camera)
+
         self.renderer.draw_hud([self.player1, self.player2])
