@@ -1,6 +1,80 @@
-"""Doctor Red — 강한 한방, 무겁고 느림."""
+"""
+Einstein — 무겁고 강력, 한방 특화
+
+스킬 구성:
+  Q / ;  basic   — Gravity Beam    (BeamSkill)      전방 중력 빔, 강한 데미지
+  E / '  cc      — Black Hole      (SummonZoneSkill) 전방 구역에 블랙홀 소환, 끌어당김
+  R / /  enhance — Mass Boost      (EnhanceSkill)   무게 + 공격력 강화, 넉백 저항
+"""
 from entities.player import Player
-from systems.skill import Skill
+from systems.skill import BeamSkill, SummonZoneSkill, EnhanceSkill
+import pygame
+
+
+class GravityBeam(BeamSkill):
+    DISPLAY_NAME = "Gravity Beam"
+    DESCRIPTION  = "Fire a heavy gravity beam.\nHigh damage, slow startup."
+    BEAM_LENGTH  = 300
+    BEAM_WIDTH   = 32
+    BEAM_COLOR   = (255, 130, 110)
+    BEAM_GLOW    = (255, 200, 180)
+    COOLDOWN_SEC = 6.0
+
+    def __init__(self):
+        super().__init__("Gravity Beam", damage=35,
+                         fatigue_cost=40, cooldown=360, duration=28)
+
+
+class BlackHole(SummonZoneSkill):
+    DISPLAY_NAME = "Black Hole"
+    DESCRIPTION  = "Summon a black hole that pulls the enemy in."
+    WARN_FRAMES  = 45
+    ZONE_W       = 130
+    ZONE_H       = 130
+    ZONE_COLOR   = (225, 55, 55)
+    ZONE_GLOW    = (255, 100, 80)
+    COOLDOWN_SEC = 9.0
+
+    def __init__(self):
+        super().__init__("Black Hole", damage=20,
+                         fatigue_cost=45, cooldown=540, duration=100)
+
+    def on_update(self, owner, event_bus=None, psys=None):
+        # 경고 이후 — 매 프레임 상대를 끌어당김
+        if self.timer <= self.duration - self.WARN_FRAMES:
+            zx = getattr(self, '_zone_x', owner.rect.centerx)
+            zy = getattr(self, '_zone_y', owner.rect.bottom)
+            # owner._skill_target이 있으면 당기기 (game.py에서 설정)
+            target = getattr(owner, '_skill_target', None)
+            if target and not target.dead:
+                dx = zx - target.rect.centerx
+                dy = zy - 60 - target.rect.centery
+                dist = max(1, (dx**2 + dy**2) ** 0.5)
+                pull = 2.5
+                target.vel.x += (dx / dist) * pull
+                target.vel.y += (dy / dist) * pull * 0.5
+
+
+class MassBoost(EnhanceSkill):
+    DISPLAY_NAME  = "Mass Boost"
+    DESCRIPTION   = "Increase weight and attack power.\nResist knockback for 5s."
+    SPEED_MULT    = 0.85   # 살짝 느려짐
+    DMG_BONUS     = 8
+    ENHANCE_COLOR = (255, 130, 110)
+    COOLDOWN_SEC  = 14.0
+
+    def __init__(self):
+        super().__init__("Mass Boost", damage=0,
+                         fatigue_cost=40, cooldown=840, duration=300)
+
+    def on_start(self, owner, event_bus=None, psys=None):
+        super().on_start(owner, event_bus, psys)
+        owner._kb_resist = 0.5   # 넉백 50% 감소
+
+    def on_end(self, owner):
+        super().on_end(owner)
+        if hasattr(owner, '_kb_resist'):
+            del owner._kb_resist
 
 
 class Einstein(Player):
@@ -21,39 +95,38 @@ class Einstein(Player):
     GLOW_COLOR    = (255, 130, 110)
     DARK_COLOR    = (110, 15, 15)
     DISPLAY_NAME  = "Einstein"
-    DESCRIPTION   = "None"
+    DESCRIPTION   = "Heavy hitter with massive knockback.\nSlow but devastating."
     PREVIEW_COLOR = (225, 55, 55)
-    SKILL_NAME    = "Power Smash"
+    SKILL_NAME    = "Gravity Beam"
 
-    SPRITE_PATH = "assets/images/charactor/Nobel/IDL.png"
-    SPRITE_IDLE = "assets/images/charactor/Nobel/IDL.png"
-    SPRITE_JUMP = "assets/images/charactor/Nobel/jump.png"  # 없으면 IDLE 사용
-    SPRITE_ATTACK = "assets/images/charactor/Nobel/attack.png"  # 없으면 IDLE 사용
-    SPRITE_SKILL = "assets/images/charactor/Nobel/skill.png"  # 없으면 IDLE 사용
+    SPRITE_PATH   = "assets/images/charactor/Einstein/IDL.png"
+    SPRITE_IDLE   = "assets/images/charactor/Einstein/IDL.png"
+    SPRITE_JUMP   = "assets/images/charactor/Einstein/jump.png"
+    SPRITE_ATTACK = "assets/images/charactor/Einstein/attack.png"
+    SPRITE_SKILL  = "assets/images/charactor/Einstein/skill.png"
 
-    # 크기 조절 변수들
-    SPRITE_SCALE = 1.25
+    SPRITE_SCALE    = 1.25
     SPRITE_OFFSET_X = 0
     SPRITE_OFFSET_Y = 6
 
-    #스킬 이펙트 위치 조정
-    SKILL_BEAM_OFFSET_X = 0
-    SKILL_BEAM_OFFSET_Y = 0
-    SKILL_AURA_OFFSET_X = 0
-    SKILL_AURA_OFFSET_Y = 0
+    SKILL_DEFS_META = {
+        "basic":   ("Gravity Beam", "BeamSkill",      35, 40, 6.0),
+        "cc":      ("Black Hole",   "SummonZoneSkill", 20, 45, 9.0),
+        "enhance": ("Mass Boost",   "EnhanceSkill",     0, 40, 14.0),
+    }
 
     def __init__(self, x, y, name="Player", player_id=1):
         super().__init__(x, y, name, player_id)
-        self.color       = self.BODY_COLOR
-        self.trim_color  = self.TRIM_COLOR
-        self.glow_color  = self.GLOW_COLOR
-        self.dark_color  = self.DARK_COLOR
-        self.max_jumps   = self.MAX_JUMPS
+        self.color         = self.BODY_COLOR
+        self.trim_color    = self.TRIM_COLOR
+        self.glow_color    = self.GLOW_COLOR
+        self.dark_color    = self.DARK_COLOR
+        self.max_jumps     = self.MAX_JUMPS
         self.attack_damage = self.ATTACK_DMG
-        self.skills["skill_1"] = Skill(
-            name=self.SKILL_NAME, damage=38,
-            fatigue_cost=40, cooldown=120)
 
-    def get_char_name(self): return "Dr. Red"
+    def _init_skills(self):
+        self.skills["skill_1"] = GravityBeam()   # Q / ;
+        self.skills["skill_2"] = BlackHole()      # E / '
+        self.skills["skill_R"] = MassBoost()      # R / /
 
-
+    def get_char_name(self): return "Einstein"

@@ -480,3 +480,58 @@ class Player(BaseEntity):
 
         py = y + h * y_ratio
         return px, py
+
+    # ─── 도형 렌더링 (스프라이트 없을 때 폴백) ──────────────────
+    def _draw_shape(self, screen, dr, bob, z):
+        """이미지 없을 때 기본 도형으로 캐릭터를 그립니다."""
+        flash = self.hit_flash > 0 and (self.hit_flash // 3) % 2 == 0
+        fc    = lambda c: (255, 255, 255) if flash else c
+
+        # 다리
+        lc  = fc(self.trim_color)
+        leg_top = dr.y + int(dr.h * 0.73) + bob
+        swing   = int(math.sin(self.walk_t) * 7 * z) \
+                  if self.on_ground and abs(self.vel.x) > 0.5 else 0
+        lw, lh  = max(4, int(13*z)), int(dr.h * 0.22)
+        for side, sw in ((-1, -swing), (1, swing)):
+            lx = dr.x + (int(dr.w*0.12) if side==-1 else int(dr.w*0.55))
+            pygame.draw.rect(screen, lc, (lx, leg_top+sw, lw, lh), border_radius=max(2,int(4*z)))
+
+        # 몸통
+        body_r = pygame.Rect(dr.x+int(2*z), dr.y+int(dr.h*0.30)+bob, dr.w-int(4*z), int(dr.h*0.45))
+        pygame.draw.rect(screen, fc(self.color), body_r, border_radius=max(3,int(7*z)))
+        pygame.draw.rect(screen, self.trim_color,
+                         (body_r.x+int(3*z), body_r.y+int(2*z), max(4,int(13*z)), body_r.h-int(4*z)),
+                         border_radius=max(2,int(3*z)))
+
+        # 머리
+        head_r = pygame.Rect(dr.x+int(dr.w*0.12), dr.y+int(2*z)+bob,
+                             int(dr.w*0.76), int(dr.h*0.32))
+        pygame.draw.rect(screen, fc(self.color), head_r, border_radius=max(4,int(10*z)))
+        pygame.draw.rect(screen, self.trim_color,
+                         (head_r.x+int(3*z), head_r.y+int(2*z),
+                          head_r.w-int(6*z), int(head_r.h*0.38)),
+                         border_radius=max(2,int(6*z)))
+
+        # 안경
+        ex = head_r.x + (int(head_r.w*0.62) if self.facing==1 else int(head_r.w*0.22))
+        ey = head_r.y + int(head_r.h*0.42)
+        lw2, lh2 = max(6, int(13*z)), max(5, int(10*z))
+        pygame.draw.rect(screen, (210,235,255), (ex-lw2//2, ey-lh2//2, lw2, lh2), border_radius=max(2,int(3*z)))
+        pygame.draw.rect(screen, (90,100,130),  (ex-lw2//2, ey-lh2//2, lw2, lh2), max(1,int(1*z)), border_radius=max(2,int(3*z)))
+        pygame.draw.circle(screen, (15,15,35), (ex+self.facing, ey), max(1,int(3*z)))
+
+        # 팔
+        arm_y = dr.y + int(dr.h*0.30) + bob + int(4*z)
+        if self.attack_timer > 0:
+            prog  = 1.0 - self.attack_timer / max(1, self.ATK_FRAMES)
+            swing2 = int(math.sin(prog*math.pi)*14*z)
+            ax = dr.x + dr.w if self.facing==1 else dr.x - max(8, int(20*z))
+            pygame.draw.rect(screen, fc(self.color),
+                             (ax, arm_y-swing2, max(6,int(20*z)), max(5,int(17*z))),
+                             border_radius=max(2,int(5*z)))
+        else:
+            ax = dr.x + dr.w - int(3*z) if self.facing==1 else dr.x - max(4, int(9*z))
+            pygame.draw.rect(screen, fc(self.color),
+                             (ax, arm_y+int(2*z), max(4,int(12*z)), max(4,int(14*z))),
+                             border_radius=max(2,int(4*z)))

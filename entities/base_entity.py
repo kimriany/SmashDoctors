@@ -158,33 +158,62 @@ class BaseEntity:
     def apply_knockback(self, attacker: "BaseEntity", damage: float,
                         camera=None):
         """
-        스매시 Ultimate 공식 기반 넉백.
-            KB = (((p/10 + p*d/20) * (200/(w+100)) * 1.4) + 18)
-                 * (s/100) + b
-        KB → 픽셀/프레임 속도로 변환 (스케일 계수 0.026).
+        넉백 공식 (Smash Ultimate 기반, 스케일 대폭 상향)
+
+        기본 공식:
+            raw = (((p/10 + p*d/20) * (200/(w+100)) * 1.4) + 18) * (s/100) + b
+
+        조정 사항:
+            1. 스케일 계수 0.026 → 0.072  (약 2.8배 상향)
+            2. 최대 클램프 28 → 55
+            3. 피로도 페널티: fatigue 100% 시 넉백 +60%
+            4. 넉백 저항(_kb_resist) 지원
         """
         p = self.damage_pct
         d = damage
-        w = self.WEIGHT
-        s = self.KB_GROWTH
-        b = self.BASE_KB
+        w = getattr(self, "WEIGHT",    100)
+        s = getattr(self, "KB_GROWTH",  80)
+        b = getattr(self, "BASE_KB",    30)
 
+        # 기본 넉백 계산
         raw = (((p / 10.0 + p * d / 20.0) * (200.0 / (w + 100.0)) * 1.4)
                + 18.0) * (s / 100.0) + b
 
-        speed = raw * 0.026          # 픽셀/프레임 스케일
-        speed = max(2.5, min(speed, 28.0))   # 클램프
+        # ── 스케일 (크게 올림) ──────────────────────────────
+        # 기본 타격: 데미지 누적에 따라 점점 날아가는 느낌
+        speed = raw * 0.32
 
-        dir_x        = 1 if attacker.rect.centerx < self.rect.centerx else -1
-        self.vel.x   = dir_x * speed
-        self.vel.y   = -(speed * 0.50)
-        self.shake_x = dir_x * 10
-        self.shake_y = -7
+        # ── 피로도 페널티 ────────────────────────────────────
+        # fatigue 0% → ×1.0  /  fatigue 100% → ×2.0
+        # 피로도 꽉 찬 상태에서 맞으면 2배로 날아감
+        fatigue_ratio   = self.fatigue / max(self.max_fatigue, 1.0)
+        fatigue_penalty = 1.0 + fatigue_ratio * 1.0
+        speed *= fatigue_penalty
+
+        # ── 넉백 저항 ────────────────────────────────────────
+        resist = getattr(self, "_kb_resist", 0.0)
+        speed *= (1.0 - resist)
+
+        # ── 클램프 ───────────────────────────────────────────
+        # 최솟값을 높여 약한 공격도 확실히 밀림
+        speed = max(6.0, min(speed, 120.0))
+
+        dir_x      = 1 if attacker.rect.centerx < self.rect.centerx else -1
+        vel_x      = dir_x * speed * 1.8          # 좌우 강화
+        vel_y      = -(speed * 0.20)               # 위 억제
+        # vel.x 최종 클램프 (배율 적용 후)
+        MAX_VEL_X  = 90.0
+        vel_x      = max(-MAX_VEL_X, min(MAX_VEL_X, vel_x))
+        self.vel.x = vel_x
+        self.vel.y = vel_y
+        self.shake_x = dir_x * min(18, int(abs(vel_x) * 0.3))
+        self.shake_y = -min(6, int(speed * 0.15))
         self.is_launched = True
 
-        # Special Zoom 트리거 (강한 넉백)
-        if camera is not None and speed >= camera.SZOOM_THRESHOLD:
-            camera.trigger_special_zoom(self.rect.centerx, self.rect.centery)
+        # Special Zoom 트리거
+        if camera is not None and hasattr(camera, "SZOOM_THRESHOLD"):
+            if speed >= camera.SZOOM_THRESHOLD:
+                camera.trigger_special_zoom(self.rect.centerx, self.rect.centery)
 
     # ═══════════════════════════════════════════════════════════
     #  update (공통)
