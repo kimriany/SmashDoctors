@@ -1,0 +1,53 @@
+{
+  "id": "stage_02",
+  "title": "화학 스테이지",
+  "next_on_win": "stage_03",
+  "boss_class": "entities.Boss_characters.Curie",
+  "boss_name": "퀴리",
+  "stage_json": "data/stages/stage_02.json",
+  "script_pre_battle": [
+    {"cmd": "bg",      "image": "assets/images/story/bg_lab.png", "transition": "fade"},
+    {"cmd": "dialog",  "speaker": "주인공", "text": "물질 구조가 붕괴하고 있다."},
+    {"cmd": "dialog",  "speaker": "SYSTEM",  "text": "원자 결합 불안정\n물질 안정도 저하\n화학 영역 이상 감지"},
+    {"cmd": "dialog",  "speaker": "주인공", "text": "이번엔 화학인가."},
+    {"cmd": "show_char","slot": "right", "image": "assets/images/story/char_curie.png"},
+    {"cmd": "dialog",  "speaker": "퀴리",   "text": "아름답지 않나?"},
+    {"cmd": "dialog",  "speaker": "주인공", "text": "그건 빛이 아니다. 방사선이다."},
+    {"cmd": "dialog",  "speaker": "퀴리",   "text": "이름이 중요한가?"},
+    {"cmd": "dialog",  "speaker": "주인공", "text": "세계가 무너지고 있다."},
+    {"cmd": "dialog",  "speaker": "퀴리",   "text": "세계는 늘 무너지고 있었어. 인간이 몰랐을 뿐."},
+    {"cmd": "dialog",  "speaker": "퀴리",   "text": "발견은 세상을 바꾸지. 그리고 자네는 누구보다 많이 바꿔왔잖아?"},
+    {"cmd": "battle_start"}
+  ],
+  "script_post_battle": [
+    {"cmd": "show_char","slot": "right", "image": "assets/images/story/char_curie_defeat.png"},
+    {"cmd": "dialog",  "speaker": "주인공", "text": "사상 변화."},
+    {"cmd": "dialog",  "speaker": "퀴리",   "text": "이상하군."},
+    {"cmd": "dialog",  "speaker": "주인공", "text": "뭐가?"},
+    {"cmd": "dialog",  "speaker": "퀴리",   "text": "자네 쪽이 더 오염되어 보여."},
+    {"cmd": "dialog",  "speaker": "퀴리",   "text": "대체 몇 번이나 되돌린 거지?"},
+    {"cmd": "hide_char","slot": "right"},
+    {"cmd": "dialog",  "speaker": "SYSTEM", "text": "상태이상 획득\n우라늄\n지속 피해 발생\n게임 종료까지 제거 불가"},
+    {"cmd": "dialog",  "speaker": "주인공", "text": "젠장..."},
+    {"cmd": "show_char","slot": "right", "image": "assets/images/story/char_schrodinger.png"},
+    {"cmd": "dialog",  "speaker": "슈뢰딩거", "text": "마침내 왔군."},
+    {"cmd": "dialog",  "speaker": "슈뢰딩거", "text": "자네는 관측자인가? 아니면 변수인가?"},
+    {"cmd": "dialog",  "speaker": "주인공",   "text": "무슨 뜻이지?"},
+    {"cmd": "dialog",  "speaker": "슈뢰딩거", "text": "관측자는 결과를 본다. 변수는 결과를 바꾼다."},
+    {"cmd": "dialog",  "speaker": "슈뢰딩거", "text": "그런데 자네는 결과를 보기 전에 나타나서 결과를 바꾸고 있잖나."},
+    {"cmd": "battle_start"}
+  ],
+  "script_post_battle_2": [
+    {"cmd": "show_char","slot": "right", "image": "assets/images/story/char_schrodinger_defeat.png"},
+    {"cmd": "dialog",  "speaker": "주인공",   "text": "사상 변화."},
+    {"cmd": "dialog",  "speaker": "슈뢰딩거", "text": "이제야 알겠군."},
+    {"cmd": "dialog",  "speaker": "슈뢰딩거", "text": "당신은 고양이가 아니예요."},
+    {"cmd": "dialog",  "speaker": "슈뢰딩거", "text": "고양이는 상자 안에 있었어. 하지만 당신은..."},
+    {"cmd": "dialog",  "speaker": "슈뢰딩거", "text": "상자 밖에서 결과를 고르고 있었지."},
+    {"cmd": "hide_char","slot": "right"},
+    {"cmd": "dialog",  "speaker": "주인공",   "text": "...상자 밖에서 결과를 고른다고?"},
+    {"cmd": "bg",      "image": null, "transition": "fade_black"},
+    {"cmd": "dialog",  "speaker": "SYSTEM", "text": "Location : 화학 연구소"},
+    {"cmd": "end"}
+  ]
+}
