@@ -1,633 +1,94 @@
-from systems.font_manager import font
+# engine/game.py
+
 import pygame
-from settings import SCREEN_WIDTH, SCREEN_HEIGHT, FPS, TITLE, BLAST_MARGIN
 
-from engine.camera    import Camera
-from engine.renderer  import Renderer
-from systems.event_bus    import EventBus
-from systems.stage_loader import StageLoader
-from systems.particle  import ParticleSystem
-from systems.floater   import FloaterSystem
-
-from scenes.mode_select        import ModeSelect
-from scenes.character_select   import CharacterSelect
-from scenes.stage_select       import StageSelect
-from scenes.story_intro        import StoryIntro
-from scenes.story_scene        import StoryScene
-from scenes.story_stage_select import StoryStageSelect
-from systems.domain_system     import DomainSystem
-from systems.story_save        import StorySave
-from systems.story_loader      import StoryLoader
+from settings import SCREEN_WIDTH, SCREEN_HEIGHT, FPS, TITLE
+from scenes.mode_select import ModeSelect
+from modes.pvp_game import PVPGame
+from modes.story_game import StoryGame
 
 
-class GameState:
-    MODE_SEL          = "mode_select"
-    TITLE             = "title"
-    CHAR_SEL          = "char_select"
-    STAGE_SEL         = "stage_select"
-    PLAYING           = "playing"
-    WIN               = "win"
-    # ── 스토리 ──
-    STORY_INTRO       = "story_intro"        # 스토리 진입창
-    STORY_STAGE_SEL   = "story_stage_sel"    # 챕터 슬라이더 선택
-    STORY_CHAR_SEL    = "story_char_sel"     # 캐릭터 선택 (스토리용)
-    STORY_PLAYING     = "story_playing"      # 스토리 전투
-    STORY_WIN         = "story_win"
-    STORY_LOSE        = "story_lose"
-    STORY_SCENE       = "story_scene"        # 비주얼 노벨 씬
-    STORY_ENDING      = "story_ending"       # 엔딩 화면
+class AppState:
+    MODE_SELECT = "mode_select"
+    PVP = "pvp"
+    STORY = "story"
 
 
 class Game:
     def __init__(self):
         self.screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
         pygame.display.set_caption(TITLE)
-        self.clock   = pygame.time.Clock()
+
+        self.clock = pygame.time.Clock()
         self.running = True
-        self.state   = GameState.MODE_SEL   # ← 시작 상태
 
-        self.camera   = Camera(SCREEN_WIDTH, SCREEN_HEIGHT)
-        self.renderer = Renderer(self.screen)
+        self.state = AppState.MODE_SELECT
+        self.mode_select = ModeSelect(self.screen)
+        self.current_game = None
 
-        self.mode_select  = ModeSelect(self.screen)
-        self.char_select  = CharacterSelect(self.screen)
-        self.stage_select = StageSelect(self.screen)
+    def _reset_mode_select(self):
+        self.mode_select = ModeSelect(self.screen)
+        self.current_game = None
+        self.state = AppState.MODE_SELECT
 
-        self.platforms    = []
-        self.winner_name  = ""
-        self.winner_color = (255, 255, 255)
-
-        self._cls_p1     = None
-        self._cls_p2     = None
-        self._stage_info = None
-
-        self.event_bus    = None
-        self.particle_sys = None
-        self.floater_sys  = None
-        self.player1 = None
-        self.player2 = None
-
-        self.domain_sys = None
-
-        # ── 스토리 시스템 ──
-        self.story_save         = StorySave()
-        self.story_loader       = StoryLoader()
-        self.story_intro        = StoryIntro(self.screen)
-        self.story_stage_sel    = StoryStageSelect(self.screen, self.story_save, self.story_loader)
-        self.story_char_sel     = None   # 스토리 전용 캐릭터 선택창 (CharacterSelect 재사용)
-        self._story_chapter     = None   # 현재 진행 중인 챕터 dict
-        self._story_player_cls  = None
-        self._story_scene       = None   # 현재 StoryScene 인스턴스
-        self._story_battle_num  = 1      # 몇 번째 전투인지
-        self._ending_type       = None   # null / eternity / normal
-
-    # ─── 게임 시작 ─────────────────────────────────────────────
-    def _start_game(self):
-        self.event_bus    = EventBus()
-        self.particle_sys = ParticleSystem()
-        self.floater_sys  = FloaterSystem()
-
-        data = StageLoader(self._stage_info["path"]).load()
-        self.platforms = data["platforms"]
-        sp1 = data.get("player_spawn", [220, 340])
-        sp2 = data.get("boss_spawn",   [940, 340])
-
-        self.player1 = self._cls_p1(sp1[0], sp1[1], name="Player 1", player_id=1)
-        self.player2 = self._cls_p2(sp2[0], sp2[1], name="Player 2", player_id=2)
-        self.player1.spawn_x, self.player1.spawn_y = sp1[0], sp1[1]
-        self.player2.spawn_x, self.player2.spawn_y = sp2[0], sp2[1]
-
-        self.renderer.load_stage_background(self._stage_info["id"])
-
-        self.domain_sys = DomainSystem(
-            screen=self.screen,
-            renderer=self.renderer,
-            camera=self.camera,
-            event_bus=self.event_bus,
-            particle_sys=self.particle_sys,
-            dual_domain_bg_path="assets/images/Double_domain.jpeg",
-        )
-
-        self.event_bus.subscribe("domain_request", self.domain_sys.on_domain_request)
-        self.event_bus.subscribe("attack_hit", self.domain_sys.on_attack_hit)
-
-        self.event_bus.subscribe("attack_hit",  self._on_attack_hit)
-        self.event_bus.subscribe("entity_dead", self._on_entity_dead)
-
-        self.state = GameState.PLAYING
-
-    # ─── 스토리 씬 시작 ──────────────────────────────────────────
-    def _start_story_scene(self):
-        """캐릭터 선택 후 스크립트 씬 시작."""
-        ch = self._story_chapter
-        if ch is None:
-            return
-        script_path = f"data/story/scripts/stage_{ch['id']:02d}.json"
-        self._story_scene      = StoryScene(self.screen, script_path)
-        self._story_battle_num = 1
-        # 진행 현황 정보 주입
-        self._story_scene.script_data["_total_stages"]   = self.story_loader.total
-        self._story_scene.script_data["_current_stage"]  = ch["id"]
-        self.state = GameState.STORY_SCENE
-
-    def _on_story_scene_done(self):
-        """StoryScene 결과 처리."""
-        result = self._story_scene.result
-
-        if result == "battle":
-            self._story_battle_num = 1
-            self._start_story_battle()
-
-        elif result == "battle_2":
-            self._story_battle_num = 2
-            self._start_story_battle()
-
-        elif result == "end":
-            # 다음 챕터로
-            ch      = self._story_chapter
-            next_id = ch.get("next_on_win") or ch.get("next")
-            if next_id:
-                next_ch = self.story_loader.get_chapter(int(next_id.split("_")[-1]))
-                if next_ch:
-                    self._story_chapter = next_ch
-                    self._start_story_scene()
-                    return
-            self.state = GameState.STORY_STAGE_SEL
-
-        elif result and result.startswith("ending_"):
-            self._ending_type = result.replace("ending_","")
-            self.state = GameState.STORY_ENDING
-
-        else:
-            self.state = GameState.STORY_STAGE_SEL
-
-    def _draw_ending(self):
-        """엔딩 화면 3종."""
-        self.renderer.draw_background()
-        etype = self._ending_type or "normal"
-
-        ov = pygame.Surface((SCREEN_WIDTH, SCREEN_HEIGHT), pygame.SRCALPHA)
-        ov.fill((0,0,0,210))
-        self.screen.blit(ov,(0,0))
-
-        fnt_big = font(46, bold=True)
-        fnt_md  = font(18, bold=True)
-        fnt_sm  = font(14)
-
-        configs = {
-            "null": {
-                "title": "NULL  ENDING",
-                "color": (200, 220, 255),
-                "lines": [
-                    "시간은 고쳐진 것이 아니라,",
-                    "처음부터 고칠 필요가 없었다.",
-                ],
-            },
-            "eternity": {
-                "title": "ETERNITY  ENDING",
-                "color": (255, 200, 100),
-                "lines": [
-                    "세계는 복구되었다.",
-                    "그러나 벽 어딘가, 숫자 9가 새겨져 있다.",
-                    "",
-                    "TIME LOOP #9",
-                ],
-            },
-            "normal": {
-                "title": "NORMAL  ENDING",
-                "color": (180, 255, 180),
-                "lines": ["계속된다..."],
-            },
-        }
-        cfg = configs.get(etype, configs["normal"])
-
-        t = fnt_big.render(cfg["title"], True, cfg["color"])
-        self.screen.blit(t,(SCREEN_WIDTH//2 - t.get_width()//2, 200))
-
-        for i, line in enumerate(cfg["lines"]):
-            sf = fnt_md.render(line, True, (220,220,240))
-            self.screen.blit(sf,(SCREEN_WIDTH//2 - sf.get_width()//2, 290 + i*32))
-
-        hint = fnt_sm.render("ENTER  to return", True, (120,120,150))
-        self.screen.blit(hint,(SCREEN_WIDTH//2 - hint.get_width()//2, SCREEN_HEIGHT - 50))
-
-        # ─── 스토리 전투 시작 ─────────────────────────────────────────
-    def _start_story_battle(self):
-        """선택된 챕터 + 캐릭터로 스토리 전투 초기화."""
-        ch  = self._story_chapter
-        cls = self._story_player_cls
-        if ch is None or cls is None:
-            return
-
-        self.event_bus    = EventBus()
-        self.particle_sys = ParticleSystem()
-        self.floater_sys  = FloaterSystem()
-
-        data = StageLoader(ch["stage_json"]).load()
-        self.platforms = data["platforms"]
-        sp1 = data.get("player_spawn", [220, 340])
-        sp2 = data.get("boss_spawn",   [940, 340])
-
-        # 플레이어 생성
-        self.player1 = cls(sp1[0], sp1[1], name="Player", player_id=1)
-        self.player1.spawn_x, self.player1.spawn_y = sp1[0], sp1[1]
-        self.player1.stocks = 3
-
-        # 보스 생성
-        boss_cls = self.story_loader.get_boss_class(ch)
-        if boss_cls is None:
-            # 기본 보스 폴백 — player2 자리에 AI 캐릭터 사용
-            from entities.characters.Einstein import Einstein
-            boss_cls = Einstein
-        self.player2 = boss_cls(sp2[0], sp2[1], name=ch.get("boss_name","Boss"), player_id=2)
-        self.player2.spawn_x, self.player2.spawn_y = sp2[0], sp2[1]
-        self.player2.stocks = ch.get("boss_stocks", 3)
-
-        self.renderer.load_stage_background(ch["id"])
-
-        self.domain_sys = DomainSystem(
-            screen=self.screen,
-            renderer=self.renderer,
-            camera=self.camera,
-            event_bus=self.event_bus,
-        )
-
-        self.event_bus.subscribe("attack_hit",  self._on_attack_hit)
-        self.event_bus.subscribe("entity_dead", self._on_story_entity_dead)
-        self.event_bus.subscribe("domain_request", self.domain_sys.on_domain_request)
-
-        self.state = GameState.STORY_PLAYING
-
-    # ─── 스토리 업데이트 ──────────────────────────────────────────
-    def _update_story(self):
-        if self.domain_sys and self.domain_sys.gameplay_frozen:
-            self.domain_sys.update()
-            return
-
-        keys = pygame.key.get_pressed()
-        self.player1.handle_input(keys)
-        # player2(보스)는 AI (handle_input 호출 안 함)
-
-        ps = self.particle_sys
-        fs = self.floater_sys
-
-        self.player1.update(0, self.platforms, self.event_bus, ps)
-        self.player2.update(0, self.platforms, self.event_bus, ps)
-
-        self.player1.check_attack_collision(self.player2, self.event_bus, ps, fs)
-        self.player2.check_attack_collision(self.player1, self.event_bus, ps, fs)
-        self.player1.check_skill_collision( self.player2, self.event_bus, ps, fs)
-        self.player2.check_skill_collision( self.player1, self.event_bus, ps, fs)
-
-        self._check_story_blast_zones()
-        ps.update(); fs.update()
-
-        if self.domain_sys:
-            self.domain_sys.update()
-
-        active = [e.rect for e in [self.player1, self.player2]
-                  if not e.dead and not getattr(e,"respawning",False)]
-        if active:
-            self.camera.update(active)
-
-    def _check_story_blast_zones(self):
-        for p in [self.player1, self.player2]:
-            if p.dead or getattr(p,"respawning",False):
-                continue
-            sx, sy = self.camera.world_to_screen(p.rect.x, p.rect.y)
-            if (sx < -BLAST_MARGIN or sx > SCREEN_WIDTH  + BLAST_MARGIN or
-                sy < -BLAST_MARGIN or sy > SCREEN_HEIGHT + BLAST_MARGIN):
-                if hasattr(p, "lose_stock"):
-                    p.lose_stock(self.event_bus)
-
-    def _on_story_entity_dead(self, data):
-        entity = data.get("entity")
-        if entity is self.player1 and self.player1.stocks <= 0:
-            self.state = GameState.STORY_LOSE
-        elif entity is self.player2 and self.player2.stocks <= 0:
-            # 클리어!
-            self.story_save.mark_cleared(self._story_chapter["id"])
-            self.state = GameState.STORY_WIN
-
-    # ─── 스토리 결과 화면 ─────────────────────────────────────────
-    def _draw_story_result(self, win: bool):
-        ov = pygame.Surface((SCREEN_WIDTH, SCREEN_HEIGHT), pygame.SRCALPHA)
-        ov.fill((0,0,0,210))
-        self.screen.blit(ov,(0,0))
-
-        fnt_big = font(52, bold=True)
-        fnt_md  = font(18, bold=True)
-        fnt_sm  = font(14)
-
-        ch = self._story_chapter or {}
-
-        if win:
-            title_txt = f"Chapter {ch.get('id','')}  CLEAR!"
-            title_col = (100, 240, 130)
-            sub_txt   = ch.get("subtitle","")
-            hint_txt  = "ENTER  next stage   |   ESC  stage select"
-        else:
-            title_txt = "DEFEATED"
-            title_col = (240, 80, 80)
-            sub_txt   = "Don't give up. Try again!"
-            hint_txt  = "ENTER / R  retry   |   ESC  stage select"
-
-        t = fnt_big.render(title_txt, True, title_col)
-        self.screen.blit(t,(SCREEN_WIDTH//2 - t.get_width()//2, 220))
-
-        s = fnt_md.render(sub_txt, True, (200,200,220))
-        self.screen.blit(s,(SCREEN_WIDTH//2 - s.get_width()//2, 290))
-
-        h = fnt_sm.render(hint_txt, True, (160,160,190))
-        self.screen.blit(h,(SCREEN_WIDTH//2 - h.get_width()//2, 350))
-
-    def _restart(self):
-
-        """ESC → 모드 선택으로 복귀."""
-        self.mode_select  = ModeSelect(self.screen)
-        self.char_select  = CharacterSelect(self.screen)
-        self.stage_select = StageSelect(self.screen)
-        self._cls_p1 = self._cls_p2 = self._stage_info = None
-        self.state = GameState.MODE_SEL
-
-    # ─── 메인 루프 ─────────────────────────────────────────────
     def run(self):
         while self.running:
             self.clock.tick(FPS)
-            self._handle_events()
 
-            if self.state == GameState.MODE_SEL:
+            events = pygame.event.get()
+
+            for event in events:
+                if event.type == pygame.QUIT:
+                    self.running = False
+
+            if not self.running:
+                break
+
+            if self.state == AppState.MODE_SELECT:
+                self._update_mode_select(events)
                 self.mode_select.update()
                 self.mode_select.draw()
 
-            elif self.state == GameState.CHAR_SEL:
-                self.char_select.update()
-                self.char_select.draw()
-
-            elif self.state == GameState.STAGE_SEL:
-                self.stage_select.update()
-                self.stage_select.draw()
-
-            elif self.state == GameState.PLAYING:
-                self._update()
-                self._draw_game()
-
-            elif self.state == GameState.WIN:
-                self._draw_game()
-                self.renderer.draw_win_screen(self.winner_name, self.winner_color)
-
-            elif self.state == GameState.STORY_INTRO:
-                self.story_intro.update()
-                self.story_intro.draw()
-
-            elif self.state == GameState.STORY_STAGE_SEL:
-                self.story_stage_sel.update()
-                self.story_stage_sel.draw()
-
-            elif self.state == GameState.STORY_CHAR_SEL:
-                if self.story_char_sel:
-                    self.story_char_sel.update()
-                    self.story_char_sel.draw()
-
-            elif self.state == GameState.STORY_PLAYING:
-                self._update_story()
-                self._draw_game()
-
-            elif self.state == GameState.STORY_SCENE:
-                if self._story_scene:
-                    self._story_scene.update()
-                    self._story_scene.draw()
-
-            elif self.state == GameState.STORY_ENDING:
-                self._draw_ending()
-
-            elif self.state == GameState.STORY_WIN:
-                self._draw_game()
-                self._draw_story_result(win=True)
-
-            elif self.state == GameState.STORY_LOSE:
-                self._draw_game()
-                self._draw_story_result(win=False)
+            elif self.state in (AppState.PVP, AppState.STORY):
+                self._update_current_game(events)
 
             pygame.display.flip()
 
-    # ─── 이벤트 ────────────────────────────────────────────────
-    def _handle_events(self):
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                self.running = False
+        pygame.quit()
 
-            # 마우스 이벤트 → 캐릭터 선택창 툴팁
-            if event.type == pygame.MOUSEMOTION:
-                if self.state == GameState.CHAR_SEL:
-                    self.char_select.handle_event(event)
+    def _update_mode_select(self, events):
+        for event in events:
+            self.mode_select.handle_event(event)
 
-            if event.type == pygame.KEYDOWN:
-                k = event.key
-
-                if k == pygame.K_ESCAPE:
-                    if self.state in (GameState.PLAYING, GameState.WIN):
-                        self._restart()
-                    elif self.state in (GameState.CHAR_SEL, GameState.STAGE_SEL):
-                        self._restart()
-                    elif self.state == GameState.STORY_PLAYING:
-                        self.state = GameState.STORY_STAGE_SEL
-                    elif self.state in (GameState.STORY_WIN, GameState.STORY_LOSE):
-                        self.state = GameState.STORY_STAGE_SEL
-                    elif self.state in (GameState.STORY_CHAR_SEL,):
-                        self.state = GameState.STORY_STAGE_SEL
-                    elif self.state in (GameState.STORY_STAGE_SEL,):
-                        self.state = GameState.STORY_INTRO
-                    elif self.state == GameState.STORY_INTRO:
-                        self.state = GameState.MODE_SEL
-                    else:
-                        self.running = False
-
-                # 모드 선택
-                # 스토리 진입창
-                if self.state == GameState.STORY_INTRO:
-                    self.story_intro.handle_event(event)
-                    if self.story_intro.done:
-                        r = self.story_intro.result
-                        if r == "back":
-                            self.state = GameState.MODE_SEL
-                        else:
-                            # continue 또는 new_game → 스테이지 선택
-                            self.story_stage_sel = StoryStageSelect(
-                                self.screen, self.story_save, self.story_loader)
-                            self.state = GameState.STORY_STAGE_SEL
-
-                # 스토리 스테이지 선택
-                elif self.state == GameState.STORY_STAGE_SEL:
-                    self.story_stage_sel.handle_event(event)
-                    if self.story_stage_sel.done:
-                        ch = self.story_stage_sel.result
-                        if ch is None:
-                            self.state = GameState.STORY_INTRO
-                        else:
-                            self._story_chapter = ch
-                            # 캐릭터 선택창 열기
-                            self.story_char_sel = CharacterSelect(self.screen)
-                            self.state = GameState.STORY_CHAR_SEL
-
-                # 스토리 씬 (비주얼 노벨)
-                elif self.state == GameState.STORY_SCENE:
-                    if self._story_scene:
-                        self._story_scene.handle_event(event)
-                        if self._story_scene.done:
-                            self._on_story_scene_done()
-
-                # 스토리 캐릭터 선택
-                elif self.state == GameState.STORY_CHAR_SEL:
-                    if self.story_char_sel:
-                        self.story_char_sel.handle_event(event)
-                        if self.story_char_sel.done and k == pygame.K_RETURN:
-                            cls_p1, _ = self.story_char_sel.result
-                            self._story_player_cls = cls_p1
-                            self.story_save.set_character(cls_p1.DISPLAY_NAME)
-                            self._start_story_scene()
-
-                elif self.state == GameState.MODE_SEL:
-                    self.mode_select.handle_event(event)
-                    if self.mode_select.done:
-                        if self.mode_select.result == "pvp":
-                            self.char_select  = CharacterSelect(self.screen)
-                            self.state = GameState.CHAR_SEL
-                        elif self.mode_select.result == "story":
-                            self.story_intro = StoryIntro(self.screen)
-                            self.state = GameState.STORY_INTRO
-
-                # 캐릭터 선택
-                elif self.state == GameState.CHAR_SEL:
-                    self.char_select.handle_event(event)
-                    if self.char_select.done and k == pygame.K_RETURN:
-                        self._cls_p1, self._cls_p2 = self.char_select.result
-                        self.stage_select = StageSelect(self.screen)
-                        self.state = GameState.STAGE_SEL
-
-                # 스테이지 선택
-                elif self.state == GameState.STAGE_SEL:
-                    self.stage_select.handle_event(event)
-                    if self.stage_select.done:
-                        self._stage_info = self.stage_select.result
-                        self._start_game()
-
-                # 플레이 중
-                elif self.state == GameState.PLAYING:
-                    # 궁극기 컷신 중에는 조작 입력 막기
-                    if not self.domain_sys or not self.domain_sys.gameplay_frozen:
-                        self.player1.handle_keydown(k, self.event_bus, self.particle_sys)
-                        self.player2.handle_keydown(k, self.event_bus, self.particle_sys)
-                # 승리 화면
-                elif self.state == GameState.WIN:
-                    if k == pygame.K_RETURN:
-                        self._restart()
-
-                elif self.state == GameState.STORY_WIN:
-                    if k == pygame.K_RETURN:
-                        if self._story_scene:
-                            self._story_scene.load_post_battle(self._story_battle_num)
-                            self.state = GameState.STORY_SCENE
-                        else:
-                            self.state = GameState.STORY_STAGE_SEL
-
-                elif self.state == GameState.STORY_LOSE:
-                    if k in (pygame.K_RETURN, pygame.K_r):
-                        self._start_story_battle()   # 재도전
-                    elif k == pygame.K_ESCAPE:
-                        self.state = GameState.STORY_STAGE_SEL
-
-    # ─── 업데이트 ──────────────────────────────────────────────
-    def _update(self):
-        # 영역 시스템은 항상 먼저 업데이트
-        if self.domain_sys:
-            self.domain_sys.update()
-
-        # 컷신 / 연출 중에는 플레이어 조작, 이동, 충돌은 멈춘다.
-        # 단, 파티클과 데미지 텍스트는 계속 업데이트한다.
-        if self.domain_sys and self.domain_sys.gameplay_frozen:
-            self.particle_sys.update()
-            self.floater_sys.update()
+        if not self.mode_select.done:
             return
 
-        keys = pygame.key.get_pressed()
-        self.player1.handle_input(keys)
-        self.player2.handle_input(keys)
+        result = self.mode_select.result
 
-        ps = self.particle_sys
-        fs = self.floater_sys
+        if result == "pvp":
+            self.current_game = PVPGame(self.screen)
+            self.state = AppState.PVP
 
-        self.player1.update(0, self.platforms, self.event_bus, ps)
-        self.player2.update(0, self.platforms, self.event_bus, ps)
+        elif result == "story":
+            self.current_game = StoryGame(self.screen)
+            self.state = AppState.STORY
 
-        self.player1.check_attack_collision(self.player2, self.event_bus, ps, fs)
-        self.player2.check_attack_collision(self.player1, self.event_bus, ps, fs)
-        self.player1.check_skill_collision( self.player2, self.event_bus, ps, fs)
-        self.player2.check_skill_collision( self.player1, self.event_bus, ps, fs)
-
-        self._check_blast_zones()
-        ps.update()
-        fs.update()
-
-        active = [e.rect for e in [self.player1, self.player2]
-                  if not e.dead and not getattr(e, 'respawning', False)]
-        if active:
-            self.camera.update(active)
-
-    def _check_blast_zones(self):
-        for p in [self.player1, self.player2]:
-            if p.dead or p.respawning:
-                continue
-            sx, sy = self.camera.world_to_screen(p.rect.x, p.rect.y)
-            if (sx < -BLAST_MARGIN or sx > SCREEN_WIDTH  + BLAST_MARGIN or
-                sy < -BLAST_MARGIN or sy > SCREEN_HEIGHT + BLAST_MARGIN):
-                p.lose_stock(self.event_bus)
-
-    # ─── 이벤트 핸들러 ─────────────────────────────────────────
-    def _on_attack_hit(self, data):
-        attacker = data["attacker"]
-        target   = data["target"]
-        damage   = data["damage"]
-        ps       = data.get("particle_system")
-        fs       = data.get("floater_system")
-
-        target.take_damage(damage)
-        target.apply_knockback(attacker, damage)
-
-        if ps:
-            ps.spawn_hit(target.rect.centerx, target.rect.centery, target.color)
-        if fs:
-            col = (80, 200, 255) if data.get("is_skill") else (255, 220, 50)
-            fs.spawn(target.rect.centerx, target.rect.top - 14, damage, col,
-                     is_skill=data.get("is_skill", False))
-
-    def _on_entity_dead(self, _):
-        self._check_win()
-
-    def _check_win(self):
-        if self.player1.dead and self.player1.stocks <= 0:
-            self.winner_name  = "Player 2"
-            self.winner_color = self.player2.glow_color
-            self.state = GameState.WIN
-        elif self.player2.dead and self.player2.stocks <= 0:
-            self.winner_name  = "Player 1"
-            self.winner_color = self.player1.glow_color
-            self.state = GameState.WIN
-
-    # ─── 렌더링 ────────────────────────────────────────────────
-    def _draw_game(self):
-        if self.domain_sys:
-            self.domain_sys.draw_background()
         else:
-            self.renderer.draw_background()
+            self._reset_mode_select()
 
-        self.renderer.draw_platforms(self.platforms, self.camera)
+    def _update_current_game(self, events):
+        if self.current_game is None:
+            self._reset_mode_select()
+            return
 
-        self.particle_sys.draw(self.screen, self.camera)
+        result = self.current_game.update(events)
 
-        self.player1.draw(self.screen, self.camera)
-        self.player2.draw(self.screen, self.camera)
+        if result in ("back", "back_to_menu"):
+            self._reset_mode_select()
+            return
 
-        self.floater_sys.draw(self.screen, self.camera)
+        if result == "quit":
+            self.running = False
+            return
 
-        self.renderer.draw_hud([self.player1, self.player2])
+        self.current_game.draw()

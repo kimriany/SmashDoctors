@@ -333,8 +333,6 @@ class CharacterSelect:
         try:
             dummy = object.__new__(cls)
             dummy.skills        = {}
-            dummy.fatigue       = 0
-            dummy.max_fatigue   = 100
             dummy.ATTACK_DMG    = cls.ATTACK_DMG
             dummy.ultimate_gauge = 0
             cls._init_skills(dummy)
@@ -421,7 +419,6 @@ class CharacterSelect:
             (getattr(skill,"SKILL_TYPE","—").upper(),self.fnt_xs, tc),
             ("",None,None),   # 구분선
             (f"Damage   {skill.damage}%",          self.fnt_xs, (160,220,160)),
-            (f"Fatigue  {skill.fatigue_cost}",      self.fnt_xs, (160,200,255)),
             (f"Cooldown {skill.cooldown/60:.1f}s" if skill.cooldown else "Cooldown —",
                                                     self.fnt_xs, (200,200,160)),
             ("",None,None),
