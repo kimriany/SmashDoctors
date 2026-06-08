@@ -29,12 +29,12 @@ class ModeSelect:
         {
             "id":    "story",
             "title": "STORY",
-            "sub":   "Coming Soon",
+            "sub":   "Following mysterious stories",
             "desc":  ["Story mode is under construction.", "Stay tuned for future updates."],
             "color": (120, 80, 180),
             "glow":  (180, 140, 255),
             "icon":  "📖",
-            "enabled": False,   # 비활성 — 선택 불가
+            "enabled": True,
         },
     ]
 
