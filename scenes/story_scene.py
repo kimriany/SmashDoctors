@@ -29,7 +29,7 @@ import math
 
 
 # ── 타이핑 속도 ─────────────────────────────────────────────
-CHAR_PER_FRAME = 2   # 프레임당 출력 글자 수
+CHAR_PER_FRAME = 1   # 프레임당 출력 글자 수
 
 
 def _load_img(path, size=None) -> pygame.Surface | None:

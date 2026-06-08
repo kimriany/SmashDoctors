@@ -35,7 +35,7 @@
     {"cmd": "dialog",  "speaker": "주인공",   "text": "무슨 뜻이지?"},
     {"cmd": "dialog",  "speaker": "슈뢰딩거", "text": "관측자는 결과를 본다. 변수는 결과를 바꾼다."},
     {"cmd": "dialog",  "speaker": "슈뢰딩거", "text": "그런데 자네는 결과를 보기 전에 나타나서 결과를 바꾸고 있잖나."},
-    {"cmd": "battle_start"}
+    {"cmd": "battle_start_2"}
   ],
   "script_post_battle_2": [
     {"cmd": "show_char","slot": "right", "image": "assets/images/story/char_schrodinger_defeat.png"},

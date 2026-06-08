@@ -52,6 +52,19 @@
       "boss_stocks": 5,
       "unlock_condition": {"clear_chapter": 3},
       "theme_color": [200, 120, 30]
-    }
+    },
+    {
+      "id": 5,
+      "title": "Chapter 5",
+      "subtitle": "Future Time Bureau",
+      "description": "The final truth waits in the ruined future.",
+      "stage_json": "data/stages/stage_04.json",
+      "bg_image": "assets/images/story/bg_ruined_hq.png",
+      "boss_class": "entities.Boss_characters.FutureProtagonist",
+      "boss_name": "미래의 주인공",
+      "boss_stocks": 5,
+      "unlock_condition": {"clear_chapter": 4},
+      "theme_color": [180, 80, 220]
+}
   ]
 }

@@ -261,8 +261,13 @@ class StoryGame:
             self.battle_num = 2
             self._start_story_battle()
 
+
         elif result == "end":
+
+            if self.chapter is not None:
+                self.story_save.mark_cleared(self.chapter["id"])
             self._go_next_chapter_or_stage_select()
+
 
         elif result and result.startswith("ending_"):
             self.ending_type = result.replace("ending_", "")
@@ -278,9 +283,25 @@ class StoryGame:
             self.state = StoryState.STAGE_SELECT
             return
 
-        next_id = self.chapter.get("next_on_win") or self.chapter.get("next")
+        next_id = None
+
+        # 1순위: 현재 실행 중인 스토리 스크립트의 next_on_win / next
+        if self.story_scene and hasattr(self.story_scene, "script_data"):
+            next_id = (
+                    self.story_scene.script_data.get("next_on_win")
+                    or self.story_scene.script_data.get("next")
+            )
+
+        # 2순위: story_config.json의 chapter 정보
+        if not next_id:
+            next_id = self.chapter.get("next_on_win") or self.chapter.get("next")
 
         if next_id:
+            if next_id == "ending":
+                self.ending_type = "normal"
+                self.state = StoryState.ENDING
+                return
+
             try:
                 next_num = int(str(next_id).split("_")[-1])
                 next_ch = self.story_loader.get_chapter(next_num)
@@ -294,7 +315,6 @@ class StoryGame:
 
         self._reset_stage_select()
         self.state = StoryState.STAGE_SELECT
-
     # ─────────────────────────────────────────────
     # BATTLE
     # ─────────────────────────────────────────────
