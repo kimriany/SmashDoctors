@@ -11,13 +11,29 @@ from entities.characters.Pita        import Pita
 from entities.characters.Nobel       import Nobel
 from entities.characters.Einstein    import Einstein
 from entities.characters.Schrödinger import Schrödinger
+from entities.characters.Turing      import Turing
+ROSTER = [
+    Pita,
+    Nobel,
+    Einstein,
+    Schrödinger,
+    Turing,
+    # 여기에 캐릭터 계속 추가하면 됨
+    # Newton,
+    # Darwin,
+    # Tesla,
+    # Curie,
+]
 
-ROSTER = [Pita, Nobel, Einstein, Schrödinger]
+PAGE_SIZE = 4
 
 CARD_W   = 240
 CARD_H   = 420
 CARD_GAP = 18
 CARD_Y   = 95
+
+PAGE_ARROW_W = 54
+PAGE_ARROW_H = 86
 
 # 스킬 슬롯 정의 (key, 표시이름, 키힌트)
 SKILL_SLOTS = [
@@ -63,8 +79,15 @@ class CharacterSelect:
         self._mouse   = (0, 0)
         self._tooltip: tuple | None = None   # (char_idx, sk_key)
 
-        total_w  = len(ROSTER)*CARD_W + (len(ROSTER)-1)*CARD_GAP
+        self.page = 0
+        self.page_count = max(1, math.ceil(len(ROSTER) / PAGE_SIZE))
+
+        total_w = PAGE_SIZE * CARD_W + (PAGE_SIZE - 1) * CARD_GAP
         self._x0 = (self.W - total_w) // 2
+
+        arrow_y = CARD_Y + CARD_H // 2 - PAGE_ARROW_H // 2
+        self._page_prev_rect = pygame.Rect(18, arrow_y, PAGE_ARROW_W, PAGE_ARROW_H)
+        self._page_next_rect = pygame.Rect(self.W - 18 - PAGE_ARROW_W, arrow_y, PAGE_ARROW_W, PAGE_ARROW_H)
 
         rng = random.Random(13)
         self._stars = [(rng.randint(0, self.W), rng.randint(0, self.H),
@@ -90,20 +113,26 @@ class CharacterSelect:
 
     # ── 아이콘 히트박스 사전 계산 ────────────────────────────────
     def _rebuild_icon_rects(self):
-        """draw() 호출 없이도 툴팁 히트박스를 계산."""
+        """현재 페이지에 보이는 카드들의 스킬 아이콘 히트박스 계산."""
         self._icon_rects.clear()
-        ICON_W = 48
-        n      = len(SKILL_SLOTS)
-        pad    = (CARD_W - n * ICON_W) // (n + 1)
-        ICON_Y_OFF = CARD_Y + 120 + 24 + 8 + 3*20 + 10   # 카드 상단 + 미리보기 + 이름 + 구분선 + 스탯바
 
-        for ci, _ in enumerate(ROSTER):
-            card_x = self._x0 + ci * (CARD_W + CARD_GAP)
+        ICON_W = 48
+        n = len(SKILL_SLOTS)
+        pad = (CARD_W - n * ICON_W) // (n + 1)
+        ICON_Y_OFF = CARD_Y + 120 + 24 + 8 + 3 * 20 + 10
+
+        for slot, char_idx in enumerate(self._visible_indices()):
+            card_x = self._x0 + slot * (CARD_W + CARD_GAP)
+
             for si, (sk_key, _, _) in enumerate(SKILL_SLOTS):
                 ix = card_x + pad + si * (ICON_W + pad)
                 iy = ICON_Y_OFF
-                self._icon_rects[(ci, sk_key)] = pygame.Rect(ix-2, iy-14, ICON_W+4, 80)
-
+                self._icon_rects[(char_idx, sk_key)] = pygame.Rect(
+                    ix - 2,
+                    iy - 14,
+                    ICON_W + 4,
+                    80,
+                )
     def _bake_bg(self) -> pygame.Surface:
         sf = pygame.Surface((self.W, self.H))
         for y in range(self.H):
@@ -111,8 +140,68 @@ class CharacterSelect:
             pygame.draw.line(sf,(int(6+t*12),int(8+t*12),int(20+t*28)),(0,y),(self.W,y))
         return sf
 
+    # ── 페이지 계산 ─────────────────────────────────────────────
+    def _page_start(self) -> int:
+        return self.page * PAGE_SIZE
+
+    def _page_end(self) -> int:
+        return min(len(ROSTER), self._page_start() + PAGE_SIZE)
+
+    def _visible_indices(self) -> list[int]:
+        return list(range(self._page_start(), self._page_end()))
+
+    def _is_visible_index(self, idx: int) -> bool:
+        return self._page_start() <= idx < self._page_end()
+
+    def _slot_of_index(self, idx: int) -> int:
+        return idx - self._page_start()
+
+    def _set_page(self, page: int, snap_unlocked: bool = True):
+        if self.page_count <= 0:
+            self.page = 0
+            return
+
+        self.page = max(0, min(page, self.page_count - 1))
+
+        if snap_unlocked:
+            start = self._page_start()
+            end = self._page_end()
+
+            for pid in range(2):
+                if self.locked[pid]:
+                    continue
+
+                if not (start <= self.cursors[pid] < end):
+                    self.cursors[pid] = start
+
+        self._rebuild_icon_rects()
+
+    def _next_page(self):
+        self._set_page(self.page + 1)
+
+    def _prev_page(self):
+        self._set_page(self.page - 1)
+
+    def _sync_page_to_cursor(self, pid: int):
+        idx = self.cursors[pid]
+        new_page = idx // PAGE_SIZE
+
+        if new_page != self.page:
+            self.page = new_page
+            self._rebuild_icon_rects()
+
     # ── 이벤트 ──────────────────────────────────────────────────
     def handle_event(self, event: pygame.event.Event):
+        if event.type == pygame.MOUSEBUTTONDOWN:
+            if event.button == 1:
+                if self._page_prev_rect.collidepoint(event.pos):
+                    self._prev_page()
+                    return
+
+                if self._page_next_rect.collidepoint(event.pos):
+                    self._next_page()
+                    return
+
         if event.type == pygame.MOUSEMOTION:
             self._mouse = event.pos
             # 마우스 위치 기반으로 즉시 툴팁 갱신
@@ -129,18 +218,34 @@ class CharacterSelect:
         k = event.key
 
         if not self.locked[0]:
-            if   k == pygame.K_a:                    self.cursors[0] = (self.cursors[0]-1) % len(ROSTER)
-            elif k == pygame.K_d:                    self.cursors[0] = (self.cursors[0]+1) % len(ROSTER)
-            elif k in (pygame.K_f, pygame.K_RETURN): self.locked[0] = True
+            if k == pygame.K_a:
+                self.cursors[0] = (self.cursors[0] - 1) % len(ROSTER)
+                self._sync_page_to_cursor(0)
+
+            elif k == pygame.K_d:
+                self.cursors[0] = (self.cursors[0] + 1) % len(ROSTER)
+                self._sync_page_to_cursor(0)
+
+            elif k in (pygame.K_f, pygame.K_RETURN):
+                self.locked[0] = True
         else:
-            if k == pygame.K_g:                      self.locked[0] = False
+            if k == pygame.K_g:
+                self.locked[0] = False
 
         if not self.locked[1]:
-            if   k == pygame.K_LEFT:                 self.cursors[1] = (self.cursors[1]-1) % len(ROSTER)
-            elif k == pygame.K_RIGHT:                self.cursors[1] = (self.cursors[1]+1) % len(ROSTER)
-            elif k == pygame.K_l:                    self.locked[1] = True
+            if k == pygame.K_LEFT:
+                self.cursors[1] = (self.cursors[1] - 1) % len(ROSTER)
+                self._sync_page_to_cursor(1)
+
+            elif k == pygame.K_RIGHT:
+                self.cursors[1] = (self.cursors[1] + 1) % len(ROSTER)
+                self._sync_page_to_cursor(1)
+
+            elif k == pygame.K_l:
+                self.locked[1] = True
         else:
-            if k == pygame.K_SEMICOLON:              self.locked[1] = False
+            if k == pygame.K_SEMICOLON:
+                self.locked[1] = False
 
         if all(self.locked):
             self.result = (ROSTER[self.cursors[0]], ROSTER[self.cursors[1]])
@@ -159,11 +264,14 @@ class CharacterSelect:
 
         self._draw_title()
 
-        for i,cls in enumerate(ROSTER):
-            self._draw_card(i,cls)
+        for slot, char_idx in enumerate(self._visible_indices()):
+            cls = ROSTER[char_idx]
+            self._draw_card(slot, char_idx, cls)
+
         for pid in range(2):
             self._draw_cursor(pid)
 
+        self._draw_page_arrows()
         self._draw_bottom_panels()
         self._draw_guide()
 
@@ -176,16 +284,76 @@ class CharacterSelect:
         self.screen.blit(t,(self.W//2 - t.get_width()//2, 20))
         pygame.draw.line(self.screen,(70,100,220),(self.W//2-170,62),(self.W//2+170,62),2)
 
+    def _draw_page_arrows(self):
+        if self.page_count <= 1:
+            return
+
+        mx, my = self._mouse
+
+        def draw_arrow(rect, direction, enabled):
+            hovered = rect.collidepoint(mx, my)
+            base = (18, 22, 48)
+            border = (90, 120, 220) if enabled else (55, 55, 75)
+
+            if hovered and enabled:
+                fill = (28, 36, 80)
+            else:
+                fill = base
+
+            pygame.draw.rect(self.screen, fill, rect, border_radius=14)
+            pygame.draw.rect(self.screen, border, rect, 2, border_radius=14)
+
+            cx, cy = rect.center
+
+            if direction == "left":
+                pts = [
+                    (cx + 10, cy - 22),
+                    (cx - 12, cy),
+                    (cx + 10, cy + 22),
+                ]
+            else:
+                pts = [
+                    (cx - 10, cy - 22),
+                    (cx + 12, cy),
+                    (cx - 10, cy + 22),
+                ]
+
+            col = (210, 225, 255) if enabled else (90, 90, 110)
+            pygame.draw.polygon(self.screen, col, pts)
+
+        draw_arrow(
+            self._page_prev_rect,
+            "left",
+            self.page > 0,
+        )
+
+        draw_arrow(
+            self._page_next_rect,
+            "right",
+            self.page < self.page_count - 1,
+        )
+
+        page_txt = self.fnt_sm.render(
+            f"{self.page + 1} / {self.page_count}",
+            True,
+            (180, 190, 230),
+        )
+
+        self.screen.blit(
+            page_txt,
+            (self.W // 2 - page_txt.get_width() // 2, CARD_Y + CARD_H + 4),
+        )
+
     def _card_rect(self, i) -> pygame.Rect:
         return pygame.Rect(self._x0 + i*(CARD_W+CARD_GAP), CARD_Y, CARD_W, CARD_H)
 
     # ── 카드 ────────────────────────────────────────────────────
-    def _draw_card(self, i, cls):
-        r   = self._card_rect(i)
+    def _draw_card(self, slot_idx, char_idx, cls):
+        r = self._card_rect(slot_idx)
         col = cls.PREVIEW_COLOR
         glw = tuple(min(255,c+80) for c in col)
-        p1h = self.cursors[0]==i
-        p2h = self.cursors[1]==i
+        p1h = self.cursors[0]==char_idx
+        p2h = self.cursors[1]==char_idx
         hov = p1h or p2h
         off = -int(abs(math.sin(self._t*2.2))*8) if hov else 0
         rx,ry = r.x, r.y+off
@@ -225,7 +393,7 @@ class CharacterSelect:
         cur_y += 6
 
         # 스킬 아이콘 4개 (BASIC / CC / BOOST / ULT)
-        self._draw_skill_icons(i, cls, rx, cur_y, col, glw)
+        self._draw_skill_icons(char_idx, cls, rx, cur_y, col, glw)
         cur_y += 76
 
         # LOCKED 오버레이
@@ -342,29 +510,61 @@ class CharacterSelect:
 
     # ── 커서 ────────────────────────────────────────────────────
     def _draw_cursor(self, pid):
-        i   = self.cursors[pid]
-        r   = self._card_rect(i)
-        col = (110,185,255) if pid==0 else (255,130,110)
-        lbl = "P1" if pid==0 else "P2"
-        off = -int(abs(math.sin(self._t*2.2))*8)
-        rx,ry = r.x, r.y+off
+        char_idx = self.cursors[pid]
 
-        for bw,aa in [(5,55),(2,195)]:
-            gs = pygame.Surface((CARD_W+16,CARD_H+16),pygame.SRCALPHA)
-            pygame.draw.rect(gs,(*col,aa),(0,0,CARD_W+16,CARD_H+16),bw,border_radius=16)
-            self.screen.blit(gs,(rx-8,ry-8))
+        if not self._is_visible_index(char_idx):
+            return
 
-        badge = pygame.Surface((38,18),pygame.SRCALPHA)
-        badge.fill((*col,215))
-        pygame.draw.rect(badge,(255,255,255,45),badge.get_rect(),1,border_radius=4)
-        bt = self.fnt_xs.render(lbl,True,(255,255,255))
-        badge.blit(bt,(19-bt.get_width()//2,4))
-        self.screen.blit(badge,(rx+(0 if pid==0 else CARD_W-38),ry-22))
+        slot_idx = self._slot_of_index(char_idx)
 
-        acx = rx+CARD_W//2
-        tip = ry-28-int(abs(math.sin(self._t*3.5))*7)
-        pygame.draw.polygon(self.screen,col,[(acx,tip),(acx-8,tip+12),(acx+8,tip+12)])
+        r = self._card_rect(slot_idx)
+        col = (110, 185, 255) if pid == 0 else (255, 130, 110)
+        lbl = "P1" if pid == 0 else "P2"
 
+        off = -int(abs(math.sin(self._t * 2.2)) * 8)
+        rx, ry = r.x, r.y + off
+
+        for bw, aa in [(5, 55), (2, 195)]:
+            gs = pygame.Surface((CARD_W + 16, CARD_H + 16), pygame.SRCALPHA)
+            pygame.draw.rect(
+                gs,
+                (*col, aa),
+                (0, 0, CARD_W + 16, CARD_H + 16),
+                bw,
+                border_radius=16,
+            )
+            self.screen.blit(gs, (rx - 8, ry - 8))
+
+        badge = pygame.Surface((38, 18), pygame.SRCALPHA)
+        badge.fill((*col, 215))
+        pygame.draw.rect(
+            badge,
+            (255, 255, 255, 45),
+            badge.get_rect(),
+            1,
+            border_radius=4,
+        )
+
+        bt = self.fnt_xs.render(lbl, True, (255, 255, 255))
+        badge.blit(bt, (19 - bt.get_width() // 2, 4))
+
+        self.screen.blit(
+            badge,
+            (rx + (0 if pid == 0 else CARD_W - 38), ry - 22),
+        )
+
+        acx = rx + CARD_W // 2
+        tip = ry - 28 - int(abs(math.sin(self._t * 3.5)) * 7)
+
+        pygame.draw.polygon(
+            self.screen,
+            col,
+            [
+                (acx, tip),
+                (acx - 8, tip + 12),
+                (acx + 8, tip + 12),
+            ],
+        )
     # ── 하단 패널 ───────────────────────────────────────────────
     def _draw_bottom_panels(self):
         py  = CARD_Y + CARD_H + 12
@@ -467,12 +667,17 @@ class CharacterSelect:
 
     # ── 가이드 ──────────────────────────────────────────────────
     def _draw_guide(self):
-        rows=[("P1:  A/D Move   F Select   G Cancel",(110,185,255)),
-              ("P2:  ←/→ Move   L Select   ; Cancel",(255,130,110))]
-        for i,(txt,col) in enumerate(rows):
-            sf = self.fnt_xs.render(txt,True,col)
-            self.screen.blit(sf,(self.W//2-sf.get_width()//2, self.H-42+i*17))
-
+        rows = [
+            ("P1:  A/D Move   F Select   G Cancel", (110, 185, 255)),
+            ("P2:  ←/→ Move   L Select   ; Cancel", (255, 130, 110)),
+            ("Mouse: click side arrows to change character page", (170, 170, 210)),
+        ]
+        for i, (txt, col) in enumerate(rows):
+            sf = self.fnt_xs.render(txt, True, col)
+            self.screen.blit(
+                sf,
+                (self.W // 2 - sf.get_width() // 2, self.H - 58 + i * 16),
+            )
         if all(self.locked):
             fc  = (255,int(200+math.sin(self._t*6)*55),80)
             go  = self.fnt_lg.render("PRESS  ENTER  to continue",True,fc)
