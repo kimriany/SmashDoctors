@@ -1,3 +1,4 @@
+from systems.font_manager import font
 """
 Mode Select — 게임 시작 시 가장 먼저 표시되는 모드 선택창
 
@@ -29,7 +30,7 @@ class ModeSelect:
         {
             "id":    "story",
             "title": "STORY",
-            "sub":   "Following mysterious stories",
+            "sub":   "Coming Soon",
             "desc":  ["Story mode is under construction.", "Stay tuned for future updates."],
             "color": (120, 80, 180),
             "glow":  (180, 140, 255),
@@ -47,12 +48,12 @@ class ModeSelect:
         self.W = screen.get_width()
         self.H = screen.get_height()
 
-        self.font_title = pygame.font.SysFont("Arial", 52, bold=True)
-        self.font_mode  = pygame.font.SysFont("Arial", 44, bold=True)
-        self.font_sub   = pygame.font.SysFont("Arial", 18, bold=True)
-        self.font_desc  = pygame.font.SysFont("Arial", 14)
-        self.font_sm    = pygame.font.SysFont("Arial", 13, bold=True)
-        self.font_guide = pygame.font.SysFont("Arial", 13)
+        self.font_title = font(52, bold=True)
+        self.font_mode  = font(44, bold=True)
+        self.font_sub   = font(18, bold=True)
+        self.font_desc  = font(14)
+        self.font_sm    = font(13, bold=True)
+        self.font_guide = font(13)
 
         self.cursor  = 0   # 현재 선택 인덱스 (enabled만 이동)
         self.done    = False
@@ -169,7 +170,7 @@ class ModeSelect:
             self.screen.blit(dim, (rx, ry))
 
         # ── 아이콘 ──
-        icon_sf = pygame.font.SysFont("Arial", 72).render(mode["icon"], True,
+        icon_sf = font(72).render(mode["icon"], True,
                                                            glw if enabled else (80, 80, 100))
         self.screen.blit(icon_sf, (rx + self.CARD_W//2 - icon_sf.get_width()//2,
                                    ry + 55))

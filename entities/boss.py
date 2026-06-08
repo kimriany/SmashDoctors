@@ -1,3 +1,4 @@
+from systems.font_manager import font
 import pygame
 import math
 from entities.base_entity import BaseEntity
@@ -183,7 +184,7 @@ class Boss(BaseEntity):
             screen.blit(bs, (bx, by-7))
 
         # 보스 이름 + damage%
-        fnt = pygame.font.SysFont("Arial", 13, bold=True)
+        fnt = font(13, bold=True)
         nm  = fnt.render(f"{self.name}  {int(self.damage_pct)}%",
                          True, (255, 170, 170))
         screen.blit(nm, (dx + self.rect.w//2 - nm.get_width()//2,

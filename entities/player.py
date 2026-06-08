@@ -1,3 +1,4 @@
+from systems.font_manager import font
 import pygame
 import math
 import os
@@ -437,7 +438,7 @@ class Player(BaseEntity):
         sf.fill((0, 0, 0, 100))
         pygame.draw.rect(sf, (*self.glow_color, a), sf.get_rect(), 2,
                          border_radius=6)
-        fnt  = pygame.font.SysFont("Arial", 15, bold=True)
+        fnt  = font(15, bold=True)
         secs = self.respawn_timer // 20 + 1
         txt  = fnt.render(f"{self.name}  ✦{secs}", True, self.glow_color)
         sf.blit(txt, (8, 10))

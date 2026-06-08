@@ -1,3 +1,4 @@
+from systems.font_manager import font
 import pygame
 from settings import SCREEN_WIDTH, SCREEN_HEIGHT, FPS, TITLE, BLAST_MARGIN
 
@@ -169,9 +170,9 @@ class Game:
         ov.fill((0,0,0,210))
         self.screen.blit(ov,(0,0))
 
-        fnt_big = pygame.font.SysFont("Arial", 46, bold=True)
-        fnt_md  = pygame.font.SysFont("Arial", 18, bold=True)
-        fnt_sm  = pygame.font.SysFont("Arial", 14)
+        fnt_big = font(46, bold=True)
+        fnt_md  = font(18, bold=True)
+        fnt_sm  = font(14)
 
         configs = {
             "null": {
@@ -314,9 +315,9 @@ class Game:
         ov.fill((0,0,0,210))
         self.screen.blit(ov,(0,0))
 
-        fnt_big = pygame.font.SysFont("Arial", 52, bold=True)
-        fnt_md  = pygame.font.SysFont("Arial", 18, bold=True)
-        fnt_sm  = pygame.font.SysFont("Arial", 14)
+        fnt_big = font(52, bold=True)
+        fnt_md  = font(18, bold=True)
+        fnt_sm  = font(14)
 
         ch = self._story_chapter or {}
 

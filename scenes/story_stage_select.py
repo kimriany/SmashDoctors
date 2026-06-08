@@ -1,3 +1,4 @@
+from systems.font_manager import font
 """
 Story Stage Select — 스토리 스테이지 슬라이더 선택창
 
@@ -30,11 +31,11 @@ class StoryStageSelect:
         self.save   = save
         self.loader = loader
 
-        self.fnt_title = pygame.font.SysFont("Arial", 34, bold=True)
-        self.fnt_lg    = pygame.font.SysFont("Arial", 20, bold=True)
-        self.fnt_md    = pygame.font.SysFont("Arial", 14, bold=True)
-        self.fnt_sm    = pygame.font.SysFont("Arial", 12, bold=True)
-        self.fnt_xs    = pygame.font.SysFont("Arial", 11)
+        self.fnt_title = font(34, bold=True)
+        self.fnt_lg    = font(20, bold=True)
+        self.fnt_md    = font(14, bold=True)
+        self.fnt_sm    = font(12, bold=True)
+        self.fnt_xs    = font(11)
 
         self.cursor = self._default_cursor()
         self.done   = False

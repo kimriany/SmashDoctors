@@ -1,3 +1,4 @@
+from systems.font_manager import font
 """피격 데미지 수치 팝업."""
 import pygame
 
@@ -9,7 +10,7 @@ class DamageFloater:
         self.color=color; self.life=55; self.max_life=55
         self.is_skill=is_skill
         size = 26 if is_skill else 21
-        self._font = pygame.font.SysFont("Arial", size, bold=True)
+        self._font = font(size, bold=True)
 
     def update(self):
         self.y+=self.vy; self.vy*=0.90; self.life-=1

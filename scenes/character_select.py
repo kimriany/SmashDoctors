@@ -1,3 +1,4 @@
+from systems.font_manager import font
 """
 Character Select — 스킬 아이콘 + 툴팁 (마우스 오버) + 궁극기 슬롯
 """
@@ -47,11 +48,11 @@ class CharacterSelect:
         self.W = screen.get_width()
         self.H = screen.get_height()
 
-        self.fnt_title = pygame.font.SysFont("Arial", 34, bold=True)
-        self.fnt_lg    = pygame.font.SysFont("Arial", 17, bold=True)
-        self.fnt_md    = pygame.font.SysFont("Arial", 13, bold=True)
-        self.fnt_sm    = pygame.font.SysFont("Arial", 11, bold=True)
-        self.fnt_xs    = pygame.font.SysFont("Arial", 10)
+        self.fnt_title = font(34, bold=True)
+        self.fnt_lg    = font(17, bold=True)
+        self.fnt_md    = font(13, bold=True)
+        self.fnt_sm    = font(11, bold=True)
+        self.fnt_xs    = font(10)
 
         self.cursors = [0, 1]
         self.locked  = [False, False]

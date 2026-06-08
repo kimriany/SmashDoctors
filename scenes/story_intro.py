@@ -1,3 +1,4 @@
+from systems.font_manager import font
 """
 Story Intro — 스토리 모드 진입창
 
@@ -34,11 +35,11 @@ class StoryIntro:
         self.W = screen.get_width()
         self.H = screen.get_height()
 
-        self.fnt_title  = pygame.font.SysFont("Arial", 52, bold=True)
-        self.fnt_sub    = pygame.font.SysFont("Arial", 20, bold=True)
-        self.fnt_menu   = pygame.font.SysFont("Arial", 28, bold=True)
-        self.fnt_info   = pygame.font.SysFont("Arial", 14)
-        self.fnt_sm     = pygame.font.SysFont("Arial", 12)
+        self.fnt_title  = font(52, bold=True)
+        self.fnt_sub    = font(20, bold=True)
+        self.fnt_menu   = font(28, bold=True)
+        self.fnt_info   = font(14)
+        self.fnt_sm     = font(12)
 
         self.save   = StorySave()
         self.loader = StoryLoader()

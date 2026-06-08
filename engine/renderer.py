@@ -1,3 +1,4 @@
+from systems.font_manager import font
 """
 Renderer — 배경·플랫폼·HUD 렌더링
 
@@ -35,11 +36,11 @@ class Renderer:
         self.W = screen.get_width()
         self.H = screen.get_height()
 
-        self.font_title = pygame.font.SysFont("Arial", 56, bold=True)
-        self.font_pct   = pygame.font.SysFont("Arial", 44, bold=True)
-        self.font_lg    = pygame.font.SysFont("Arial", 30, bold=True)
-        self.font_md    = pygame.font.SysFont("Arial", 18, bold=True)
-        self.font_sm    = pygame.font.SysFont("Arial", 13, bold=True)
+        self.font_title = font(56, bold=True)
+        self.font_pct   = font(44, bold=True)
+        self.font_lg    = font(30, bold=True)
+        self.font_md    = font(18, bold=True)
+        self.font_sm    = font(13, bold=True)
 
         # 절차적 배경 캐시 (이미지 없을 때 사용)
         self._proc_bg   = self._bake_proc_bg()

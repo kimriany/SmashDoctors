@@ -1,3 +1,4 @@
+from systems.font_manager import font
 """
 StoryScene — 비주얼 노벨 엔진
 
@@ -51,22 +52,11 @@ class StoryScene:
         self.H = screen.get_height()
 
         # 폰트
-        # 한글 지원 폰트 자동 감지 (Windows: 맑은고딕, macOS: AppleGothic, Linux: NotoSansCJK)
-        _CANDIDATES = ["malgungothic","malgunGothicregular","gulim","dotum",
-                       "applegothic","nanumgothic","notosanscjkkr","notosanscjkjp",
-                       "dejavusans","freesans"]
-        _avail = set(pygame.font.get_fonts())
-        _korean = next((f for f in _CANDIDATES if f.lower() in _avail), None)
-        def _fnt(size, bold=False):
-            if _korean:
-                return pygame.font.SysFont(_korean, size, bold=bold)
-            return pygame.font.SysFont(None, size, bold=bold)
-
-        self.fnt_speaker = _fnt(20, bold=True)
-        self.fnt_dialog  = _fnt(17)
-        self.fnt_choice  = _fnt(19, bold=True)
-        self.fnt_system  = _fnt(16, bold=True)
-        self.fnt_sm      = _fnt(13)
+        self.fnt_speaker = font(20, bold=True)
+        self.fnt_dialog  = font(17)
+        self.fnt_choice  = font(19, bold=True)
+        self.fnt_system  = font(16, bold=True)
+        self.fnt_sm      = font(13)
 
         # 스크립트 로드
         self.script_data = {}

@@ -1,3 +1,4 @@
+from systems.font_manager import font
 """
 스테이지 선택창
 A/D(P1) 또는 ←/→(P2) 로 선택, ENTER 또는 F/L 로 확정
@@ -58,10 +59,10 @@ class StageSelect:
         self.W = screen.get_width()
         self.H = screen.get_height()
 
-        self.font_title = pygame.font.SysFont("Arial", 42, bold=True)
-        self.font_lg    = pygame.font.SysFont("Arial", 22, bold=True)
-        self.font_md    = pygame.font.SysFont("Arial", 15, bold=True)
-        self.font_sm    = pygame.font.SysFont("Arial", 12, bold=True)
+        self.font_title = font(42, bold=True)
+        self.font_lg    = font(22, bold=True)
+        self.font_md    = font(15, bold=True)
+        self.font_sm    = font(12, bold=True)
 
         self.cursor  = 0     # 현재 선택 인덱스
         self.done    = False

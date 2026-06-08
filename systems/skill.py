@@ -1,3 +1,4 @@
+from systems.font_manager import font
 """
 Skill 시스템 — 베이스 클래스 + 6종 스킬 타입
 
@@ -357,7 +358,7 @@ class SummonZoneSkill(Skill):
             pygame.draw.rect(sf, (*col, alpha//2), (0, 0, zw, zh), border_radius=6)
             pygame.draw.rect(sf, (*col, alpha),    (0, 0, zw, zh), 2, border_radius=6)
             if warn:
-                ex_sf = pygame.font.SysFont("Arial", int(18*z), bold=True).render(
+                ex_sf = font(int(18*z), bold=True).render(
                     "!", True, (255, 80, 80))
                 sf.blit(ex_sf, (zw//2 - ex_sf.get_width()//2,
                                 zh//2 - ex_sf.get_height()//2))
@@ -369,7 +370,7 @@ class SummonZoneSkill(Skill):
                          (cx - s, cy - s//2, s*2, s), border_radius=4)
         pygame.draw.rect(screen, (255, 140, 100),
                          (cx - s, cy - s//2, s*2, s), 1, border_radius=4)
-        fnt = pygame.font.SysFont("Arial", max(8, size//5), bold=True)
+        fnt = font(max(8, size//5), bold=True)
         ex  = fnt.render("!", True, (255, 255, 100))
         screen.blit(ex, (cx - ex.get_width()//2, cy - ex.get_height()//2 - s//4))
 
@@ -542,7 +543,7 @@ class UltimateSkill(Skill):
         r = size // 3
         pygame.draw.circle(screen, (255, 180, 40), (cx, cy), r)
         pygame.draw.circle(screen, (255, 240, 120), (cx, cy), r, 2)
-        fnt = pygame.font.SysFont("Arial", max(8, size//5), bold=True)
+        fnt = font(max(8, size//5), bold=True)
         ult = fnt.render("U", True, (255, 255, 200))
         screen.blit(ult, (cx - ult.get_width()//2,
                           cy - ult.get_height()//2))
