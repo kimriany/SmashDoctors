@@ -1,0 +1,17 @@
+대사 적용 방법
+{
+  "cmd": "dialog",
+  "speaker": "Einstein",
+  "slot": "left",
+  "text": "시간선이 뒤틀리고 있군."
+}
+
+"slot"의 경우 밝게 해주는 놈들을 지정해줌, left, right, both, none이 있고
+각각의 경우가 밝아지는 경우임
+
+#system대사 같은 나레이션의 경우 "slot"을 None 또는 제거
+{
+  "cmd": "dialog",
+  "speaker": "SYSTEM",
+  "text": "시간선 붕괴율 82%"
+}

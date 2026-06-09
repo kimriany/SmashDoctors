@@ -74,6 +74,7 @@ class StoryScene:
         self._shown_chars = 0
         self._typing      = False
         self._speaker     = ""
+        self._speaker_slot = None  # "left" / "right" / None
 
         # 선택지
         self._choices: list[dict] = []
@@ -243,13 +244,21 @@ class StoryScene:
                 slot = cmd.get("slot", "left")
                 self._chars[slot] = None
 
+
+
             elif action == "dialog":
-                self._full_text   = cmd.get("text", "")
-                self._speaker     = cmd.get("speaker", "")
+                self._full_text = cmd.get("text", "")
+                self._speaker = cmd.get("speaker", "")
+                # "left", "right", "both", "none"
+                self._speaker_slot = cmd.get("slot", "both")
+
+                if self._speaker_slot is None:
+                    self._speaker_slot = "both"
+
                 self._shown_chars = 0
-                self._typing      = True
-                self._waiting     = False
-                return   # 타이핑 완료 후 클릭 대기
+                self._typing = True
+                self._waiting = False
+                return
 
             elif action == "choice":
                 self._choices       = cmd.get("options", [])
@@ -347,20 +356,50 @@ class StoryScene:
         else:
             self.screen.fill((8, 10, 22))
 
-    def _draw_chars(self, sx):
-        # 왼쪽 캐릭터
-        if self._chars.get("left"):
-            img = self._chars["left"]
-            x   = sx + 60
-            y   = int(self.H * 0.06)
-            self.screen.blit(img, (x, y))
+    def _make_inactive_char(self, img: pygame.Surface) -> pygame.Surface:
+        """말하지 않거나 비활성화된 캐릭터를 어둡게 만든 이미지."""
+        dark_img = img.copy()
 
-        # 오른쪽 캐릭터
-        if self._chars.get("right"):
-            img = self._chars["right"]
-            x   = self.W + sx - 60 - img.get_width()
-            y   = int(self.H * 0.06)
-            self.screen.blit(img, (x, y))
+        shade = pygame.Surface(dark_img.get_size()).convert()
+        shade.fill((100, 100, 100))  # 숫자가 낮을수록 더 어두움
+
+        dark_img.blit(shade, (0, 0), special_flags=pygame.BLEND_RGB_MULT)
+        return dark_img
+
+    def _draw_chars(self, sx):
+        highlight = self._speaker_slot
+
+        for slot in ("left", "right"):
+            img = self._chars.get(slot)
+            if not img:
+                continue
+
+            draw_img = img
+
+            if highlight == "none":
+                # 둘 다 어둡게
+                draw_img = self._make_inactive_char(img)
+
+            elif highlight in ("left", "right"):
+                # 말하는 쪽만 밝게
+                if slot != highlight:
+                    draw_img = self._make_inactive_char(img)
+
+            elif highlight in ("both", "all"):
+                # 둘 다 밝게
+                pass
+
+            else:
+                # 이상한 값이 들어오면 기본값: 둘 다 밝게
+                pass
+
+            if slot == "left":
+                x = sx + 60
+            else:
+                x = self.W + sx - 60 - draw_img.get_width()
+
+            y = int(self.H * 0.06)
+            self.screen.blit(draw_img, (x, y))
 
     def _draw_dialog_box(self, sx):
         """
