@@ -86,6 +86,15 @@ class Player(BaseEntity):
         self.glow_color = self.GLOW_COLOR
         self.dark_color = self.DARK_COLOR
 
+        # ── 기본 스탯 백업: 영역/강화가 끝났을 때 되돌릴 기준값 ──
+        self._base_walk_speed = self.WALK_SPEED
+        self._base_jump_power = self.JUMP_POWER
+        self._base_attack_dmg = self.ATTACK_DMG
+        self._base_max_jumps = self.MAX_JUMPS
+
+        # 영역 강화 적용 여부
+        self._domain_stat_boosted = False
+
         self.skills: dict[str, Skill] = {}
 
         self.ultimate_gauge = 100  # 테스트용. 나중에는 0으로 바꿔도 됨.
@@ -94,6 +103,16 @@ class Player(BaseEntity):
         self.domain_locked = False
         self.domain_break_hits_taken = 0
         self.domain_break_hits_limit = 0
+
+        self.domain_charge_stack = 0.0
+        self.domain_charge_required = 8.0
+        self.domain_ready = False
+
+        self.finisher_charge_stack = 0.0
+        self.finisher_charge_required = 5.0
+        self.finisher_ready = False
+        self.finisher_locked = False
+        self.finisher_unlock_timer = 0
 
         self._init_skills()
 
@@ -225,8 +244,7 @@ class Player(BaseEntity):
         elif key == self.key_skill_E:
             self._do_skill(event_bus, psys, "skill_E")
         elif key == self.key_skill_R:
-            self._do_skill(event_bus, psys, "skill_R")
-
+            self._do_r_action(event_bus, psys)
     def _jump(self, psys):
         if self.jump_count < self.MAX_JUMPS:
             power = self.JUMP_POWER if self.jump_count == 0 \
@@ -261,6 +279,65 @@ class Player(BaseEntity):
                 "skill_key": skill_key
             })
 
+    def gain_domain_charge(self, amount):
+        if amount <= 0:
+            return
+
+        # 영역 켜져 있거나 죽은 상태면 영역 게이지는 안 채움
+        if getattr(self, "dead", False) or getattr(self, "respawning", False):
+            return
+
+        if getattr(self, "domain_active", False):
+            return
+
+        self.domain_charge_stack = min(
+            self.domain_charge_required,
+            self.domain_charge_stack + amount
+        )
+        self.domain_ready = self.domain_charge_stack >= self.domain_charge_required
+
+        print(
+            f"[DOMAIN CHARGE] {self.name}: "
+            f"{self.domain_charge_stack}/{self.domain_charge_required}"
+        )
+
+    def gain_finisher_charge(self, amount):
+        if amount <= 0:
+            return
+
+        # 필살기는 영역 중일 때만 충전
+        if not getattr(self, "domain_active", False):
+            return
+
+        self.finisher_charge_stack = min(
+            self.finisher_charge_required,
+            self.finisher_charge_stack + amount
+        )
+        self.finisher_ready = self.finisher_charge_stack >= self.finisher_charge_required
+
+        print(
+            f"[FINISHER CHARGE] {self.name}: "
+            f"{self.finisher_charge_stack}/{self.finisher_charge_required}"
+        )
+
+    def _do_r_action(self, event_bus, psys=None):
+        if self.dead or self.respawning:
+            return False
+
+        if self.domain_active:
+            if self.finisher_locked:
+                return False
+            if not self.finisher_ready:
+                return False
+
+            event_bus.emit("finisher_request", {
+                "owner": self,
+                "target": getattr(self, "_skill_target", None),
+                "particle_system": psys,
+            })
+            return True
+
+        return self.use_skill("skill_R", event_bus, psys)
     def use_skill(self, skill_key: str, event_bus=None, psys=None):
         skill = self.skills.get(skill_key)
 
@@ -273,6 +350,63 @@ class Player(BaseEntity):
         skill.use(self, event_bus, psys)
         self.active_skill = skill
         return True
+
+    def apply_domain_stats(self):
+        """
+        영역전개 중 스탯 강화.
+        이미 강화된 상태에서 또 곱해지는 것을 방지한다.
+        """
+        if self._domain_stat_boosted:
+            return
+
+        self.WALK_SPEED = self._base_walk_speed * 1.15
+        self.JUMP_POWER = self._base_jump_power * 1.05
+        self.ATTACK_DMG = int(self._base_attack_dmg * 1.20)
+
+        self._domain_stat_boosted = True
+
+        print(f"[DOMAIN STAT ON] {self.name}")
+
+    def clear_domain_stats(self):
+        """
+        영역전개로 올라간 스탯을 원래대로 되돌린다.
+        죽었을 때, 영역이 깨졌을 때, 모든 영역이 해제될 때 반드시 호출해야 한다.
+        """
+        self.WALK_SPEED = self._base_walk_speed
+        self.JUMP_POWER = self._base_jump_power
+        self.ATTACK_DMG = self._base_attack_dmg
+        self.MAX_JUMPS = self._base_max_jumps
+
+        self._domain_stat_boosted = False
+
+        print(f"[DOMAIN STAT OFF] {self.name}")
+
+    def reset_domain_state(self):
+        """
+        영역 관련 상태값 전체 초기화.
+        사망/스톡 감소/강제 영역 해제 때 사용.
+        """
+        self.clear_domain_stats()
+
+        self.domain_active = False
+        self.domain_locked = False
+        self.domain_break_hits_taken = 0
+
+        self.domain_charge_stack = 0.0
+        self.domain_ready = False
+
+        self.finisher_charge_stack = 0.0
+        self.finisher_ready = False
+        self.finisher_locked = False
+        self.finisher_unlock_timer = 0
+
+        # 대시 2단 강화 같은 게 있다면 같이 초기화
+        if hasattr(self, "domain_dash_charges"):
+            self.domain_dash_charges = 0
+        if hasattr(self, "domain_dash_max_charges"):
+            self.domain_dash_max_charges = 0
+
+        print(f"[DOMAIN RESET] {self.name}")
     # ═══════════════════════════════════════════════════════════
     #  스킬 히트박스
     # ═══════════════════════════════════════════════════════════
@@ -294,15 +428,27 @@ class Player(BaseEntity):
     # ═══════════════════════════════════════════════════════════
     #  스톡 / 리스폰
     # ═══════════════════════════════════════════════════════════
-    def lose_stock(self, event_bus):
-        self.stocks    -= 1
+    def lose_stock(self, event_bus, killer=None, reason="blast"):
+        self.stocks -= 1
+
+        # 죽는 순간 영역 스탯/스택/상태 전부 초기화
+        if hasattr(self, "reset_domain_state"):
+            self.reset_domain_state()
+
         self.damage_pct = 0.0
-        self.vel        = pygame.Vector2(0, 0)
+        self.vel = pygame.Vector2(0, 0)
+
+        event_bus.emit("stock_lost", {
+            "player": self,
+            "killer": killer,
+            "reason": reason,
+        })
+
         if self.stocks <= 0:
             self.dead = True
             event_bus.emit("entity_dead", {"entity": self})
         else:
-            self.respawning    = True
+            self.respawning = True
             self.respawn_timer = 100
 
     def _do_respawn(self, psys):

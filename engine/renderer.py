@@ -220,6 +220,9 @@ class Renderer:
             (px + 12, py + 28)
         )
 
+        # 영역전개 / 필살기 충전 디버그 HUD
+        self._draw_domain_debug_bars(player, px + 12, py + 74, PW - 24)
+
         # 기존 SKILL READY 텍스트 대신 스킬 아이콘 4개 표시
         self._draw_player_skill_icons(
             player,
@@ -227,6 +230,125 @@ class Renderer:
             py + 108,
             PW - 24,
             48
+        )
+
+    def _draw_domain_debug_bars(self, player, x, y, w):
+        """
+        디버깅용 HUD:
+        DOMAIN  : 영역전개까지 남은 충전량
+        FINISHER: 영역 중 필살기까지 남은 충전량
+        """
+
+        def clamp01(v):
+            return max(0.0, min(1.0, v))
+
+        def draw_bar(label, value, required, by, color, ready_text=None, locked=False):
+            required = max(1.0, float(required))
+            value = float(value)
+            ratio = clamp01(value / required)
+            remain = max(0.0, required - value)
+
+            bar_h = 8
+            label_surf = self.font_sm.render(label, True, (190, 190, 215))
+            self.screen.blit(label_surf, (x, by - 3))
+
+            bx = x + 64
+            bw = w - 64
+
+            pygame.draw.rect(
+                self.screen,
+                (18, 16, 32),
+                (bx, by, bw, bar_h),
+                border_radius=4,
+            )
+
+            fill_w = int(bw * ratio)
+            if fill_w > 0:
+                pygame.draw.rect(
+                    self.screen,
+                    color,
+                    (bx, by, fill_w, bar_h),
+                    border_radius=4,
+                )
+
+            pygame.draw.rect(
+                self.screen,
+                (80, 80, 110),
+                (bx, by, bw, bar_h),
+                1,
+                border_radius=4,
+            )
+
+            if locked:
+                text = "LOCK"
+                text_col = (255, 110, 110)
+            elif ready_text is not None:
+                text = ready_text
+                text_col = (255, 235, 120)
+            else:
+                text = f"-{remain:.1f}"
+                text_col = (220, 220, 240)
+
+            txt = self.font_sm.render(text, True, text_col)
+            self.screen.blit(
+                txt,
+                (bx + bw - txt.get_width(), by - 11),
+            )
+
+        # -----------------------------
+        # DOMAIN 게이지
+        # -----------------------------
+        domain_value = getattr(player, "domain_charge_stack", 0.0)
+        domain_required = getattr(player, "domain_charge_required", 8.0)
+        domain_active = getattr(player, "domain_active", False)
+        domain_ready = getattr(player, "domain_ready", False) or domain_value >= domain_required
+
+        if domain_active:
+            domain_text = "ON"
+        elif domain_ready:
+            domain_text = "READY"
+        else:
+            domain_text = None
+
+        draw_bar(
+            "DOMAIN",
+            domain_value,
+            domain_required,
+            y,
+            player.glow_color,
+            ready_text=domain_text,
+            locked=False,
+        )
+
+        # -----------------------------
+        # FINISHER 게이지
+        # -----------------------------
+        fin_value = getattr(player, "finisher_charge_stack", 0.0)
+        fin_required = getattr(player, "finisher_charge_required", 5.0)
+        fin_ready = getattr(player, "finisher_ready", False) or fin_value >= fin_required
+        fin_locked = getattr(player, "finisher_locked", False)
+
+        if not domain_active:
+            fin_text = "OFF"
+            fin_color = (80, 80, 95)
+        elif fin_locked:
+            fin_text = None
+            fin_color = (180, 70, 70)
+        elif fin_ready:
+            fin_text = "READY"
+            fin_color = (255, 210, 80)
+        else:
+            fin_text = None
+            fin_color = (255, 180, 80)
+
+        draw_bar(
+            "FINISH",
+            fin_value,
+            fin_required,
+            y + 18,
+            fin_color,
+            ready_text=fin_text,
+            locked=fin_locked,
         )
 
     def _draw_player_skill_icons(self, player, x, y, area_w, icon_h):

@@ -90,6 +90,8 @@ class DomainSystem:
         # 경계 파티클
         self.edge_particles: list[dict] = []
 
+        self.finisher_unlock_delay = 90
+
     # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
     # 상태
     # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -273,6 +275,17 @@ class DomainSystem:
             owner.domain_break_hits_taken = 0
             owner.domain_break_hits_limit = break_hits
 
+            if hasattr(owner, "apply_domain_stats"):
+                owner.apply_domain_stats()
+
+            owner.finisher_charge_stack = 0.0
+            owner.finisher_ready = False
+            owner.finisher_locked = False
+            owner.finisher_unlock_timer = 0
+
+            if hasattr(owner, "on_domain_opened"):
+                owner.on_domain_opened()
+
             valid_requests.append(req)
 
         if not valid_requests:
@@ -352,6 +365,16 @@ class DomainSystem:
             particle_color=particle_color,
             freeze_during_transition=freeze_during_transition,
         )
+        if hasattr(owner, "clear_domain_stats"):
+            owner.clear_domain_stats()
+
+        owner.domain_active = False
+        owner.domain_locked = False
+        owner.domain_break_hits_taken = 0
+        owner.finisher_locked = False
+
+        if hasattr(owner, "on_domain_closed"):
+            owner.on_domain_closed()
 
     # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
     # 다음 배경 / 방향 / 색상 / 속도 결정
@@ -484,6 +507,45 @@ class DomainSystem:
         self.transition_progress = 0.0
         self.transition_active = True
 
+    def force_clear_all(self, winner=None, cutscene=True):
+        """스톡이 날아갔을 때 모든 영역을 한 번에 해제."""
+        if self.active_count == 0:
+            return
+
+        removed = list(self.active_domains.values())
+        self.active_domains.clear()
+
+        colors = []
+        speed = 0.045
+        freeze = True
+        for inst in removed:
+            p = inst.owner
+            colors.append(inst.particle_color)
+            speed = max(speed, inst.transition_speed)
+            freeze = freeze or inst.freeze_during_transition
+
+            p.domain_active = False
+            p.domain_locked = False
+            p.domain_break_hits_taken = 0
+            p.domain_break_hits_limit = 0
+            p.finisher_locked = False
+            p.finisher_unlock_timer = 0
+            if hasattr(p, "on_domain_closed"):
+                p.on_domain_closed()
+
+        particle_color = self._mix_colors(colors) if colors else (0, 0, 0)
+
+        if winner is not None and cutscene:
+            self._start_cutscene(winner, frames=30, zoom=1.35)
+
+        self._queue_transition_after_cutscene(
+            from_bg=self.current_bg or self.get_default_bg(),
+            to_bg=self.get_default_bg(),
+            side=self._side_from_player(winner) if winner is not None else "left",
+            speed=speed,
+            particle_color=particle_color,
+            freeze_during_transition=freeze,
+        )
     # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
     # 배경 렌더링
     # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━

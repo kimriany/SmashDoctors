@@ -73,6 +73,8 @@ class Skill:
         self.duration     = duration
         self.timer        = 0
         self.has_hit      = False
+        self.charge_value = 1.0
+        self.finisher_charge_value = 1.0
 
         # 이미지 캐시 (첫 사용 시 로드)
         self._effect_img:   pygame.Surface | None = None
@@ -105,6 +107,12 @@ class Skill:
         """자식에서 override — 특수 발동 조건."""
         return True
 
+    def get_domain_upgrade_id(self, owner):
+        if not getattr(owner, "domain_active", False):
+            return None
+        upgrades = getattr(owner, "domain_upgrades", {}) or {}
+        return upgrades.get(self.SKILL_TYPE)
+
     # ── 사용 ────────────────────────────────────────────────
     def use(self, owner, event_bus=None, psys=None):
         if self.has_cooldown():
@@ -129,15 +137,23 @@ class Skill:
             return
         self.has_hit = True
         event_bus.emit("attack_hit", {
-            "attacker": owner, "target": target,
-            "damage": self.damage, "is_skill": True,
-            "particle_system": psys, "floater_system": fsys,
+            "attacker": owner,
+            "target": target,
+            "damage": self.damage,
+            "is_skill": True,
+            "skill": self,
+            "charge_value": self.charge_value,
+            "finisher_charge_value": self.finisher_charge_value,
+            "particle_system": psys,
+            "floater_system": fsys,
         })
 
     # ── 히트박스 ─────────────────────────────────────────────
     def get_hitbox(self, owner) -> pygame.Rect | None:
         """자식에서 override."""
         return None
+
+
 
     # ── 이벤트 훅 (자식 override) ────────────────────────────
     def on_start(self, owner, event_bus=None, psys=None):   pass
@@ -587,16 +603,11 @@ class DomainUltimateSkill(UltimateSkill):
         )
 
     def can_activate(self, owner):
-        if not super().can_activate(owner):
-            return False
-
         if getattr(owner, "domain_active", False):
             return False
-
         if getattr(owner, "domain_locked", False):
             return False
-
-        return True
+        return getattr(owner, "domain_charge_stack", 0.0) >= getattr(owner, "domain_charge_required", 8.0)
 
     def on_start(self, owner, event_bus=None, psys=None):
         if event_bus:

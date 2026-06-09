@@ -12,6 +12,7 @@ from systems.stage_loader import StageLoader
 from systems.particle import ParticleSystem
 from systems.floater import FloaterSystem
 from systems.domain_system import DomainSystem
+from systems.finisher_system import FinisherSystem
 
 
 class BattleSession:
@@ -71,6 +72,7 @@ class BattleSession:
         self.winner_color = (255, 255, 255)
 
         self.dual_domain_bg_path = dual_domain_bg_path
+        self.event_bus.subscribe("stock_lost", self._on_stock_lost)
 
         self._setup_battle()
 
@@ -123,6 +125,12 @@ class BattleSession:
             particle_sys=self.particle_sys,
             dual_domain_bg_path=self.dual_domain_bg_path,
         )
+        self.finisher_sys = FinisherSystem(
+            screen=self.screen,
+            camera=self.camera,
+            event_bus=self.event_bus,
+            particle_sys=self.particle_sys,
+        )
 
         self.event_bus.subscribe("domain_request", self.domain_sys.on_domain_request)
         self.event_bus.subscribe("attack_hit", self.domain_sys.on_attack_hit)
@@ -130,6 +138,27 @@ class BattleSession:
         self.event_bus.subscribe("attack_hit", self._on_attack_hit)
         self.event_bus.subscribe("entity_dead", self._on_entity_dead)
 
+        self.event_bus.subscribe("stock_lost", self._on_stock_lost)
+
+    def _on_stock_lost(self, data):
+        lost_player = data.get("player")
+        killer = data.get("killer")
+
+        if killer is None:
+            if lost_player is self.player1:
+                killer = self.player2
+            elif lost_player is self.player2:
+                killer = self.player1
+
+        # 모든 영역 배경/상태 제거
+        if hasattr(self, "domain_sys") and self.domain_sys:
+            if hasattr(self.domain_sys, "force_clear_all"):
+                self.domain_sys.force_clear_all(winner=killer, cutscene=True)
+
+        # 양쪽 플레이어 영역 스탯/스택 전부 초기화
+        for p in (self.player1, self.player2):
+            if hasattr(p, "reset_domain_state"):
+                p.reset_domain_state()
     # ─────────────────────────────────────────────
     # 외부 호출
     # ─────────────────────────────────────────────
@@ -137,11 +166,14 @@ class BattleSession:
         if self.result is not None:
             return self.result
 
+        # 현재 프레임에서 각 플레이어의 상대를 지정
+        # R키 필살기, 호밍 투사체 등이 target을 알기 위해 필요함
+        self.player1._skill_target = self.player2
+        self.player2._skill_target = self.player1
+
         self._handle_events(events)
         self._update_frame()
-
         return self.result
-
     def draw(self):
         self._draw_game()
 
@@ -179,8 +211,11 @@ class BattleSession:
     def _update_frame(self):
         if self.domain_sys:
             self.domain_sys.update()
+        if self.finisher_sys:
+            self.finisher_sys.update()
 
-        if self.domain_sys and self.domain_sys.gameplay_frozen:
+        if (self.domain_sys and self.domain_sys.gameplay_frozen) or \
+                (self.finisher_sys and self.finisher_sys.gameplay_frozen):
             self.particle_sys.update()
             self.floater_sys.update()
             return
@@ -294,6 +329,41 @@ class BattleSession:
                 col,
                 is_skill=data.get("is_skill", False),
             )
+
+        is_skill = bool(data.get("is_skill", False))
+        skill_type = data.get("skill_type", None)
+
+        # 기본공격은 1, 스킬은 종류별로 조절
+        if is_skill:
+            domain_charge = float(data.get("charge_value", 1.0))
+            finisher_charge = float(data.get("finisher_charge_value", 1.0))
+        else:
+            domain_charge = 1.0
+            finisher_charge = 1.0
+
+        # 다단히트/투사체 밸런스용 기본값
+        if skill_type == "projectile":
+            domain_charge *= 0.7
+            finisher_charge *= 0.7
+        elif skill_type == "summon_zone":
+            domain_charge *= 1.3
+            finisher_charge *= 1.2
+        elif skill_type == "beam":
+            domain_charge *= 1.0
+            finisher_charge *= 1.0
+
+        if hasattr(attacker, "gain_domain_charge"):
+            attacker.gain_domain_charge(domain_charge)
+        if hasattr(attacker, "gain_finisher_charge"):
+            attacker.gain_finisher_charge(finisher_charge)
+
+        print(
+            f"[HIT DEBUG] attacker={getattr(attacker, 'name', '?')} "
+            f"target={getattr(target, 'name', '?')} "
+            f"is_skill={is_skill} "
+            f"domain={getattr(attacker, 'domain_charge_stack', 'NO_ATTR')} "
+            f"finisher={getattr(attacker, 'finisher_charge_stack', 'NO_ATTR')}"
+        )
 
     def _on_entity_dead(self, _data):
         self._check_result()
