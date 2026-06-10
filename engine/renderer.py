@@ -367,7 +367,7 @@ class Renderer:
             else:
                 sk_key, label, skill = None, "—", None
 
-            is_ult = sk_key in ("skill_U", "ultimate", "ult", "U")
+            is_ult = sk_key in ("skill_R", "skill_U", "ultimate", "ult", "U")
 
             if is_ult:
                 frame_col = (220, 180, 60)
@@ -579,6 +579,7 @@ class Renderer:
             "skill_Q": "Q",
             "skill_W": "W",
             "skill_E": "E",
+            "skill_R": "ULT",
             "skill_U": "ULT",
             "move": "MOV",
             "cc": "CC",

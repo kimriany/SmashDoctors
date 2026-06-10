@@ -1,6 +1,9 @@
 {
-  "cleared": [],
-  "selected_character": null,
+  "cleared": [
+    0
+  ],
   "selected_character": "Pythagoras",
-  "play_count": {}
+  "play_count": {
+    "0": 1
+  }
 }

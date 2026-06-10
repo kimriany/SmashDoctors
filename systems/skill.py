@@ -142,6 +142,7 @@ class Skill:
             "damage": self.damage,
             "is_skill": True,
             "skill": self,
+            "skill_type": self.SKILL_TYPE,
             "charge_value": self.charge_value,
             "finisher_charge_value": self.finisher_charge_value,
             "particle_system": psys,

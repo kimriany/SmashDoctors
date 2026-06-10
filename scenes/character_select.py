@@ -13,12 +13,14 @@ from entities.characters.Nobel       import Nobel
 from entities.characters.Einstein    import Einstein
 from entities.characters.Schrödinger import Schrödinger
 from entities.characters.Turing      import Turing
+from entities.characters.Hoking      import Hoking
 ROSTER = [
     Pita,
     Nobel,
     Einstein,
     Schrödinger,
     Turing,
+    Hoking,
     # 여기에 캐릭터 계속 추가하면 됨
     # Newton,
     # Darwin,

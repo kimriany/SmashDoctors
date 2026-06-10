@@ -540,7 +540,7 @@ class Player(BaseEntity):
 
         img = self._get_sprite(
             state,
-            self.rect.w,
+            int(self.rect.w * getattr(self, "SPRITE_SCALE_X", 1.0)),
             self.rect.h,
             z * self.SPRITE_SCALE,
             flip
@@ -603,10 +603,11 @@ class Player(BaseEntity):
         ParticleSystem은 월드 좌표를 받으므로 camera.zoom은 절대 넣으면 안 됨.
         """
         scale = getattr(self, "SPRITE_SCALE", 1.0)
+        scale_x = getattr(self, "SPRITE_SCALE_X", 1.0)
         ox = getattr(self, "SPRITE_OFFSET_X", 0)
         oy = getattr(self, "SPRITE_OFFSET_Y", 0)
 
-        w = self.rect.w * scale
+        w = self.rect.w * scale * scale_x
         h = self.rect.h * scale
 
         x = self.rect.centerx - w / 2 + ox
@@ -620,10 +621,11 @@ class Player(BaseEntity):
         스킬 오라/빔 같은 화면 이펙트 위치 맞출 때 사용.
         """
         scale = getattr(self, "SPRITE_SCALE", 1.0)
+        scale_x = getattr(self, "SPRITE_SCALE_X", 1.0)
         ox = getattr(self, "SPRITE_OFFSET_X", 0)
         oy = getattr(self, "SPRITE_OFFSET_Y", 0)
 
-        w = max(1, int(self.rect.w * z * scale))
+        w = max(1, int(self.rect.w * z * scale * scale_x))
         h = max(1, int(self.rect.h * z * scale))
 
         x = dr.centerx - w // 2 + int(ox * z)
