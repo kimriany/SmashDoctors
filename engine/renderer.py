@@ -223,7 +223,7 @@ class Renderer:
         # 영역전개 / 필살기 충전 디버그 HUD
         self._draw_domain_debug_bars(player, px + 12, py + 74, PW - 24)
 
-        # 기존 SKILL READY 텍스트 대신 스킬 아이콘 4개 표시
+        # 입력 슬롯 기준으로 Q/E/ULT 3개만 표시한다.
         self._draw_player_skill_icons(
             player,
             px + 12,
@@ -354,7 +354,7 @@ class Renderer:
     def _draw_player_skill_icons(self, player, x, y, area_w, icon_h):
         skills = self._get_ordered_player_skills(player)
 
-        n = min(4, max(3, len(skills)))
+        n = len(SKILL_SLOTS)
         gap = 6
         icon_w = (area_w - gap * (n - 1)) // n
 
@@ -552,35 +552,19 @@ class Renderer:
     def _get_ordered_player_skills(self, player):
         skills = getattr(player, "skills", {}) or {}
         domain_active = getattr(player, "domain_active", False)
-
         ordered = []
 
-        try:
-            for sk_key, slot_name, key_hint in SKILL_SLOTS:
-                display_key = sk_key
+        for sk_key, slot_name, key_hint in SKILL_SLOTS:
+            display_key = sk_key
 
-                if domain_active:
-                    domain_key = sk_key + "_domain"
-                    if domain_key in skills:
-                        display_key = domain_key
+            if domain_active:
+                domain_key = sk_key + "_domain"
+                if domain_key in skills:
+                    display_key = domain_key
 
-                if display_key in skills:
-                    ordered.append((display_key, slot_name, skills[display_key]))
-        except NameError:
-            pass
+            ordered.append((display_key, slot_name, skills.get(display_key)))
 
-        used = {k for k, _, _ in ordered}
-
-        for k, v in skills.items():
-            if k not in used:
-                if domain_active and k.endswith("_domain"):
-                    label = self._short_skill_label(k)
-                    ordered.append((k, label, v))
-                elif not k.endswith("_domain"):
-                    label = self._short_skill_label(k)
-                    ordered.append((k, label, v))
-
-        return ordered[:4]
+        return ordered
 
     def _short_skill_label(self, key):
         key = str(key)

@@ -397,6 +397,7 @@ class Player(BaseEntity):
         self.domain_active = False
         self.domain_locked = False
         self.domain_break_hits_taken = 0
+        self.domain_break_hits_limit = 0
 
         self.domain_charge_stack = 0.0
         self.domain_ready = False

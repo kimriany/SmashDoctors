@@ -414,4 +414,7 @@ class BattleSession:
 
         self.floater_sys.draw(self.screen, self.camera)
 
+        if self.finisher_sys:
+            self.finisher_sys.draw_overlay()
+
         self.renderer.draw_hud([self.player1, self.player2])

@@ -332,11 +332,6 @@ class DomainSystem:
 
         removed_inst = self.active_domains.pop(pid)
 
-        owner.domain_active = False
-        owner.domain_locked = False
-        owner.domain_break_hits_taken = 0
-        owner.domain_break_hits_limit = 0
-
         # 해제될 때도 카메라 워킹
         self._start_cutscene(
             owner=owner,
@@ -365,13 +360,22 @@ class DomainSystem:
             particle_color=particle_color,
             freeze_during_transition=freeze_during_transition,
         )
-        if hasattr(owner, "clear_domain_stats"):
-            owner.clear_domain_stats()
 
-        owner.domain_active = False
-        owner.domain_locked = False
-        owner.domain_break_hits_taken = 0
-        owner.finisher_locked = False
+        if hasattr(owner, "reset_domain_state"):
+            owner.reset_domain_state()
+        else:
+            if hasattr(owner, "clear_domain_stats"):
+                owner.clear_domain_stats()
+            owner.domain_active = False
+            owner.domain_locked = False
+            owner.domain_break_hits_taken = 0
+            owner.domain_break_hits_limit = 0
+            owner.domain_charge_stack = 0.0
+            owner.domain_ready = False
+            owner.finisher_charge_stack = 0.0
+            owner.finisher_ready = False
+            owner.finisher_locked = False
+            owner.finisher_unlock_timer = 0
 
         if hasattr(owner, "on_domain_closed"):
             owner.on_domain_closed()
@@ -524,12 +528,19 @@ class DomainSystem:
             speed = max(speed, inst.transition_speed)
             freeze = freeze or inst.freeze_during_transition
 
-            p.domain_active = False
-            p.domain_locked = False
-            p.domain_break_hits_taken = 0
-            p.domain_break_hits_limit = 0
-            p.finisher_locked = False
-            p.finisher_unlock_timer = 0
+            if hasattr(p, "reset_domain_state"):
+                p.reset_domain_state()
+            else:
+                p.domain_active = False
+                p.domain_locked = False
+                p.domain_break_hits_taken = 0
+                p.domain_break_hits_limit = 0
+                p.domain_charge_stack = 0.0
+                p.domain_ready = False
+                p.finisher_charge_stack = 0.0
+                p.finisher_ready = False
+                p.finisher_locked = False
+                p.finisher_unlock_timer = 0
             if hasattr(p, "on_domain_closed"):
                 p.on_domain_closed()
 
