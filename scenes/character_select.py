@@ -36,12 +36,12 @@ CARD_Y   = 95
 PAGE_ARROW_W = 54
 PAGE_ARROW_H = 86
 
-# 스킬 슬롯 정의 (key, 표시이름, 키힌트)
+# 스킬 슬롯 정의 (key, 표시이름, P1키힌트, P2키힌트)
+# player.py 키 매핑: Q/;=skill_Q  E/'=skill_E  R//=skill_R
 SKILL_SLOTS = [
-    ("skill_1", "BASIC", "Q / ;"),
-    ("skill_2", "CC",    "E / '"),
-    ("skill_R", "BOOST", "R / /"),
-    ("skill_U", "ULT",   "T / ."),   # 궁극기 슬롯
+    ("skill_Q", "BASIC", "Q",   ";"),
+    ("skill_E", "CC",    "E",   "'"),
+    ("skill_R", "ULT",   "R",   "/"),
 ]
 
 
@@ -130,7 +130,7 @@ class CharacterSelect:
         for slot, char_idx in enumerate(self._visible_indices()):
             card_x = self._x0 + slot * (CARD_W + CARD_GAP)
 
-            for si, (sk_key, _, _) in enumerate(SKILL_SLOTS):
+            for si, (sk_key, _, _, _) in enumerate(SKILL_SLOTS):
                 ix = card_x + pad + si * (ICON_W + pad)
                 iy = ICON_Y_OFF
                 self._icon_rects[(char_idx, sk_key)] = pygame.Rect(
@@ -407,8 +407,9 @@ class CharacterSelect:
 
         cur_y += 6
 
-        # 스킬 아이콘 4개 (BASIC / CC / BOOST / ULT)
-        self._draw_skill_icons(char_idx, cls, rx, cur_y, col, glw)
+        # 스킬 아이콘 4개 — 어느 플레이어가 선택 중인지 pid 전달
+        _pid = 1 if p1h and not p2h else (2 if p2h and not p1h else None)
+        self._draw_skill_icons(char_idx, cls, rx, cur_y, col, glw, pid=_pid)
         cur_y += 76
 
         # LOCKED 오버레이
@@ -457,7 +458,7 @@ class CharacterSelect:
         pygame.draw.rect(self.screen,(70,60,120),(bx,y+3,bw,9),1,border_radius=4)
 
     # ── 스킬 아이콘 4개 ─────────────────────────────────────────
-    def _draw_skill_icons(self, char_idx, cls, card_x, icon_y, col, glw):
+    def _draw_skill_icons(self, char_idx, cls, card_x, icon_y, col, glw, pid=None):
         n      = len(SKILL_SLOTS)
         ICON_W = 48
         ICON_H = 70
@@ -465,13 +466,13 @@ class CharacterSelect:
 
         skills = self._get_skills(cls)
 
-        for si, (sk_key, slot_name, key_hint) in enumerate(SKILL_SLOTS):
+        for si, (sk_key, slot_name, p1_key, p2_key) in enumerate(SKILL_SLOTS):
             ix = card_x + pad + si*(ICON_W+pad)
             iy = icon_y
             skill = skills.get(sk_key)
 
             # ULT 슬롯은 금색 강조
-            is_ult = (sk_key == "skill_U")
+            is_ult = (sk_key == "skill_R")
             border_col = (200,160,40,160) if is_ult else ((*glw,55) if skill else (50,50,70,55))
 
             # 박스
@@ -497,8 +498,18 @@ class CharacterSelect:
                 cdt = self.fnt_xs.render(f"{cd:.1f}s", True,(180,180,220))
                 self.screen.blit(cdt,(ix+ICON_W//2-cdt.get_width()//2, iy+43))
 
-                # 키 힌트
-                kt = self.fnt_xs.render(key_hint, True,(120,120,160))
+                # 키 힌트 — P1/P2 각자 키 표시
+                if pid == 1:
+                    hint_txt = p1_key
+                    hint_col = (110, 170, 255)
+                elif pid == 2:
+                    hint_txt = p2_key
+                    hint_col = (255, 130, 110)
+                else:
+                    # 두 플레이어 모두 선택 중이면 "P1/P2" 형태로
+                    hint_txt = f"{p1_key}/{p2_key}"
+                    hint_col = (150, 150, 180)
+                kt = self.fnt_xs.render(hint_txt, True, hint_col)
                 self.screen.blit(kt,(ix+ICON_W//2-kt.get_width()//2, iy+56))
             else:
                 empty = self.fnt_xs.render("—", True,(60,60,80))

@@ -21,7 +21,6 @@ STAGES = [
         "sub":   "기본 전장 · 균형잡힌 플랫폼",
         "theme": (50, 80, 180),
         "tag":   "BALANCED",
-
     },
     {
         "id":    "stage_02",

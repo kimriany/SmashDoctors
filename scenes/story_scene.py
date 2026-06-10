@@ -53,7 +53,7 @@ class StoryScene:
 
         # 폰트
         self.fnt_speaker = font(20, bold=True)
-        self.fnt_dialog  = font(24)
+        self.fnt_dialog  = font(17)
         self.fnt_choice  = font(19, bold=True)
         self.fnt_system  = font(16, bold=True)
         self.fnt_sm      = font(13)
@@ -85,29 +85,10 @@ class StoryScene:
         self._bg:       pygame.Surface | None = None
         self._bg_next:  pygame.Surface | None = None
         self._chars: dict[str, pygame.Surface | None] = {"left": None, "right": None}
-        self._character_db = {
-            "Hora": {
-                "slot": "right",
-                "image": "assets/images/story/charmain.png"
-            },
-
-            "과학자 A": {
-                "slot": "left",
-                "image": "assets/images/story/question.png"
-            },
-
-            "과학자 B": {
-                "slot": "left",
-                "image": "assets/images/story/question.png"
-            }
-        }
         self._transition      = None    # "fade" / "flash" / "fade_black" / "white_flash"
         self._trans_progress  = 0.0
         self._shake_timer     = 0
         self._shake_x         = 0
-        # 타이틀 카드
-        self._title_card = None
-        self._title_timer = 0
 
         # 결과
         self.done   = False
@@ -207,16 +188,6 @@ class StoryScene:
 
     # ── 업데이트 ────────────────────────────────────────────────
     def update(self):
-        # 타이틀 카드 표시 중
-        if self._title_timer > 0:
-            self._title_timer -= 1
-
-            if self._title_timer <= 0:
-                self._title_card = None
-                self._run_next()
-
-            return
-
         # 전환 효과
         if self._transition is not None:
             self._trans_progress += 0.045
@@ -265,57 +236,22 @@ class StoryScene:
                 if self._transition is not None:
                     return  # 전환 끝날 때까지 대기
 
-
             elif action == "show_char":
-
-                slot = cmd.get("slot", "left")
-
-                path = cmd.get("image")
-
-                img = _load_img(path)
-
-                if img:
-                    target_w = 350  # 원하는 가로 크기
-
-                    ratio = target_w / img.get_width()
-
-                    target_h = int(img.get_height() * ratio)
-
-                    img = pygame.transform.smoothscale(
-
-                        img,
-
-                        (target_w, target_h)
-
-                    )
-
-                self._chars[slot] = img
+                slot  = cmd.get("slot", "left")
+                path  = cmd.get("image")
+                h     = int(self.H * 0.72)
+                w     = int(h * 0.55)
+                self._chars[slot] = _load_img(path, (w, h))
 
             elif action == "hide_char":
                 slot = cmd.get("slot", "left")
                 self._chars[slot] = None
 
-            elif action == "title_card":
 
-                img = cmd.get("image")
-
-                if img:
-                    self._bg = _load_img(img, (self.W, self.H))
-
-                self._title_card = {
-                    "text": cmd.get("text", "")
-                }
-
-                self._title_timer = cmd.get("duration", 180)
-
-                return
 
             elif action == "dialog":
-                self._speaker = cmd.get("speaker", "")
-
-                self._auto_show_speaker(self._speaker)
-
                 self._full_text = cmd.get("text", "")
+                self._speaker = cmd.get("speaker", "")
                 # "left", "right", "both", "none"
                 self._speaker_slot = cmd.get("slot", "both")
 
@@ -371,47 +307,6 @@ class StoryScene:
         self.result = "end"
         self.done   = True
 
-    def _auto_show_speaker(self, speaker):
-
-        # SYSTEM이나 내레이션이면 전부 숨김
-        if speaker in ("", "SYSTEM"):
-            self._chars["left"] = None
-            self._chars["right"] = None
-            return
-
-        info = self._character_db.get(speaker)
-
-        if not info:
-            return
-
-        # 기존 캐릭터 제거
-        self._chars["left"] = None
-        self._chars["right"] = None
-
-        slot = info["slot"]
-
-        img = _load_img(info["image"])
-
-        if not img:
-            return
-
-        # ──────────────
-        # 가로폭 고정
-        # ──────────────
-        TARGET_W = 450
-
-        scale = TARGET_W / img.get_width()
-
-        new_w = TARGET_W
-        new_h = int(img.get_height() * scale)
-
-        img = pygame.transform.smoothscale(
-            img,
-            (new_w, new_h)
-        )
-
-        self._chars[slot] = img
-
     def _do_bg(self, cmd):
         path       = cmd.get("image")
         transition = cmd.get("transition", "fade")
@@ -437,9 +332,6 @@ class StoryScene:
 
         # ── 캐릭터 ──
         self._draw_chars(sx)
-
-        if self._title_card:
-            self._draw_title_card()
 
         # ── 전환 오버레이 ──
         if self._transition is not None:
@@ -509,11 +401,7 @@ class StoryScene:
             else:
                 x = self.W + sx - 60 - draw_img.get_width()
 
-            BOX_H = 180
-            BOX_Y = self.H - BOX_H
-
-            y = BOX_Y - draw_img.get_height()
-
+            y = int(self.H * 0.06)
             self.screen.blit(draw_img, (x, y))
 
     def _draw_dialog_box(self, sx):
@@ -659,30 +547,3 @@ class StoryScene:
                     line = word
             lines.append(line)
         return lines
-
-    def _draw_title_card(self):
-
-        overlay = pygame.Surface((self.W, self.H), pygame.SRCALPHA)
-        overlay.fill((0, 0, 0, 80))
-        self.screen.blit(overlay, (0, 0))
-
-        txt = self._title_card["text"]
-
-        title_font = font(54, bold=True)
-
-        lines = txt.split("\n")
-
-        start_y = self.H // 2 - len(lines) * 35
-
-        for i, line in enumerate(lines):
-            shadow = title_font.render(line, True, (0, 0, 0))
-            main = title_font.render(line, True, (255, 255, 255))
-
-            x = self.W // 2
-            y = start_y + i * 70
-
-            sr = shadow.get_rect(center=(x + 3, y + 3))
-            mr = main.get_rect(center=(x, y))
-
-            self.screen.blit(shadow, sr)
-            self.screen.blit(main, mr)
