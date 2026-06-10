@@ -235,12 +235,20 @@ class Player(BaseEntity):
     def handle_keydown(self, key, event_bus, psys=None):
         if self.dead or self.respawning:
             return
+        # W 키 충돌 처리: P1의 W는 점프와 겹침.
+        # 영역 전개 중(domain_active)에는 스킬 우선, 아니면 점프.
         if key == self.key_jump:
-            self._jump(psys)
+            if key == self.key_skill_W and getattr(self, "domain_active", False):
+                if not self._do_skill(event_bus, psys, "skill_W"):
+                    self._jump(psys)
+            else:
+                self._jump(psys)
         elif key == self.key_attack:
             self._do_attack(psys)
         elif key == self.key_skill_Q:
             self._do_skill(event_bus, psys, "skill_Q")
+        elif key == self.key_skill_W and key != self.key_jump:
+            self._do_skill(event_bus, psys, "skill_W")
         elif key == self.key_skill_E:
             self._do_skill(event_bus, psys, "skill_E")
         elif key == self.key_skill_R:
@@ -267,17 +275,15 @@ class Player(BaseEntity):
                        count=9, speed=5, life=18, r=4)
 
     def _do_skill(self, event_bus, psys, skill_key="skill_1"):
-        sk = self.skills.get(skill_key)
-
-        if sk and sk.can_use(self):
-            sk.use(self, event_bus, psys)
-            self.active_skill = sk
-
+        # use_skill을 통해 호출 — 자식 클래스(Einstein 등)의 override 반영
+        used = self.use_skill(skill_key, event_bus, psys)
+        if used and self.active_skill is not None:
             event_bus.emit("skill_used", {
                 "user": self,
-                "skill": sk,
-                "skill_key": skill_key
+                "skill": self.active_skill,
+                "skill_key": skill_key,
             })
+        return used
 
     def gain_domain_charge(self, amount):
         if amount <= 0:

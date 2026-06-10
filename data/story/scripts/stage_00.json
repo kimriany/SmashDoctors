@@ -2,374 +2,47 @@
   "id": "stage_00",
   "title": "Prologue",
   "next": "stage_01",
-
   "script": [
-
-    {
-      "cmd": "bg",
-      "image": "assets/images/story/timecountry.png",
-      "transition": "fade"
-    },
-
-    {
-      "cmd": "title_card",
-      "text": "",
-      "duration": 60
-    },
-
-    {
-      "cmd": "sound",
-      "file": "assets/sounds/machine.ogg",
-      "loop": true
-    },
-
-    {
-      "cmd": "dialog",
-      "speaker": "SYSTEM",
-      "text": "시간선 안정도 점검 중..."
-    },
-
-    {
-      "cmd": "dialog",
-      "speaker": "SYSTEM",
-      "text": "이상 없음."
-    },
-
-    {
-      "cmd": "dialog",
-      "speaker": "",
-      "text": "화면이 켜진다."
-    },
-
-    {
-      "cmd": "dialog",
-      "speaker": "",
-      "text": "거대한 관제실."
-    },
-
-    {
-      "cmd": "dialog",
-      "speaker": "",
-      "text": "수많은 시간선이 홀로그램 형태로 떠 있다."
-    },
-
-    {
-      "cmd": "dialog",
-      "speaker": "",
-      "text": "각 분야의 과학자들이 데이터를 분석 중이다."
-    },
-
-    {
-      "cmd": "dialog",
-      "speaker": "과학자 A",
-      "text": "국장님."
-    },
-
-    {
-      "cmd": "dialog",
-      "speaker": "과학자 A",
-      "text": "42번 시간선 복구 완료되었습니다."
-    },
-
-    {
-      "cmd": "dialog",
-      "speaker": "Hora",
-      "text": "피해 규모는?"
-    },
-
-    {
-      "cmd": "dialog",
-      "speaker": "과학자 A",
-      "text": "미미합니다."
-    },
-
-    {
-      "cmd": "dialog",
-      "speaker": "과학자 A",
-      "text": "역사적 영향은 없을 겁니다."
-    },
-
-    {
-      "cmd": "dialog",
-      "speaker": "과학자 A",
-      "text": "아마도요..."
-    },
-
-    {
-      "cmd": "dialog",
-      "speaker": "Hora",
-      "text": "풉..."
-    },
-
-    {
-      "cmd": "dialog",
-      "speaker": "Hora",
-      "text": "수고했네."
-    },
-
-    {
-      "cmd": "dialog",
-      "speaker": "과학자 B",
-      "text": "7번 시간선도 안정화되었습니다."
-    },
-
-    {
-      "cmd": "dialog",
-      "speaker": "Hora",
-      "text": "좋군."
-    },
-
-    {
-      "cmd": "sound",
-      "file": "assets/sounds/alarm.ogg",
-      "loop": false
-    },
-
-    {
-      "cmd": "shake"
-    },
-
-    {
-      "cmd": "bg",
-      "image": "assets/images/story/timecountry_alert.png",
-      "transition": "flash"
-    },
-
-    {
-      "cmd": "dialog",
-      "speaker": "과학자 A",
-      "text": "무슨 일이지?"
-    },
-
-    {
-      "cmd": "dialog",
-      "speaker": "과학자 B",
-      "text": "오류 발생인가?"
-    },
-
-    {
-      "cmd": "dialog",
-      "speaker": "SYSTEM",
-      "text": "경고!"
-    },
-
-    {
-      "cmd": "dialog",
-      "speaker": "SYSTEM",
-      "text": "생명 시간선 이상 감지!"
-    },
-
-    {
-      "cmd": "dialog",
-      "speaker": "SYSTEM",
-      "text": "진화 기록 손상!"
-    },
-
-    {
-      "cmd": "dialog",
-      "speaker": "SYSTEM",
-      "text": "종 분기 기록 붕괴!"
-    },
-
-    {
-      "cmd": "dialog",
-      "speaker": "SYSTEM",
-      "text": "자동 복구 실패!"
-    },
-
-    {
-      "cmd": "bg",
-      "image": null,
-      "transition": "fade_black"
-    },
-
-    {
-      "cmd": "pause",
-      "duration": 60
-    },
-
-    {
-      "cmd": "dialog",
-      "speaker": "SYSTEM",
-      "text": "오류 등급 :"
-    },
-
-    {
-      "cmd": "pause",
-      "duration": 45
-    },
-
-    {
-      "cmd": "title_card",
-      "image": "assets/images/story/timecountry_alert.png",
-      "text": "OMEGA"
-    },
-
-    {
-      "cmd": "dialog",
-      "speaker": "SYSTEM",
-      "text": "원인 분석 실패!"
-    },
-
-    {
-      "cmd": "dialog",
-      "speaker": "SYSTEM",
-      "text": "수동 개입 필요"
-    },
-
-    {
-      "cmd": "dialog",
-      "speaker": "과학자 B",
-      "text": "오메가? 오메가라고?"
-    },
-
-    {
-      "cmd": "dialog",
-      "speaker": "과학자 A",
-      "text": "도대체 무슨 일이 일어나고 있는 거지?"
-    },
-
-    {
-      "cmd": "dialog",
-      "speaker": "",
-      "text": "잠시 동안 혼란이 계속된다."
-    },
-
-    {
-      "cmd": "dialog",
-      "speaker": "과학자 B",
-      "text": "국장님."
-    },
-
-    {
-      "cmd": "dialog",
-      "speaker": "Hora",
-      "text": "내가 직접 가겠네."
-    },
-
-    {
-      "cmd": "dialog",
-      "speaker": "과학자 A",
-      "text": "하지만..."
-    },
-
-    {
-      "cmd": "dialog",
-      "speaker": "과학자 A",
-      "text": "위험합니다..."
-    },
-
-    {
-      "cmd": "dialog",
-      "speaker": "Hora",
-      "text": "시간선 오류를 방치할 순 없지."
-    },
-
-    {
-      "cmd": "dialog",
-      "speaker": "Hora",
-      "text": "다녀오겠네."
-    },
-
-    {
-      "cmd": "bg",
-      "image": null,
-      "transition": "white_flash"
-    },
-
-    {
-      "cmd": "pause",
-      "duration": 30
-    },
-
-    {
-      "cmd": "bg",
-      "image": null,
-      "transition": "fade_black"
-    },
-
-    {
-      "cmd": "bg",
-      "image": "assets/images/story/timecountry_alert.png",
-      "transition": "fade_black"
-    },
-
-    {
-      "cmd": "dialog",
-      "speaker": "SYSTEM",
-      "text": "역행 기록 확인"
-    },
-
-    {
-      "cmd": "dialog",
-      "speaker": "SYSTEM",
-      "text": "1회차 완료"
-    },
-
-    {
-      "cmd": "dialog",
-      "speaker": "SYSTEM",
-      "text": "2회차 완료"
-    },
-
-    {
-      "cmd": "dialog",
-      "speaker": "SYSTEM",
-      "text": "3회차 완료"
-    },
-
-    {
-      "cmd": "dialog",
-      "speaker": "SYSTEM",
-      "text": "4회차 완료"
-    },
-
-    {
-      "cmd": "dialog",
-      "speaker": "SYSTEM",
-      "text": "5회차 완료"
-    },
-
-    {
-      "cmd": "dialog",
-      "speaker": "SYSTEM",
-      "text": "6회차 완료"
-    },
-
-    {
-      "cmd": "dialog",
-      "speaker": "SYSTEM",
-      "text": "7회차 완료"
-    },
-
-    {
-      "cmd": "dialog",
-      "speaker": "SYSTEM",
-      "text": "8th LOOP 진행하시겠습니까?"
-    },
-
-    {
-      "cmd": "dialog",
-      "speaker": "Hora",
-      "text": "진행."
-    },
-
-    {
-      "cmd": "title_card",
-      "image": "assets/images/story/TV.png",
-      "text": "TIME LOOP #8",
-      "duration": 120
-    },
-
-    {
-      "cmd": "dialog",
-      "speaker": "SYSTEM",
-      "text": "생명 영역 진입"
-    },
-
-    {
-      "cmd": "end"
-    }
-
+    {"cmd": "bg",      "image": "assets/images/story/bg_control_room.png", "transition": "fade"},
+    {"cmd": "sound",   "file": "assets/sounds/machine_hum.ogg", "loop": true},
+    {"cmd": "dialog",  "speaker": "SYSTEM", "text": "시간선 안정도 점검 중..."},
+    {"cmd": "dialog",  "speaker": "SYSTEM", "text": "이상 없음"},
+    {"cmd": "dialog",  "speaker": "SYSTEM", "text": "시간관리국 운영 정상"},
+    {"cmd": "show_char","slot": "left",  "image": "assets/images/story/char_scientist_a.png"},
+    {"cmd": "dialog",  "speaker": "과학자 A", "text": "국장님. 43번 시간선 복구 완료되었습니다."},
+    {"cmd": "show_char","slot": "right", "image": "assets/images/story/char_protagonist.png"},
+    {"cmd": "dialog",  "speaker": "주인공", "text": "피해 규모는?"},
+    {"cmd": "dialog",  "speaker": "과학자 A", "text": "미미합니다. 역사적 영향은 없습니다."},
+    {"cmd": "dialog",  "speaker": "주인공", "text": "수고했네."},
+    {"cmd": "show_char","slot": "left",  "image": "assets/images/story/char_scientist_b.png"},
+    {"cmd": "dialog",  "speaker": "과학자 B", "text": "12번 시간선도 안정화되었습니다."},
+    {"cmd": "dialog",  "speaker": "주인공", "text": "좋군."},
+    {"cmd": "sound",   "file": "assets/sounds/alarm.ogg", "loop": false},
+    {"cmd": "shake"},
+    {"cmd": "bg",      "image": "assets/images/story/bg_control_room_red.png", "transition": "flash"},
+    {"cmd": "hide_char","slot": "left"},
+    {"cmd": "dialog",  "speaker": "과학자 A", "text": "무슨 일이지?!"},
+    {"cmd": "dialog",  "speaker": "과학자 B", "text": "오류 발생인가?"},
+    {"cmd": "dialog",  "speaker": "SYSTEM",   "text": "경고\n생명 시간선 이상 감지\n진화 기록 손상\n종 분기 기록 붕괴\n자동 복구 실패"},
+    {"cmd": "pause",   "duration": 60},
+    {"cmd": "dialog",  "speaker": "SYSTEM",   "text": "오류 등급"},
+    {"cmd": "pause",   "duration": 90},
+    {"cmd": "dialog",  "speaker": "SYSTEM",   "text": "OMEGA"},
+    {"cmd": "dialog",  "speaker": "과학자 B", "text": "생명축 전체가 무너지고 있습니다."},
+    {"cmd": "dialog",  "speaker": "주인공",   "text": "원인은?"},
+    {"cmd": "dialog",  "speaker": "SYSTEM",   "text": "분석 실패\n원인 불명\n수동 개입 필요"},
+    {"cmd": "hide_char","slot": "right"},
+    {"cmd": "dialog",  "speaker": "주인공",   "text": "내가 직접 가겠네."},
+    {"cmd": "dialog",  "speaker": "과학자 A", "text": "하지만 위험합니다."},
+    {"cmd": "dialog",  "speaker": "주인공",   "text": "시간선 오류를 방치할 순 없지."},
+    {"cmd": "dialog",  "speaker": "주인공",   "text": "다녀오겠네."},
+    {"cmd": "bg",      "image": null, "transition": "fade_black"},
+    {"cmd": "dialog",  "speaker": "SYSTEM",   "text": "역행 기록 확인\n1회차 완료\n2회차 완료\n3~7회차 완료"},
+    {"cmd": "pause",   "duration": 60},
+    {"cmd": "dialog",  "speaker": "SYSTEM",   "text": "현재 기록\n8회차\n진행 중"},
+    {"cmd": "bg",      "image": null, "transition": "white_flash"},
+    {"cmd": "dialog",  "speaker": "SYSTEM",   "text": "TIME LOOP #8"},
+    {"cmd": "dialog",  "speaker": "SYSTEM",   "text": "생명 영역 진입\nLocation : 시간 관리국"},
+    {"cmd": "end"}
   ]
 }
