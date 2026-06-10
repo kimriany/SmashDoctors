@@ -6,6 +6,7 @@ import pygame
 import math
 import random
 import os
+from scenes.transition import Transition
 
 from entities.characters.Pita        import Pita
 from entities.characters.Nobel       import Nobel
@@ -106,6 +107,11 @@ class CharacterSelect:
                     thumb = pygame.transform.smoothscale(img, (TW, TH))
                 except Exception: pass
             self._thumbs[cls.__name__] = thumb
+
+        # 전환 이펙트 + 입장 애니메이션
+        self.transition  = Transition('wipe', duration=32)
+        self._enter_t    = 0.0
+        self._entered    = False
 
         # 아이콘 히트박스 — 초기화 시 미리 계산해 둠
         self._icon_rects: dict[tuple, pygame.Rect] = {}
@@ -247,12 +253,21 @@ class CharacterSelect:
             if k == pygame.K_SEMICOLON:
                 self.locked[1] = False
 
-        if all(self.locked):
-            self.result = (ROSTER[self.cursors[0]], ROSTER[self.cursors[1]])
-            self.done   = True
+        if all(self.locked) and not self.done:
+            if event.type == pygame.KEYDOWN and event.key == pygame.K_RETURN:
+                self.result = (ROSTER[self.cursors[0]], ROSTER[self.cursors[1]])
+                self.done   = True
+                self.transition.start()
 
     def update(self):
         self._t += 0.04
+        self.transition.update()
+        if self.done and self.transition.done:
+            pass   # done 유지
+        if not self._entered:
+            self._enter_t = min(1.0, self._enter_t + 0.045)
+            if self._enter_t >= 1.0:
+                self._entered = True
 
     # ── draw ────────────────────────────────────────────────────
     def draw(self):

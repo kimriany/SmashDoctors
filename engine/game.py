@@ -4,14 +4,17 @@ import pygame
 
 from settings import SCREEN_WIDTH, SCREEN_HEIGHT, FPS, TITLE
 from scenes.mode_select import ModeSelect
+from scenes.opening import Opening
+from scenes.transition import Transition
 from modes.pvp_game import PVPGame
 from modes.story_game import StoryGame
 
 
 class AppState:
+    OPENING     = "opening"
     MODE_SELECT = "mode_select"
-    PVP = "pvp"
-    STORY = "story"
+    PVP         = "pvp"
+    STORY       = "story"
 
 
 class Game:
@@ -22,7 +25,8 @@ class Game:
         self.clock = pygame.time.Clock()
         self.running = True
 
-        self.state = AppState.MODE_SELECT
+        self.state = AppState.OPENING
+        self.opening = Opening(self.screen)
         self.mode_select = ModeSelect(self.screen)
         self.current_game = None
 
@@ -44,7 +48,11 @@ class Game:
             if not self.running:
                 break
 
-            if self.state == AppState.MODE_SELECT:
+            if self.state == AppState.OPENING:
+                self._update_opening(events)
+                self.opening.draw()
+
+            elif self.state == AppState.MODE_SELECT:
                 self._update_mode_select(events)
                 self.mode_select.update()
                 self.mode_select.draw()
@@ -55,6 +63,13 @@ class Game:
             pygame.display.flip()
 
         pygame.quit()
+
+    def _update_opening(self, events):
+        for event in events:
+            self.opening.handle_event(event)
+        self.opening.update()
+        if self.opening.done:
+            self.state = AppState.MODE_SELECT
 
     def _update_mode_select(self, events):
         for event in events:
