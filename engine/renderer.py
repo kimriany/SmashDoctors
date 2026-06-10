@@ -354,7 +354,7 @@ class Renderer:
     def _draw_player_skill_icons(self, player, x, y, area_w, icon_h):
         skills = self._get_ordered_player_skills(player)
 
-        n = 3
+        n = min(4, max(3, len(skills)))
         gap = 6
         icon_w = (area_w - gap * (n - 1)) // n
 
@@ -551,24 +551,34 @@ class Renderer:
 
     def _get_ordered_player_skills(self, player):
         skills = getattr(player, "skills", {}) or {}
+        domain_active = getattr(player, "domain_active", False)
 
         ordered = []
 
-        # SKILL_SLOTS가 있으면 그 순서 사용
         try:
             for sk_key, slot_name, key_hint in SKILL_SLOTS:
-                if sk_key in skills:
-                    ordered.append((sk_key, slot_name, skills[sk_key]))
+                display_key = sk_key
+
+                if domain_active:
+                    domain_key = sk_key + "_domain"
+                    if domain_key in skills:
+                        display_key = domain_key
+
+                if display_key in skills:
+                    ordered.append((display_key, slot_name, skills[display_key]))
         except NameError:
             pass
 
-        # SKILL_SLOTS에 없는 스킬도 뒤에 추가
         used = {k for k, _, _ in ordered}
 
         for k, v in skills.items():
             if k not in used:
-                label = self._short_skill_label(k)
-                ordered.append((k, label, v))
+                if domain_active and k.endswith("_domain"):
+                    label = self._short_skill_label(k)
+                    ordered.append((k, label, v))
+                elif not k.endswith("_domain"):
+                    label = self._short_skill_label(k)
+                    ordered.append((k, label, v))
 
         return ordered[:4]
 
@@ -577,9 +587,13 @@ class Renderer:
 
         table = {
             "skill_Q": "Q",
+            "skill_Q_domain": "Q",
             "skill_W": "W",
+            "skill_W_domain": "W",
             "skill_E": "E",
+            "skill_E_domain": "E",
             "skill_R": "ULT",
+            "skill_R_domain": "ULT",
             "skill_U": "ULT",
             "move": "MOV",
             "cc": "CC",
