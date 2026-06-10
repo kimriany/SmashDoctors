@@ -318,13 +318,31 @@ class StoryGame:
     # ─────────────────────────────────────────────
     # BATTLE
     # ─────────────────────────────────────────────
+    def _current_battle_config(self):
+        config = dict(self.chapter or {})
+
+        if self.story_scene and hasattr(self.story_scene, "script_data"):
+            script_data = self.story_scene.script_data
+            for key in ("stage_json", "boss_class", "boss_name", "boss_stocks"):
+                if key in script_data:
+                    config[key] = script_data[key]
+
+        return config
+
     def _start_story_battle(self):
         if self.chapter is None or self.player_cls is None:
             self._reset_stage_select()
             self.state = StoryState.STAGE_SELECT
             return
 
-        boss_cls = self.story_loader.get_boss_class(self.chapter)
+        battle_config = self._current_battle_config()
+        stage_path = battle_config.get("stage_json")
+
+        if not stage_path:
+            self._go_next_chapter_or_stage_select()
+            return
+
+        boss_cls = self.story_loader.get_boss_class(battle_config)
 
         if boss_cls is None:
             from entities.characters.Einstein import Einstein
@@ -334,15 +352,15 @@ class StoryGame:
             screen=self.screen,
             stage_info={
                 "id": self.chapter["id"],
-                "path": self.chapter["stage_json"],
+                "path": stage_path,
             },
             player1_cls=self.player_cls,
             player2_cls=boss_cls,
             mode="story",
             player1_name="Player",
-            player2_name=self.chapter.get("boss_name", "Boss"),
+            player2_name=battle_config.get("boss_name", "Boss"),
             player1_stocks=3,
-            player2_stocks=self.chapter.get("boss_stocks", 3),
+            player2_stocks=battle_config.get("boss_stocks", 3),
         )
 
         self.state = StoryState.BATTLE
