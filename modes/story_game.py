@@ -173,6 +173,16 @@ class StoryGame:
         if self.intro.result == "back":
             return "back_to_menu"
 
+        if self.intro.result == "new_game":
+            self.story_save.reset()
+
+            self.chapter = None
+            self.player_cls = None
+            self.story_scene = None
+            self.battle = None
+            self.battle_num = 1
+            self.ending_type = None
+
         self._reset_stage_select()
         self.state = StoryState.STAGE_SELECT
         return None
