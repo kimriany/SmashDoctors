@@ -6,8 +6,13 @@
   "script": [
 
     {
+      "cmd": "bg",
+      "image": "assets/images/story/timecountry.png",
+      "transition": "fade"
+    },
+
+    {
       "cmd": "title_card",
-      "image": "assets/images/story/timecountry.jpg",
       "text": "",
       "duration": 60
     },
@@ -29,7 +34,6 @@
       "speaker": "SYSTEM",
       "text": "이상 없음."
     },
-
 
     {
       "cmd": "dialog",
@@ -56,12 +60,6 @@
     },
 
     {
-      "cmd": "show_char",
-      "slot": "left",
-      "image": "assets/images/story/question.jpg"
-    },
-
-    {
       "cmd": "dialog",
       "speaker": "과학자 A",
       "text": "국장님."
@@ -71,12 +69,6 @@
       "cmd": "dialog",
       "speaker": "과학자 A",
       "text": "42번 시간선 복구 완료되었습니다."
-    },
-
-    {
-      "cmd": "show_char",
-      "slot": "right",
-      "image": "assets/images/story/charmain.jpg"
     },
 
     {
@@ -139,7 +131,7 @@
 
     {
       "cmd": "bg",
-      "image": "assets/images/story/timecountry_alert.jpg",
+      "image": "assets/images/story/timecountry_alert.png",
       "transition": "flash"
     },
 
@@ -208,8 +200,8 @@
     },
 
     {
-      "cmd": "dialog",
-      "speaker": "SYSTEM",
+      "cmd": "title_card",
+      "image": "assets/images/story/timecountry_alert.png",
       "text": "OMEGA"
     },
 
@@ -226,21 +218,27 @@
     },
 
     {
-      "cmd": "show_char",
-      "slot": "left",
-      "image": "assets/images/story/question.jpg"
+      "cmd": "dialog",
+      "speaker": "과학자 B",
+      "text": "오메가? 오메가라고?"
+    },
+
+    {
+      "cmd": "dialog",
+      "speaker": "과학자 A",
+      "text": "도대체 무슨 일이 일어나고 있는 거지?"
+    },
+
+    {
+      "cmd": "dialog",
+      "speaker": "",
+      "text": "잠시 동안 혼란이 계속된다."
     },
 
     {
       "cmd": "dialog",
       "speaker": "과학자 B",
       "text": "국장님."
-    },
-
-    {
-      "cmd": "show_char",
-      "slot": "right",
-      "image": "assets/images/story/question.jpg"
     },
 
     {
@@ -259,12 +257,6 @@
       "cmd": "dialog",
       "speaker": "과학자 A",
       "text": "위험합니다..."
-    },
-
-    {
-      "cmd": "show_char",
-      "slot": "right",
-      "image": "assets/images/story/charmain.jpg"
     },
 
     {
@@ -293,6 +285,12 @@
     {
       "cmd": "bg",
       "image": null,
+      "transition": "fade_black"
+    },
+
+    {
+      "cmd": "bg",
+      "image": "assets/images/story/timecountry_alert.png",
       "transition": "fade_black"
     },
 
@@ -351,12 +349,6 @@
     },
 
     {
-      "cmd": "show_char",
-      "slot": "right",
-      "image": "assets/images/story/question.jpg"
-    },
-
-    {
       "cmd": "dialog",
       "speaker": "Hora",
       "text": "진행."
@@ -364,7 +356,7 @@
 
     {
       "cmd": "title_card",
-      "image": "assets/images/story/timecountry.jpg",
+      "image": "assets/images/story/TV.png",
       "text": "TIME LOOP #8",
       "duration": 120
     },
@@ -378,5 +370,6 @@
     {
       "cmd": "end"
     }
+
   ]
 }

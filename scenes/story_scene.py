@@ -85,6 +85,22 @@ class StoryScene:
         self._bg:       pygame.Surface | None = None
         self._bg_next:  pygame.Surface | None = None
         self._chars: dict[str, pygame.Surface | None] = {"left": None, "right": None}
+        self._character_db = {
+            "Hora": {
+                "slot": "right",
+                "image": "assets/images/story/charmain.png"
+            },
+
+            "과학자 A": {
+                "slot": "left",
+                "image": "assets/images/story/question.png"
+            },
+
+            "과학자 B": {
+                "slot": "left",
+                "image": "assets/images/story/question.png"
+            }
+        }
         self._transition      = None    # "fade" / "flash" / "fade_black" / "white_flash"
         self._trans_progress  = 0.0
         self._shake_timer     = 0
@@ -246,12 +262,31 @@ class StoryScene:
                 if self._transition is not None:
                     return  # 전환 끝날 때까지 대기
 
+
             elif action == "show_char":
-                slot  = cmd.get("slot", "left")
-                path  = cmd.get("image")
-                h     = int(self.H * 0.72)
-                w     = int(h * 0.55)
-                self._chars[slot] = _load_img(path, (w, h))
+
+                slot = cmd.get("slot", "left")
+
+                path = cmd.get("image")
+
+                img = _load_img(path)
+
+                if img:
+                    target_w = 350  # 원하는 가로 크기
+
+                    ratio = target_w / img.get_width()
+
+                    target_h = int(img.get_height() * ratio)
+
+                    img = pygame.transform.smoothscale(
+
+                        img,
+
+                        (target_w, target_h)
+
+                    )
+
+                self._chars[slot] = img
 
             elif action == "hide_char":
                 slot = cmd.get("slot", "left")
@@ -273,8 +308,11 @@ class StoryScene:
                 return
 
             elif action == "dialog":
-                self._full_text = cmd.get("text", "")
                 self._speaker = cmd.get("speaker", "")
+
+                self._auto_show_speaker(self._speaker)
+
+                self._full_text = cmd.get("text", "")
                 # "left", "right", "both", "none"
                 self._speaker_slot = cmd.get("slot", "both")
 
@@ -329,6 +367,47 @@ class StoryScene:
         # 커맨드 소진
         self.result = "end"
         self.done   = True
+
+    def _auto_show_speaker(self, speaker):
+
+        # SYSTEM이나 내레이션이면 전부 숨김
+        if speaker in ("", "SYSTEM"):
+            self._chars["left"] = None
+            self._chars["right"] = None
+            return
+
+        info = self._character_db.get(speaker)
+
+        if not info:
+            return
+
+        # 기존 캐릭터 제거
+        self._chars["left"] = None
+        self._chars["right"] = None
+
+        slot = info["slot"]
+
+        img = _load_img(info["image"])
+
+        if not img:
+            return
+
+        # ──────────────
+        # 가로폭 고정
+        # ──────────────
+        TARGET_W = 450
+
+        scale = TARGET_W / img.get_width()
+
+        new_w = TARGET_W
+        new_h = int(img.get_height() * scale)
+
+        img = pygame.transform.smoothscale(
+            img,
+            (new_w, new_h)
+        )
+
+        self._chars[slot] = img
 
     def _do_bg(self, cmd):
         path       = cmd.get("image")
@@ -427,7 +506,11 @@ class StoryScene:
             else:
                 x = self.W + sx - 60 - draw_img.get_width()
 
-            y = int(self.H * 0.06)
+            BOX_H = 180
+            BOX_Y = self.H - BOX_H
+
+            y = BOX_Y - draw_img.get_height()
+
             self.screen.blit(draw_img, (x, y))
 
     def _draw_dialog_box(self, sx):
