@@ -110,6 +110,9 @@ class BattleSession:
         self.player2.spawn_x = sp2[0]
         self.player2.spawn_y = sp2[1]
 
+        self._snap_spawn_to_platform(self.player1)
+        self._snap_spawn_to_platform(self.player2)
+
         self.player1.stocks = self.player1_stocks
         self.player2.stocks = self.player2_stocks
 
@@ -139,6 +142,33 @@ class BattleSession:
         self.event_bus.subscribe("entity_dead", self._on_entity_dead)
 
         self.event_bus.subscribe("stock_lost", self._on_stock_lost)
+
+    def _snap_spawn_to_platform(self, player):
+        if player is None or not self.platforms:
+            return
+
+        center_x = player.rect.centerx
+        bottom_y = player.rect.bottom
+
+        candidates = [
+            p for p in self.platforms
+            if p.left <= center_x <= p.right
+        ]
+
+        if not candidates:
+            candidates = self.platforms
+
+        platform = min(
+            candidates,
+            key=lambda p: (
+                abs(p.top - bottom_y),
+                abs(p.centerx - center_x),
+            ),
+        )
+
+        player.rect.bottom = platform.top
+        player.spawn_x = player.rect.x
+        player.spawn_y = player.rect.y
 
     def _on_stock_lost(self, data):
         lost_player = data.get("player")
