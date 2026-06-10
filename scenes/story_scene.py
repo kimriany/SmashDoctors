@@ -53,7 +53,7 @@ class StoryScene:
 
         # 폰트
         self.fnt_speaker = font(20, bold=True)
-        self.fnt_dialog  = font(17)
+        self.fnt_dialog  = font(24)
         self.fnt_choice  = font(19, bold=True)
         self.fnt_system  = font(16, bold=True)
         self.fnt_sm      = font(13)
@@ -89,6 +89,9 @@ class StoryScene:
         self._trans_progress  = 0.0
         self._shake_timer     = 0
         self._shake_x         = 0
+        # 타이틀 카드
+        self._title_card = None
+        self._title_timer = 0
 
         # 결과
         self.done   = False
@@ -185,6 +188,16 @@ class StoryScene:
 
     # ── 업데이트 ────────────────────────────────────────────────
     def update(self):
+        # 타이틀 카드 표시 중
+        if self._title_timer > 0:
+            self._title_timer -= 1
+
+            if self._title_timer <= 0:
+                self._title_card = None
+                self._run_next()
+
+            return
+
         # 전환 효과
         if self._transition is not None:
             self._trans_progress += 0.045
@@ -244,7 +257,20 @@ class StoryScene:
                 slot = cmd.get("slot", "left")
                 self._chars[slot] = None
 
+            elif action == "title_card":
 
+                img = cmd.get("image")
+
+                if img:
+                    self._bg = _load_img(img, (self.W, self.H))
+
+                self._title_card = {
+                    "text": cmd.get("text", "")
+                }
+
+                self._title_timer = cmd.get("duration", 180)
+
+                return
 
             elif action == "dialog":
                 self._full_text = cmd.get("text", "")
@@ -329,6 +355,9 @@ class StoryScene:
 
         # ── 캐릭터 ──
         self._draw_chars(sx)
+
+        if self._title_card:
+            self._draw_title_card()
 
         # ── 전환 오버레이 ──
         if self._transition is not None:
@@ -544,3 +573,30 @@ class StoryScene:
                     line = word
             lines.append(line)
         return lines
+
+    def _draw_title_card(self):
+
+        overlay = pygame.Surface((self.W, self.H), pygame.SRCALPHA)
+        overlay.fill((0, 0, 0, 80))
+        self.screen.blit(overlay, (0, 0))
+
+        txt = self._title_card["text"]
+
+        title_font = font(54, bold=True)
+
+        lines = txt.split("\n")
+
+        start_y = self.H // 2 - len(lines) * 35
+
+        for i, line in enumerate(lines):
+            shadow = title_font.render(line, True, (0, 0, 0))
+            main = title_font.render(line, True, (255, 255, 255))
+
+            x = self.W // 2
+            y = start_y + i * 70
+
+            sr = shadow.get_rect(center=(x + 3, y + 3))
+            mr = main.get_rect(center=(x, y))
+
+            self.screen.blit(shadow, sr)
+            self.screen.blit(main, mr)
