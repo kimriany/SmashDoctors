@@ -1,70 +1,100 @@
 {
   "title": "SmashDoctors Story",
   "chapters": [
+
+    {
+      "id": 0,
+      "title": "Prologue",
+      "subtitle": "TIME LOOP #8",
+      "description": "생명 시간선의 붕괴.\n그리고 여덟 번째 루프의 시작.",
+      "stage_json": "data/story/scripts/stage_00.json",
+      "bg_image": "assets/images/story/timecountry.jpg",
+      "boss_class": null,
+      "boss_name": null,
+      "boss_stocks": 0,
+      "unlock_condition": null,
+      "theme_color": [120, 180, 255]
+    },
+
     {
       "id": 1,
       "title": "Chapter 1",
-      "subtitle": "The First Encounter",
-      "description": "A mysterious force awakens in the lab.\nThe journey begins.",
-      "stage_json": "data/stages/stage_01.json",
-      "bg_image": "assets/images/bg_stage_01.jpeg",
-      "boss_class": "entities.Boss_characters.TestBoss",
-      "boss_name": "Lab Guardian",
+      "subtitle": "Isaac Newton",
+      "description": "생명 시간선의 최초 이상점을 조사한다.",
+      "stage_json": "data/story/scripts/stage_01.json",
+      "bg_image": "assets/images/story/bg_newton_intro.png",
+      "boss_class": "entities.Boss_characters.Newton",
+      "boss_name": "아이작 뉴턴",
       "boss_stocks": 3,
-      "unlock_condition": null,
-      "theme_color": [60, 120, 220]
+      "unlock_condition": {
+        "clear_chapter": 0
+      },
+      "theme_color": [180, 140, 80]
     },
+
     {
       "id": 2,
       "title": "Chapter 2",
-      "subtitle": "Ascending Heights",
-      "description": "The enemy retreats to higher ground.\nDon't let them escape.",
-      "stage_json": "data/stages/stage_02.json",
-      "bg_image": "assets/images/bg_stage_02.jpeg",
-      "boss_class": "entities.Boss_characters.TestBoss",
-      "boss_name": "Tower Sentinel",
+      "subtitle": "Alfred Nobel",
+      "description": "역사가 비틀리기 시작한다.",
+      "stage_json": "data/story/scripts/stage_02.json",
+      "bg_image": "assets/images/story/bg_nobel_intro.png",
+      "boss_class": "entities.Boss_characters.Nobel",
+      "boss_name": "알프레드 노벨",
       "boss_stocks": 3,
-      "unlock_condition": {"clear_chapter": 1},
-      "theme_color": [40, 160, 100]
+      "unlock_condition": {
+        "clear_chapter": 1
+      },
+      "theme_color": [220, 180, 80]
     },
+
     {
       "id": 3,
       "title": "Chapter 3",
-      "subtitle": "Into the Abyss",
-      "description": "Few platforms. One mistake and you fall.\nSurvive at all costs.",
-      "stage_json": "data/stages/stage_03.json",
-      "bg_image": "assets/images/bg_stage_03.jpeg",
-      "boss_class": "entities.Boss_characters.TestBoss",
-      "boss_name": "Void Walker",
+      "subtitle": "Alan Turing",
+      "description": "시간선 붕괴의 패턴이 드러난다.",
+      "stage_json": "data/story/scripts/stage_03.json",
+      "bg_image": "assets/images/story/bg_turing_intro.png",
+      "boss_class": "entities.Boss_characters.Turing",
+      "boss_name": "앨런 튜링",
       "boss_stocks": 4,
-      "unlock_condition": {"clear_chapter": 2},
-      "theme_color": [140, 40, 200]
+      "unlock_condition": {
+        "clear_chapter": 2
+      },
+      "theme_color": [80, 180, 255]
     },
+
     {
       "id": 4,
       "title": "Chapter 4",
-      "subtitle": "Final Showdown",
-      "description": "The final battle on the grand stage.\nThis ends here.",
-      "stage_json": "data/stages/stage_04.json",
-      "bg_image": "assets/images/bg_stage_04.jpeg",
-      "boss_class": "entities.Boss_characters.TestBoss",
-      "boss_name": "The Architect",
+      "subtitle": "The Truth",
+      "description": "모든 시간선의 진실에 다가간다.",
+      "stage_json": "data/story/scripts/stage_04.json",
+      "bg_image": "assets/images/story/bg_truth.png",
+      "boss_class": "entities.Boss_characters.FinalBoss",
+      "boss_name": "???",
       "boss_stocks": 5,
-      "unlock_condition": {"clear_chapter": 3},
-      "theme_color": [200, 120, 30]
+      "unlock_condition": {
+        "clear_chapter": 3
+      },
+      "theme_color": [180, 80, 220]
     },
+
     {
       "id": 5,
       "title": "Chapter 5",
       "subtitle": "Future Time Bureau",
-      "description": "The final truth waits in the ruined future.",
-      "stage_json": "data/stages/stage_04.json",
+      "description": "폐허가 된 미래의 시간관리국.\n마침내 모든 진실과 마주한다.",
+      "stage_json": "data/story/scripts/stage_05.json",
       "bg_image": "assets/images/story/bg_ruined_hq.png",
       "boss_class": "entities.Boss_characters.FutureProtagonist",
-      "boss_name": "미래의 주인공",
+      "boss_name": "미래의 Hora",
       "boss_stocks": 5,
-      "unlock_condition": {"clear_chapter": 4},
+      "unlock_condition": {
+        "clear_chapter": 4
+      },
       "theme_color": [180, 80, 220]
-}
+    }
+
   ]
 }
