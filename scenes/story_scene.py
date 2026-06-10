@@ -162,6 +162,9 @@ class StoryScene:
                 pygame.K_RETURN, pygame.K_SPACE, pygame.K_f, pygame.K_z
             ):
                 return
+
+
+
             self._on_click()
 
     def _on_click(self):
