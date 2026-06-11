@@ -339,8 +339,11 @@ class BattleSession:
         ps = data.get("particle_system")
         fs = data.get("floater_system")
 
-        target.take_damage(damage)
-        target.apply_knockback(attacker, damage)
+        if not data.get("skip_damage", False):
+            target.take_damage(damage)
+
+        if not data.get("skip_knockback", False):
+            target.apply_knockback(attacker, damage)
 
         if ps:
             ps.spawn_hit(
@@ -443,8 +446,5 @@ class BattleSession:
         self.player2.draw(self.screen, self.camera)
 
         self.floater_sys.draw(self.screen, self.camera)
-
-        if self.finisher_sys:
-            self.finisher_sys.draw_overlay()
 
         self.renderer.draw_hud([self.player1, self.player2])

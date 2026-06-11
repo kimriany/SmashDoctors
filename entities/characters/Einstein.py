@@ -39,17 +39,210 @@ class _NormalOnlyMixin:
 # ══════════════════════════════════════════════════════════════
 #  일반 스킬 (영역 밖)
 # ══════════════════════════════════════════════════════════════
-class GravityBeam(_NormalOnlyMixin, BeamSkill):
-    DISPLAY_NAME = "Gravity Beam"
-    DESCRIPTION  = "Fire a heavy gravity beam.\nHigh damage, slow startup."
-    BEAM_LENGTH  = 300
-    BEAM_WIDTH   = 32
-    BEAM_COLOR   = (255, 130, 110)
-    BEAM_GLOW    = (255, 200, 180)
-    COOLDOWN_SEC = 6.0
+class GravityHook(_NormalOnlyMixin, Skill):
+    SKILL_TYPE = "hook"
+    DISPLAY_NAME = "Gravity Hook"
+    DESCRIPTION = "Launch a gravity hook forward.\nOn hit, pulls the enemy toward Einstein."
+    COOLDOWN_SEC = 7.0
+
+    RANGE = 430
+    TIP_SIZE = 30
+    EXTEND_FRAMES = 18
+    PULL_FRAMES = 18
+    RETRACT_FRAMES = 12
+    HOOK_COLOR = (255, 95, 55)
+    HOOK_GLOW = (255, 190, 130)
 
     def __init__(self):
-        super().__init__("Gravity Beam", damage=35, cooldown=360, duration=28)
+        super().__init__(
+            "Gravity Hook",
+            damage=18,
+            cooldown=420,
+            duration=self.EXTEND_FRAMES + self.PULL_FRAMES + self.RETRACT_FRAMES,
+        )
+        self._phase = "extend"
+        self._dir = 1
+        self._start_x = 0.0
+        self._start_y = 0.0
+        self._tip_x = 0.0
+        self._tip_y = 0.0
+        self._target = None
+        self._curve_points = []
+
+    def on_start(self, owner, event_bus=None, psys=None):
+        self._phase = "extend"
+        self._dir = owner.facing
+        self._start_x = float(owner.rect.centerx + owner.facing * 18)
+        self._start_y = float(owner.rect.centery - 6)
+        self._tip_x = self._start_x
+        self._tip_y = self._start_y
+        self._target = None
+
+        if psys:
+            psys.spawn(
+                self._start_x,
+                self._start_y,
+                self.HOOK_GLOW,
+                count=12,
+                speed=4,
+                life=18,
+                r=4,
+            )
+
+    def on_update(self, owner, event_bus=None, psys=None):
+        self._start_x = float(owner.rect.centerx + self._dir * 18)
+        self._start_y = float(owner.rect.centery - 6)
+
+        elapsed = self.duration - self.timer
+
+        if self._phase == "extend":
+            progress = min(1.0, elapsed / max(1, self.EXTEND_FRAMES))
+            self._tip_x = self._start_x + self._dir * self.RANGE * progress
+            self._tip_y = self._start_y
+
+            if progress >= 1.0:
+                self._phase = "retract"
+
+        elif self._phase == "pull":
+            target = self._target
+            if target is None or getattr(target, "dead", False):
+                self._phase = "retract"
+                return
+
+            self._tip_x = float(target.rect.centerx)
+            self._tip_y = float(target.rect.centery)
+
+            dx = self._start_x - target.rect.centerx
+            dy = self._start_y - target.rect.centery
+            dist = max(1.0, math.hypot(dx, dy))
+
+            target.vel.x += (dx / dist) * 4.8
+            target.vel.y += (dy / dist) * 2.2 - 0.6
+
+            owner.vel.x += (-dx / dist) * 1.8
+            owner.vel.y += (-dy / dist) * 0.5
+
+            if psys and self.timer % 3 == 0:
+                psys.spawn(
+                    target.rect.centerx,
+                    target.rect.centery,
+                    self.HOOK_GLOW,
+                    count=3,
+                    speed=3,
+                    life=14,
+                    r=3,
+                )
+
+            pull_elapsed = elapsed - self.EXTEND_FRAMES
+            if pull_elapsed >= self.PULL_FRAMES or dist < 72:
+                self._phase = "retract"
+
+        elif self._phase == "retract":
+            dx = self._tip_x - self._start_x
+            dy = self._tip_y - self._start_y
+            self._tip_x -= dx * 0.28
+            self._tip_y -= dy * 0.28
+
+    def get_hitbox(self, owner) -> pygame.Rect | None:
+        if not self.active or self._phase != "extend" or self.has_hit:
+            return None
+
+        size = self.TIP_SIZE
+        return pygame.Rect(
+            int(self._tip_x - size // 2),
+            int(self._tip_y - size // 2),
+            size,
+            size,
+        )
+
+    def on_hit(self, owner, target, event_bus, psys=None, fsys=None):
+        if self.has_hit:
+            return
+
+        self.has_hit = True
+        self._phase = "pull"
+        self._target = target
+
+        event_bus.emit("attack_hit", {
+            "attacker": owner,
+            "target": target,
+            "damage": self.damage,
+            "is_skill": True,
+            "skill": self,
+            "skill_type": self.SKILL_TYPE,
+            "charge_value": self.charge_value,
+            "finisher_charge_value": self.finisher_charge_value,
+            "particle_system": psys,
+            "floater_system": fsys,
+            "skip_knockback": True,
+        })
+
+        target.invincible = min(getattr(target, "invincible", 0), 8)
+
+        if psys:
+            psys.spawn_hit(
+                target.rect.centerx,
+                target.rect.centery,
+                self.HOOK_GLOW,
+            )
+
+    def draw_front(self, owner, screen, camera, dr, bob, z):
+        if not self.active:
+            return
+
+        sx, sy = camera.world_to_screen(self._start_x, self._start_y)
+        tx, ty = camera.world_to_screen(self._tip_x, self._tip_y)
+
+        t = max(0.0, min(1.0, self.timer / max(1, self.duration)))
+        alpha = int(210 * t)
+        width = max(2, int(5 * z))
+
+        glow_width = max(width + 4, int(10 * z))
+        pygame.draw.line(screen, (*self.HOOK_GLOW, alpha), (sx, sy), (tx, ty), glow_width)
+        pygame.draw.line(screen, self.HOOK_COLOR, (sx, sy), (tx, ty), width)
+
+        for i in range(4):
+            p = i / 4
+            cx = int(sx + (tx - sx) * p)
+            cy = int(sy + (ty - sy) * p)
+            r = max(2, int((4 + i) * z))
+            orb = pygame.Surface((r * 2, r * 2), pygame.SRCALPHA)
+            pygame.draw.circle(orb, (*self.HOOK_GLOW, int(alpha * 0.45)), (r, r), r)
+            screen.blit(orb, (cx - r, cy - r))
+
+        tip_r = max(9, int(self.TIP_SIZE * 0.5 * z))
+        pad = tip_r * 3
+        tip = pygame.Surface((pad * 2, pad * 2), pygame.SRCALPHA)
+        center = pad
+        spin = pygame.time.get_ticks() * 0.006
+
+        pygame.draw.circle(tip, (*self.HOOK_GLOW, 62), (center, center), tip_r * 2)
+        pygame.draw.circle(tip, (*self.HOOK_COLOR, 210), (center, center), tip_r)
+        pygame.draw.circle(tip, (255, 245, 220, 235), (center, center), max(3, tip_r // 3))
+
+        for i, tilt in enumerate((-0.45, 0.0, 0.45)):
+            rx = int(tip_r * (2.0 + i * 0.22))
+            ry = max(3, int(tip_r * (0.52 + abs(tilt) * 0.35)))
+            ring = pygame.Rect(center - rx, center - ry, rx * 2, ry * 2)
+            pygame.draw.ellipse(tip, (255, 210, 150, 125), ring, max(1, int(2 * z)))
+
+            dot_angle = spin + i * 2.1
+            dot_x = center + int(math.cos(dot_angle) * rx)
+            dot_y = center + int(math.sin(dot_angle) * ry)
+            pygame.draw.circle(tip, (255, 245, 210, 210), (dot_x, dot_y), max(2, int(3 * z)))
+
+        for i in range(6):
+            a = spin + i * math.tau / 6
+            px = center + int(math.cos(a) * tip_r * 1.45)
+            py = center + int(math.sin(a) * tip_r * 1.45)
+            pygame.draw.circle(tip, (255, 150, 90, 130), (px, py), max(1, int(2 * z)))
+
+        screen.blit(tip, (int(tx) - center, int(ty) - center))
+
+    def _draw_type_icon(self, screen, cx, cy, size):
+        s = size // 3
+        pygame.draw.line(screen, (255, 95, 55), (cx - s, cy), (cx + s, cy), max(2, size // 12))
+        pygame.draw.circle(screen, (255, 190, 130), (cx + s, cy), size // 7, 2)
 
 
 class BlackHole(_NormalOnlyMixin, SummonZoneSkill):
@@ -207,6 +400,284 @@ class GravitationalCollapse(_DomainOnlyMixin, BeamSkill):
 #    영역이 2배 크고, 흡입력 강하며, 다단 히트(has_hit 리셋 반복).
 #    경고 없이 즉발.
 # ─────────────────────────────────────────────────────────────
+class SingularityHook(_DomainOnlyMixin, GravityHook):
+    SKILL_TYPE = "hook"
+    DISPLAY_NAME = "Gravitational Collapse"
+    DESCRIPTION = "Domain skill - fire a singularity hook.\nLonger range, faster pull, stronger hit."
+    COOLDOWN_SEC = 3.0
+
+    RANGE = 560
+    TIP_SIZE = 44
+    EXTEND_FRAMES = 13
+    PULL_FRAMES = 24
+    RETRACT_FRAMES = 10
+    HOOK_COLOR = (255, 45, 20)
+    HOOK_GLOW = (255, 210, 95)
+
+    def __init__(self):
+        Skill.__init__(
+            self,
+            "Gravitational Collapse",
+            damage=38,
+            cooldown=180,
+            duration=self.EXTEND_FRAMES + self.PULL_FRAMES + self.RETRACT_FRAMES,
+        )
+        self.charge_value = 0.0
+        self.finisher_charge_value = 2.2
+        self._phase = "extend"
+        self._dir = 1
+        self._start_x = 0.0
+        self._start_y = 0.0
+        self._tip_x = 0.0
+        self._tip_y = 0.0
+        self._target = None
+
+    def on_start(self, owner, event_bus=None, psys=None):
+        super().on_start(owner, event_bus, psys)
+        if psys:
+            for _ in range(26):
+                angle = random.uniform(0, math.tau)
+                dist = random.uniform(12, 54)
+                psys.spawn(
+                    owner.rect.centerx + int(math.cos(angle) * dist),
+                    owner.rect.centery + int(math.sin(angle) * dist),
+                    random.choice([(255, 60, 20), (255, 210, 95), (255, 245, 210)]),
+                    count=1,
+                    speed=random.uniform(3, 8),
+                    life=random.randint(14, 26),
+                    r=random.randint(3, 7),
+                )
+
+    def on_update(self, owner, event_bus=None, psys=None):
+        self._start_x = float(owner.rect.centerx + self._dir * 20)
+        self._start_y = float(owner.rect.centery - 8)
+
+        elapsed = self.duration - self.timer
+
+        if self._phase == "extend":
+            progress = min(1.0, elapsed / max(1, self.EXTEND_FRAMES))
+            ease = 1.0 - (1.0 - progress) * (1.0 - progress)
+            base_x = self._start_x + self._dir * self.RANGE * ease
+            base_y = self._start_y + math.sin(elapsed * 0.65) * 10
+
+            target = getattr(owner, "_skill_target", None)
+            if (
+                target
+                and not getattr(target, "dead", False)
+                and not getattr(target, "respawning", False)
+            ):
+                tx = float(target.rect.centerx)
+                ty = float(target.rect.centery)
+                ahead = (tx - self._start_x) * self._dir > 0
+                in_range = abs(tx - self._start_x) <= self.RANGE + 90
+
+                if ahead and in_range:
+                    home = min(0.82, 0.18 + progress * 0.64)
+                    self._tip_x = base_x + (tx - base_x) * home
+                    self._tip_y = base_y + (ty - base_y) * home
+                else:
+                    self._tip_x = base_x
+                    self._tip_y = base_y
+            else:
+                self._tip_x = base_x
+                self._tip_y = base_y
+
+            self._curve_points = self._build_warp_curve(elapsed)
+
+            if psys and self.timer % 2 == 0:
+                psys.spawn(
+                    self._tip_x,
+                    self._tip_y,
+                    self.HOOK_GLOW,
+                    count=2,
+                    speed=2.8,
+                    life=12,
+                    r=3,
+                )
+
+            if progress >= 1.0:
+                self._phase = "retract"
+
+        elif self._phase == "pull":
+            target = self._target
+            if target is None or getattr(target, "dead", False):
+                self._phase = "retract"
+                return
+
+            self._tip_x = float(target.rect.centerx)
+            self._tip_y = float(target.rect.centery)
+            self._curve_points = self._build_warp_curve(elapsed)
+
+            dx = self._start_x - target.rect.centerx
+            dy = self._start_y - target.rect.centery
+            dist = max(1.0, math.hypot(dx, dy))
+
+            target.vel.x += (dx / dist) * 7.2
+            target.vel.y += (dy / dist) * 3.0 - 0.95
+
+            owner.vel.x += (-dx / dist) * 2.35
+            owner.vel.y += (-dy / dist) * 0.75
+
+            if psys:
+                psys.spawn(
+                    target.rect.centerx,
+                    target.rect.centery,
+                    random.choice([(255, 60, 20), (255, 210, 95), (255, 245, 210)]),
+                    count=2,
+                    speed=4,
+                    life=16,
+                    r=4,
+                )
+
+            pull_elapsed = elapsed - self.EXTEND_FRAMES
+            if pull_elapsed >= self.PULL_FRAMES or dist < 58:
+                self._phase = "retract"
+
+        elif self._phase == "retract":
+            dx = self._tip_x - self._start_x
+            dy = self._tip_y - self._start_y
+            self._tip_x -= dx * 0.35
+            self._tip_y -= dy * 0.35
+            self._curve_points = self._build_warp_curve(elapsed)
+
+    def _build_warp_curve(self, elapsed):
+        points = []
+        dx = self._tip_x - self._start_x
+        dy = self._tip_y - self._start_y
+        dist = max(1.0, math.hypot(dx, dy))
+        nx = -dy / dist
+        ny = dx / dist
+        wave = math.sin(elapsed * 0.7) * 18
+
+        for i in range(9):
+            p = i / 8
+            bend = math.sin(p * math.pi) * wave
+            points.append((
+                self._start_x + dx * p + nx * bend,
+                self._start_y + dy * p + ny * bend,
+            ))
+
+        return points
+
+    def on_hit(self, owner, target, event_bus, psys=None, fsys=None):
+        if self.has_hit:
+            return
+
+        self.has_hit = True
+        self._phase = "pull"
+        self._target = target
+
+        event_bus.emit("attack_hit", {
+            "attacker": owner,
+            "target": target,
+            "damage": self.damage,
+            "is_skill": True,
+            "skill": self,
+            "skill_type": self.SKILL_TYPE,
+            "charge_value": self.charge_value,
+            "finisher_charge_value": self.finisher_charge_value,
+            "particle_system": psys,
+            "floater_system": fsys,
+            "skip_knockback": True,
+        })
+
+        target.invincible = min(getattr(target, "invincible", 0), 6)
+
+        if psys:
+            for _ in range(16):
+                psys.spawn(
+                    target.rect.centerx,
+                    target.rect.centery,
+                    random.choice([(255, 60, 20), (255, 210, 95), (255, 245, 210)]),
+                    count=1,
+                    speed=random.uniform(4, 9),
+                    life=random.randint(16, 28),
+                    r=random.randint(3, 7),
+                )
+
+    def draw_front(self, owner, screen, camera, dr, bob, z):
+        if not self.active:
+            return
+
+        sx, sy = camera.world_to_screen(self._start_x, self._start_y)
+        tx, ty = camera.world_to_screen(self._tip_x, self._tip_y)
+
+        t = max(0.0, min(1.0, self.timer / max(1, self.duration)))
+        alpha = int(240 * t)
+        width = max(3, int(7 * z))
+        pulse = abs(math.sin(pygame.time.get_ticks() * 0.012))
+
+        world_points = self._curve_points or [
+            (self._start_x, self._start_y),
+            (self._tip_x, self._tip_y),
+        ]
+        screen_points = [camera.world_to_screen(x, y) for x, y in world_points]
+
+        if len(screen_points) >= 2:
+            pygame.draw.lines(
+                screen,
+                (*self.HOOK_GLOW, int(alpha * 0.42)),
+                False,
+                screen_points,
+                width + max(6, int(10 * z)),
+            )
+            pygame.draw.lines(screen, self.HOOK_COLOR, False, screen_points, width)
+            pygame.draw.lines(
+                screen,
+                (255, 245, 210),
+                False,
+                screen_points,
+                max(1, int(2 * z)),
+            )
+
+        for i in range(7):
+            idx = min(len(screen_points) - 1, i + 1)
+            cx, cy = screen_points[idx]
+            cy = int(cy + math.sin(pygame.time.get_ticks() * 0.01 + i) * 7 * z)
+            r = max(2, int((3 + pulse * 3) * z))
+            dot = pygame.Surface((r * 2, r * 2), pygame.SRCALPHA)
+            pygame.draw.circle(dot, (255, 220, 140, 160), (r, r), r)
+            screen.blit(dot, (cx - r, cy - r))
+
+        for i, p in enumerate((0.3, 0.55, 0.8)):
+            wx = self._start_x + (self._tip_x - self._start_x) * p
+            wy = self._start_y + (self._tip_y - self._start_y) * p
+            cx, cy = camera.world_to_screen(wx, wy)
+            rr = max(8, int((18 + i * 7 + pulse * 5) * z))
+            warp = pygame.Surface((rr * 2, rr * 2), pygame.SRCALPHA)
+            pygame.draw.ellipse(
+                warp,
+                (255, 210, 95, 70),
+                (1, rr // 2, rr * 2 - 2, rr),
+                max(1, int(2 * z)),
+            )
+            screen.blit(warp, (cx - rr, cy - rr))
+
+        tip_r = max(14, int(self.TIP_SIZE * 0.55 * z))
+        pad = tip_r * 4
+        tip = pygame.Surface((pad * 2, pad * 2), pygame.SRCALPHA)
+        center = pad
+        spin = pygame.time.get_ticks() * 0.009
+
+        pygame.draw.circle(tip, (255, 120, 45, 70), (center, center), tip_r * 3)
+        pygame.draw.circle(tip, (255, 210, 95, 95), (center, center), tip_r * 2)
+        pygame.draw.circle(tip, (25, 6, 2, 240), (center, center), tip_r)
+        pygame.draw.circle(tip, (255, 245, 210, 235), (center, center), max(4, tip_r // 4))
+
+        for i in range(4):
+            rx = int(tip_r * (2.15 + i * 0.28))
+            ry = max(4, int(tip_r * (0.48 + i * 0.1)))
+            ring = pygame.Rect(center - rx, center - ry, rx * 2, ry * 2)
+            pygame.draw.ellipse(tip, (255, 210, 95, 150 - i * 18), ring, max(1, int(2 * z)))
+
+            dot_angle = spin + i * math.tau / 4
+            dot_x = center + int(math.cos(dot_angle) * rx)
+            dot_y = center + int(math.sin(dot_angle) * ry)
+            pygame.draw.circle(tip, (255, 245, 210, 230), (dot_x, dot_y), max(2, int(4 * z)))
+
+        screen.blit(tip, (int(tx) - center, int(ty) - center))
+
+
 class EventHorizon(_DomainOnlyMixin, SummonZoneSkill):
     DISPLAY_NAME = "Event Horizon"
     DESCRIPTION  = "Domain skill — Massive black hole.\nMulti-hit pull, no warning."
@@ -544,7 +1015,7 @@ class Einstein(Player):
         "Domain unlocks 3 special skills."
     )
     PREVIEW_COLOR = (225, 55, 55)
-    SKILL_NAME    = "Gravity Beam"
+    SKILL_NAME    = "Gravity Hook"
 
     SPRITE_PATH   = "assets/images/charactor/Einstein/IDL.png"
     SPRITE_IDLE   = "assets/images/charactor/Einstein/IDL.png"
@@ -557,7 +1028,7 @@ class Einstein(Player):
     SPRITE_OFFSET_Y = 6
 
     SKILL_DEFS_META = {
-        "basic":   ("Gravity Beam",  "BeamSkill",      35, 40, 6.0),
+        "basic":   ("Gravity Hook",  "HookSkill",      18, 40, 7.0),
         "cc":      ("Black Hole",    "SummonZoneSkill", 20, 45, 9.0),
         "enhance": ("Mass Boost",    "EnhanceSkill",     0, 40, 14.0),
     }
@@ -573,7 +1044,7 @@ class Einstein(Player):
 
     def _init_skills(self):
         # 일반 스킬
-        self.skills["skill_Q"] = GravityBeam()        # Q / ;  (영역 밖)
+        self.skills["skill_Q"] = GravityHook()        # Q / ;  (영역 밖)
         self.skills["skill_E"] = BlackHole()           # E / '  (영역 밖)
 
         # 영역 전개 궁극기
@@ -583,7 +1054,7 @@ class Einstein(Player):
         # Player.use_skill()은 can_activate()를 거치므로
         # 영역 밖에선 Normal 스킬, 영역 중엔 Domain 스킬이 선택됨.
         # → 같은 슬롯에 두 스킬을 리스트로 묶어 관리
-        self.skills["skill_Q_domain"] = GravitationalCollapse()   # Q (영역 중)
+        self.skills["skill_Q_domain"] = SingularityHook()         # Q (영역 중)
         self.skills["skill_E_domain"] = EventHorizon()            # E (영역 중)
         self.skills["skill_W_domain"] = SpaceTimeRupture()        # W (영역 중, 신규 키)
 
