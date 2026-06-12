@@ -1,6 +1,8 @@
 # modes/story_game.py
 
 import pygame
+import json
+import os
 
 from settings import SCREEN_WIDTH, SCREEN_HEIGHT
 from systems.font_manager import font
@@ -267,8 +269,11 @@ class StoryGame:
             self.battle_num = 1
             self._start_story_battle()
 
-        elif result == "battle_2":
-            self.battle_num = 2
+        elif result and result.startswith("battle_"):
+            try:
+                self.battle_num = int(result.rsplit("_", 1)[-1])
+            except ValueError:
+                self.battle_num = 1
             self._start_story_battle()
 
 
@@ -337,7 +342,40 @@ class StoryGame:
                 if key in script_data:
                     config[key] = script_data[key]
 
+            battle_configs = script_data.get("battle_configs", {})
+            battle_config = battle_configs.get(str(self.battle_num), {})
+            if isinstance(battle_config, dict):
+                config.update(battle_config)
+
+        stage_path = self._resolve_battle_stage_path(config.get("stage_json"))
+        if stage_path:
+            config["stage_json"] = stage_path
+
         return config
+
+    def _resolve_battle_stage_path(self, path):
+        if self._is_battle_stage_json(path):
+            return path
+
+        if self.chapter is None:
+            return None
+
+        fallback = f"data/stages/stage_{self.chapter['id']:02d}.json"
+        if self._is_battle_stage_json(fallback):
+            return fallback
+
+        return None
+
+    def _is_battle_stage_json(self, path):
+        if not path or not os.path.exists(path):
+            return False
+
+        try:
+            with open(path, "r", encoding="utf-8") as f:
+                data = json.load(f)
+            return isinstance(data.get("platforms"), list)
+        except Exception:
+            return False
 
     def _start_story_battle(self):
         if self.chapter is None or self.player_cls is None:
@@ -384,8 +422,6 @@ class StoryGame:
             self.state = StoryState.LOSE
 
         elif result == "p2_dead":
-            if self.chapter is not None:
-                self.story_save.mark_cleared(self.chapter["id"])
             self.state = StoryState.WIN
 
     # ─────────────────────────────────────────────

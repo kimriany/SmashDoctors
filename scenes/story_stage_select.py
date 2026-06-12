@@ -9,6 +9,7 @@ Story Stage Select — 스토리 스테이지 슬라이더 선택창
   - 진행도 바
 """
 import pygame
+import json
 import math
 import random
 import os
@@ -67,10 +68,43 @@ class StoryStageSelect:
         self._platforms: dict[int, list] = {}
         for ch in self.loader.chapters:
             try:
-                data = StageLoader(ch["stage_json"]).load()
+                stage_path = self._resolve_battle_stage_path(ch)
+                data = StageLoader(stage_path).load() if stage_path else {"platforms": []}
                 self._platforms[ch["id"]] = data.get("platforms",[])
             except Exception:
                 self._platforms[ch["id"]] = []
+
+    def _resolve_battle_stage_path(self, chapter: dict) -> str | None:
+        path = chapter.get("stage_json")
+        if self._is_battle_stage_json(path):
+            return path
+
+        if path and os.path.exists(path):
+            try:
+                with open(path, "r", encoding="utf-8") as f:
+                    script_data = json.load(f)
+                script_stage = script_data.get("stage_json")
+                if self._is_battle_stage_json(script_stage):
+                    return script_stage
+            except Exception:
+                pass
+
+        fallback = f"data/stages/stage_{chapter['id']:02d}.json"
+        if self._is_battle_stage_json(fallback):
+            return fallback
+
+        return None
+
+    def _is_battle_stage_json(self, path: str | None) -> bool:
+        if not path or not os.path.exists(path):
+            return False
+
+        try:
+            with open(path, "r", encoding="utf-8") as f:
+                data = json.load(f)
+            return isinstance(data.get("platforms"), list)
+        except Exception:
+            return False
 
     def _default_cursor(self) -> int:
         """저장 데이터 기준 가장 마지막 미클리어 챕터로 초기 커서 설정."""

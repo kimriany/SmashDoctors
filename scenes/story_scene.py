@@ -48,6 +48,7 @@ def _load_img(path, size=None) -> pygame.Surface | None:
 class StoryScene:
     def __init__(self, screen: pygame.Surface, script_path: str):
         self.screen = screen
+        self.script_path = script_path
         self.W = screen.get_width()
         self.H = screen.get_height()
 
@@ -85,22 +86,7 @@ class StoryScene:
         self._bg:       pygame.Surface | None = None
         self._bg_next:  pygame.Surface | None = None
         self._chars: dict[str, pygame.Surface | None] = {"left": None, "right": None}
-        self._character_db = {
-            "Hora": {
-                "slot": "right",
-                "image": "assets/images/story/charmain.png"
-            },
-
-            "과학자 A": {
-                "slot": "left",
-                "image": "assets/images/story/question.png"
-            },
-
-            "과학자 B": {
-                "slot": "left",
-                "image": "assets/images/story/question.png"
-            }
-        }
+        self._character_db = self._build_character_db()
         self._transition      = None    # "fade" / "flash" / "fade_black" / "white_flash"
         self._trans_progress  = 0.0
         self._shake_timer     = 0
@@ -123,6 +109,32 @@ class StoryScene:
         self._ideology_text = ""
 
     # ── 스크립트 로드 ───────────────────────────────────────────
+    def _build_character_db(self) -> dict[str, dict[str, str]]:
+        protagonist_slot = "right" if os.path.basename(self.script_path) == "stage_00.json" else "left"
+        return {
+            "Hora": {"slot": protagonist_slot, "image": "assets/images/story/charmain.png"},
+            "주인공": {"slot": "left", "image": "assets/images/story/charmain.png"},
+            "미래의 주인공": {"slot": "right", "image": "assets/images/story/charmain.png"},
+            "거울 속 주인공": {"slot": "right", "image": "assets/images/story/charmain.png"},
+
+            "과학자 A": {"slot": "left", "image": "assets/images/story/question.png"},
+            "과학자 B": {"slot": "left", "image": "assets/images/story/question.png"},
+            "RO2T": {"slot": "right", "image": "assets/images/story/question.png"},
+            "???": {"slot": "right", "image": "assets/images/story/question.png"},
+
+            "크릭": {"slot": "right", "image": "assets/images/story/Crick.png"},
+            "크릭의 잔상": {"slot": "right", "image": "assets/images/story/Crick.png"},
+            "다윈": {"slot": "right", "image": "assets/images/story/Darwin.png"},
+            "다윈의 잔상": {"slot": "right", "image": "assets/images/story/Darwin.png"},
+            "퀴리": {"slot": "right", "image": "assets/images/story/Curie.png"},
+            "퀴리의 잔상": {"slot": "right", "image": "assets/images/story/Curie.png"},
+            "슈뢰딩거": {"slot": "right", "image": "assets/images/story/Schrödinger.png"},
+            "슈뢰딩거의 잔상": {"slot": "right", "image": "assets/images/story/Schrödinger.png"},
+            "뉴턴": {"slot": "right", "image": "assets/images/story/Newton.png"},
+            "아인슈타인": {"slot": "right", "image": "assets/images/story/Einstein.png"},
+            "호킹": {"slot": "right", "image": "assets/images/story/Hoking.png"},
+        }
+
     def _load_script(self, path: str):
         key = "script_pre_battle"
         if not os.path.exists(path):
@@ -144,7 +156,7 @@ class StoryScene:
 
     def load_post_battle(self, battle_num: int = 1):
         """전투 후 후반부 스크립트로 교체."""
-        key = "script_post_battle_2" if battle_num >= 2 else "script_post_battle"
+        key = "script_post_battle" if battle_num <= 1 else f"script_post_battle_{battle_num}"
         if key not in self.script_data:
             key = "script_post_battle"
         if key in self.script_data:
@@ -308,14 +320,12 @@ class StoryScene:
                 self._chars[slot] = None
 
             elif action == "title_card":
-
-                img = cmd.get("image")
-
-                if img:
-                    self._bg = _load_img(img, (self.W, self.H))
-
                 self._title_card = {
-                    "text": cmd.get("text", "")
+                    "text": cmd.get("text", ""),
+                    "background": _load_img(
+                        cmd.get("background_image") or cmd.get("image"),
+                        (self.W, self.H)
+                    )
                 }
 
                 self._title_timer = cmd.get("duration", 180)
@@ -358,6 +368,11 @@ class StoryScene:
             elif action == "label":
                 pass   # 레이블은 그냥 통과
 
+            elif action == "goto":
+                target = cmd.get("target") or cmd.get("goto") or cmd.get("label")
+                if target in self._labels:
+                    self._idx = self._labels[target]
+
             elif action == "ideology_shift":
 
                 self._ideology_timer = 180
@@ -383,6 +398,15 @@ class StoryScene:
                 self.done   = True
                 return
 
+            elif action.startswith("battle_start_"):
+                try:
+                    battle_num = int(action.rsplit("_", 1)[-1])
+                except ValueError:
+                    battle_num = 1
+                self.result = f"battle_{battle_num}"
+                self.done   = True
+                return
+
             elif action == "ending":
                 etype = cmd.get("type","null")
                 self.result = f"ending_{etype}"
@@ -399,25 +423,24 @@ class StoryScene:
         self.done   = True
 
     def _auto_show_speaker(self, speaker):
-
-        # SYSTEM이나 내레이션이면 전부 숨김
-        if speaker in ("", "SYSTEM"):
-            self._chars["left"] = None
-            self._chars["right"] = None
-            return
-
-        info = self._character_db.get(speaker)
-
-        if not info:
-            return
-
-        # 기존 캐릭터 제거
         self._chars["left"] = None
         self._chars["right"] = None
+
+        # SYSTEM이나 내레이션이면 캐릭터를 표시하지 않음
+        if speaker in ("", "SYSTEM"):
+            return
+
+        info = self._character_db.get(
+            speaker,
+            {"slot": "right", "image": "assets/images/story/question.png"}
+        )
 
         slot = info["slot"]
 
         img = _load_img(info["image"])
+
+        if not img:
+            img = _load_img("assets/images/story/question.png")
 
         if not img:
             return
@@ -695,6 +718,10 @@ class StoryScene:
         return lines
 
     def _draw_title_card(self):
+
+        bg = self._title_card.get("background")
+        if bg:
+            self.screen.blit(bg, (0, 0))
 
         overlay = pygame.Surface((self.W, self.H), pygame.SRCALPHA)
         overlay.fill((0, 0, 0, 80))

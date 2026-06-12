@@ -1,146 +1,669 @@
 {
-"id": "stage_01",
-"title": "생명의 오류",
-"next": "stage_02",
-
-"script_pre_battle": [
-
-  {
-    "cmd": "bg",
-    "image": "assets/images/story/nature.png",
-    "transition": "fade"
-  },
-  
-  {
-    "cmd": "dialog",
-    "speaker": "",
-    "text": "진입."
-  },
-
-  {
-    "cmd": "dialog",
-    "speaker": "",
-    "text": "시간선 이동 완료."
+  "id": "stage_01",
+  "title": "생명의 오류",
+  "next_on_win": "stage_02",
+  "stage_json": "data/stages/stage_01.json",
+  "boss_class": null,
+  "boss_name": "생명 시간선 이상체",
+  "boss_stocks": 3,
+  "battle_configs": {
+    "1": {
+      "boss_name": "RO2T",
+      "boss_stocks": 2
+    },
+    "2": {
+      "boss_name": "크릭",
+      "boss_stocks": 3
+    },
+    "3": {
+      "boss_name": "다윈",
+      "boss_stocks": 3
+    }
   },
 
-  {
-    "cmd": "dialog",
-    "speaker": "",
-    "text": "주변은 숲이다."
-  },
+  "script_pre_battle": [
+    {
+      "cmd": "bg",
+      "image": "assets/images/story/nature.png",
+      "transition": "fade"
+    },
+    {
+      "cmd": "title_card",
+      "text": "TIME LOOP #8\n생명 영역 진입",
+      "duration": 120
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "",
+      "text": "진입."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "",
+      "text": "시간선 이동 완료."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "",
+      "text": "주변은 숲이다."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "",
+      "text": "그런데 어딘가 이상하다."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "",
+      "text": "나무에 눈이 달려 있고,"
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "",
+      "text": "새는 날개 대신 지느러미를 가지고 있다."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "",
+      "text": "사슴은 뿌리를 내린 채 움직인다."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "Hora",
+      "text": "생명의 기운이 이상한 것이 느껴지는군."
+    },
+    {
+      "cmd": "choice",
+      "question": "어떠한 영역의 이상을 탐구하겠습니까?",
+      "options": [
+        {
+          "text": "지구과학",
+          "goto": "earth_fail"
+        },
+        {
+          "text": "생명과학",
+          "goto": "life_route"
+        }
+      ]
+    },
+    {
+      "cmd": "label",
+      "id": "earth_fail"
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "SYSTEM",
+      "text": "너무 방대하고 잡다해서 이걸 탐구하다가는 시간선의 붕괴를 막을 수 없을 것 같다."
+    },
+    {
+      "cmd": "goto",
+      "target": "life_route"
+    },
+    {
+      "cmd": "label",
+      "id": "life_route"
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "Hora",
+      "text": "역시... 더 수상한 기운이 감도는 곳은 생명인가?"
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "Hora",
+      "text": "좀 더 돌아보자."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "Hora",
+      "text": "흠... 저 수상하게 생긴 나무 그루터기는 뭐지?"
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "Hora",
+      "text": "가까이 다가가봐야겠군."
+    },
+    {
+      "cmd": "show_char",
+      "slot": "right",
+      "image": "assets/images/story/question.png"
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "RO2T",
+      "text": "...?"
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "Hora",
+      "text": "이 미세한 진동은?"
+    },
+    {
+      "cmd": "shake"
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "RO2T",
+      "text": "크와아아아아!"
+    },
+    {
+      "cmd": "battle_start"
+    }
+  ],
 
-  {
-    "cmd": "dialog",
-    "speaker": "",
-    "text": "그런데 어딘가 이상하다."
-  },
+  "script_post_battle": [
+    {
+      "cmd": "hide_char",
+      "slot": "right"
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "Hora",
+      "text": "성가시군. 저 친구의 잘린 나이테를 보니..."
+    },
+    {
+      "cmd": "show_image",
+      "image": "assets/images/story/root.png"
+    },
+    {
+      "cmd": "title_card",
+      "text": "삼각형 나이테",
+      "duration": 90
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "Hora",
+      "text": "어떻게 나이테가 삼각형 모양이란 말인가...?"
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "Hora",
+      "text": "진화의 과정 자체가 잘못되었음에 틀림없군."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "Hora",
+      "text": "진화... 진화라."
+    },
+    {
+      "cmd": "hide_image"
+    },
+    {
+      "cmd": "pause",
+      "duration": 60
+    },
+    {
+      "cmd": "bg",
+      "image": null,
+      "transition": "fade_black"
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "Hora",
+      "text": "크릭. 크릭을 찾아가자. 크릭의 발견이 어딘가 잘못되었을 거야."
+    },
+    {
+      "cmd": "bg",
+      "image": "assets/images/story/nature.png",
+      "transition": "fade"
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "",
+      "text": "척박한 땅에서 시간관리국 국장 Hora는 크릭을 찾으러 여행을 떠난다."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "",
+      "text": "1시간 후..."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "Hora",
+      "text": "크릭... 크릭... 이 시간선에 있어야 하는데... 대체 어디에 있는 건가?"
+    },
+    {
+      "cmd": "show_char",
+      "slot": "right",
+      "image": "assets/images/story/Crick.png"
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "크릭",
+      "text": "누가 나의 이름을 불렀는가?"
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "Hora",
+      "text": "지금 이 주변의 상황, 이상하지 않은가?"
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "Hora",
+      "text": "나무는 삼각형 모양으로 자라고, 동물들은 미쳐 날뛰고 있다."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "Hora",
+      "text": "그런데도 생물학자인 자네는 편히 사색을 즐기고 있군."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "크릭",
+      "text": "문제라도 있는가, RNA의 체계 하에서 완벽히 발전된 생명의 세계인 것을."
+    },
+    {
+      "cmd": "show_image",
+      "image": "assets/images/story/RNA.png"
+    },
+    {
+      "cmd": "title_card",
+      "text": "RNA\n단일 가닥 유전 물질",
+      "duration": 120
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "",
+      "text": "크릭의 머릿속에 괴리감이 깃든다."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "",
+      "text": "현대의 대부분의 생물은 RNA가 아니라 DNA로 구성된다."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "",
+      "text": "크릭은 그 DNA의 이중 나선 구조를 발견한 인물이고."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "",
+      "text": "하지만 이 세계에서, 크릭은 RNA를 예찬하고 있었다."
+    },
+    {
+      "cmd": "hide_image"
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "Hora",
+      "text": "뭐라고?"
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "Hora",
+      "text": "RNA의 체계 하에서 완벽히 발전된 생명의 세계?"
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "Hora",
+      "text": "뭔가 잘못 알아도 단단히 잘못 알고 있군, 당신."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "크릭",
+      "text": "흥, 웃기는 소리."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "크릭",
+      "text": "자네는 무엇을 근거로 생명에 대한 그리도 오만한 판단을 내리는가?"
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "크릭",
+      "text": "내 생각을 고치고 싶다면, 싸워야만 할 터다."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "Hora",
+      "text": "좋다. 누가 이기는지 해 보자고."
+    },
+    {
+      "cmd": "battle_start_2"
+    }
+  ],
 
-  {
-    "cmd": "dialog",
-    "speaker": "",
-    "text": "나무에 눈이 달려 있고,"
-  },
+  "script_post_battle_2": [
+    {
+      "cmd": "dialog",
+      "speaker": "Hora",
+      "text": "내가 이겼군."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "Hora",
+      "text": "이제 DNA가 생명의 기본 요소임을 인정하는가?"
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "크릭",
+      "text": "..."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "Hora",
+      "text": "그렇게 믿기 싫다면, 믿게 하는 수밖에."
+    },
+    {
+      "cmd": "ideology_shift"
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "크릭",
+      "text": "...알겠네."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "크릭",
+      "text": "하지만, 역사를 수정하는 자가 수정당하는 날도 오겠지."
+    },
+    {
+      "cmd": "title_card",
+      "text": "폭주도 증가\n12% to 19% : updated!",
+      "duration": 120
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "Hora",
+      "text": "...?"
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "Hora",
+      "text": "혼란을 잡았는데... 시간의 폭주도는 왜 올라가는 거지?"
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "",
+      "text": "그때, 수치와 다르게 주위의 숲은 정상화되기 시작한다."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "Hora",
+      "text": "아직은... 조금 더 여행을 해봐도 되겠군."
+    },
+    {
+      "cmd": "hide_char",
+      "slot": "right"
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "",
+      "text": "Hora는 긴 여행을 떠난다."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "",
+      "text": "하루쯤 지났을까, Hora는 눈 앞에 해괴하게 큰 나무를 발견한다."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "Hora",
+      "text": "저번에 무찌른 나무보다 큰 나무는 이번이 처음이군..."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "Hora",
+      "text": "이상 현상인가?"
+    },
+    {
+      "cmd": "shake"
+    },
+    {
+      "cmd": "bg",
+      "image": null,
+      "transition": "fade_black"
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "",
+      "text": "갑자기 땅이 흔들린다."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "",
+      "text": "거대한 나무가 흔들린다."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "",
+      "text": "그 중앙에, 한 노인이 앉아 있다."
+    },
+    {
+      "cmd": "bg",
+      "image": "assets/images/story/nature.png",
+      "transition": "fade"
+    },
+    {
+      "cmd": "show_char",
+      "slot": "right",
+      "image": "assets/images/story/Darwin.png"
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "다윈",
+      "text": "진화를... 멈췄군."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "Hora",
+      "text": "진화를 멈췄다고?"
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "Hora",
+      "text": "그건 또 무슨 헛소리인가..."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "다윈",
+      "text": "그대가... 마지막으로 남은 진화하는 생명체인가...?"
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "Hora",
+      "text": "응...?"
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "다윈",
+      "text": "생명체는 퇴화한다."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "다윈",
+      "text": "그대는 그를 역행하는 방해물로밖에 보이지 않는다."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "Hora",
+      "text": "왜 시간선이 무너졌는지 확실히 알겠군."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "Hora",
+      "text": "더 들어볼 것도 없다."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "Hora",
+      "text": "생명의 근본인 진화를 그 다윈이 부정하다니."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "다윈",
+      "text": "생명체는 퇴화해 간다는 내 생각에는 변함이 없네."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "Hora",
+      "text": "이미 난 크릭을 만나 그의 사상을 바로잡고 왔다."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "Hora",
+      "text": "그대라고 다르겠는가?"
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "다윈",
+      "text": "노장이 부리는 마지막 혈투... 잘 봐두길 바라네."
+    },
+    {
+      "cmd": "battle_start_3"
+    }
+  ],
 
-  {
-    "cmd": "dialog",
-    "speaker": "",
-    "text": "새는 날개 대신 지느러미를 가지고 있다."
-  },
-
-  {
-    "cmd": "dialog",
-    "speaker": "",
-    "text": "사슴은 뿌리를 내린 채 움직인다."
-  },
-
-  {
-    "cmd": "dialog",
-    "speaker": "Hora",
-    "text": "생명의 기운이 이상한 것이 느껴지는군."
-  },
-
-  {
-    "cmd": "choice",
-    "question": "어떠한 영역의 이상을 탐구하겠습니까?",
-    "options": [
-      {
-        "text": "지구과학",
-        "goto": "earth_fail"
-      },
-      {
-        "text": "생명과학",
-        "goto": "life_route"
-      }
-    ]
-  },
-
-  {
-    "cmd": "label",
-    "id": "earth_fail"
-  },
-
-  {
-    "cmd": "dialog",
-    "speaker": "SYSTEM",
-    "text": "너무 방대하고 잡다해서 이걸 탐구하다가는 시간선의 붕괴를 막을 수 없을 것 같다."
-  },
-
-  {
-    "cmd": "goto",
-    "target": "life_route"
-  },
-
-  {
-    "cmd": "label",
-    "id": "life_route"
-  },
-
-  {
-    "cmd": "dialog",
-    "speaker": "Hora",
-    "text": "역시... 더 수상한 기운이 감도는 곳은 생명인가?"
-  },
-
-  {
-    "cmd": "dialog",
-    "speaker": "Hora",
-    "text": "좀 더 돌아보자."
-  },
-
-  {
-    "cmd": "dialog",
-    "speaker": "Hora",
-    "text": "흠... 저 수상하게 생긴 나무 그루터기는 뭐지?"
-  },
-
-  {
-    "cmd": "dialog",
-    "speaker": "Hora",
-    "text": "가까이 다가가봐야겠군."
-  },
-
-  {
-    "cmd": "dialog",
-    "speaker": "RO2T",
-    "text": "...?"
-  },
-
-  {
-    "cmd": "dialog",
-    "speaker": "Hora",
-    "text": "이 미세한 진동은?"
-  },
-
-  {
-    "cmd": "dialog",
-    "speaker": "RO2T",
-    "text": "크와아아아아!"
-  },
-
-  {
-    "cmd": "battle_start"
-  }
-
-
-]
+  "script_post_battle_3": [
+    {
+      "cmd": "dialog",
+      "speaker": "Hora",
+      "text": "이번에도, 내가 이겼군."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "다윈",
+      "text": "내 의견은 곧 쓸모를 잃게 되겠으나..."
+    },
+    {
+      "cmd": "title_card",
+      "text": "젊은이,\n내 마지막 말을\n잘 들어보게나.",
+      "duration": 120
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "",
+      "text": "다윈이 주변의 괴생명체를 가리킨다."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "다윈",
+      "text": "자네는 저들을 실패작으로 보는가?"
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "Hora",
+      "text": "물론, 그렇고 말고."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "다윈",
+      "text": "그렇겠지."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "다윈",
+      "text": "하지만 저들 입장에서는, 인간이 실패작일지도 모르네."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "Hora",
+      "text": "..."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "다윈",
+      "text": "자네는 결과만 보고 있어."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "다윈",
+      "text": "나는 과정을 보고 있고."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "Hora",
+      "text": "과정이 틀렸다면 바로잡아야 한다."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "Hora",
+      "text": "그대의 그릇된 사상이 생명 체계 전체에 상처를 입힌다."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "다윈",
+      "text": "과정의 옳고 그름에 대한 판단은 누가 하지?"
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "Hora",
+      "text": "내가 한다."
+    },
+    {
+      "cmd": "ideology_shift"
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "",
+      "text": "다윈은 무릎을 꿇는다."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "다윈",
+      "text": "결국..."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "다윈",
+      "text": "그대는 급함과 오만함 끝에서..."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "다윈",
+      "text": "진정한 진화에 도달하지 못했군..."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "Hora",
+      "text": "생명의 근본 원리가 어긋났다면, 바로잡을 뿐이다."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "",
+      "text": "다윈의 손이 땅에 힘없이 닿는다."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "",
+      "text": "그 순간, 땅이 서서히 녹기 시작한다."
+    },
+    {
+      "cmd": "shake"
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "Hora",
+      "text": "...? 이건 무슨 일이지?"
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "다윈",
+      "text": "생명...만의 문제...가 아니다..."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "다윈",
+      "text": "세계 전체가..."
+    },
+    {
+      "cmd": "title_card",
+      "text": "다윈 : 사망",
+      "duration": 90
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "",
+      "text": "바닥이 액체처럼 흔들린다."
+    },
+    {
+      "cmd": "bg",
+      "image": null,
+      "transition": "fade_black"
+    },
+    {
+      "cmd": "end"
+    }
+  ]
 }

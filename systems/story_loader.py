@@ -42,10 +42,19 @@ class StoryLoader:
         class_path = chapter.get("boss_class", "")
         if not class_path:
             return None
+
+        class_name = class_path.rsplit(".", 1)[-1]
+
         try:
             parts     = class_path.rsplit(".", 1)
             module    = importlib.import_module(parts[0])
             return getattr(module, parts[1])
+        except Exception:
+            pass
+
+        try:
+            module = importlib.import_module(f"entities.characters.{class_name}")
+            return getattr(module, class_name)
         except Exception as e:
             print(f"[StoryLoader] 보스 클래스 로드 실패 ({class_path}): {e}")
             return None
