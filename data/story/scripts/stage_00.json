@@ -26,6 +26,7 @@
     {
       "cmd": "dialog",
       "speaker": "SYSTEM",
+
       "text": "시간선 안정도 점검 중..."
     },
 

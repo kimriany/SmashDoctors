@@ -1,55 +1,146 @@
 {
-  "id": "stage_01",
-  "title": "생명 스테이지",
-  "next_on_win": "stage_02",
-  "boss_class": "entities.Boss_characters.Crick",
-  "boss_name": "크릭",
-  "stage_json": "data/stages/stage_01.json",
-  "script_pre_battle": [
-    {"cmd": "bg",      "image": "assets/images/story/bg_forest.png", "transition": "fade"},
-    {"cmd": "dialog",  "speaker": "주인공", "text": "진화 과정 자체가 무너지고 있군."},
-    {"cmd": "show_char","slot": "right", "image": "assets/images/story/char_crick.png"},
-    {"cmd": "dialog",  "speaker": "크릭",   "text": "흥미롭군. 이 시간선에도 자네가 오는가."},
-    {"cmd": "dialog",  "speaker": "주인공", "text": "생명 정보가 뒤틀리고 있다."},
-    {"cmd": "dialog",  "speaker": "크릭",   "text": "정보는 원래 수정 가능한 법이지."},
-    {"cmd": "dialog",  "speaker": "주인공", "text": "생명은 장난감이 아니다."},
-    {"cmd": "dialog",  "speaker": "크릭",   "text": "그런데 자네는 시간을 수정하잖나?"},
-    {"cmd": "dialog",  "speaker": "크릭",   "text": "정보도 수정. 시간도 수정. 둘의 차이가 뭔가?"},
-    {"cmd": "battle_start"}
-  ],
-  "script_post_battle": [
-    {"cmd": "bg",      "image": "assets/images/story/bg_forest.png", "transition": "fade"},
-    {"cmd": "show_char","slot": "right", "image": "assets/images/story/char_crick_defeat.png"},
-    {"cmd": "dialog",  "speaker": "주인공", "text": "사상 변화."},
-    {"cmd": "dialog",  "speaker": "크릭",   "text": "하하..."},
-    {"cmd": "dialog",  "speaker": "주인공", "text": "생명의 근본 원리를 오염시킨 오류를 제거한다."},
-    {"cmd": "dialog",  "speaker": "크릭",   "text": "수정하는 자가 수정당하는 날도 오겠지."},
-    {"cmd": "hide_char","slot": "right"},
-    {"cmd": "dialog",  "speaker": "SYSTEM", "text": "폭주도 증가\n12% → 19%"},
-    {"cmd": "dialog",  "speaker": "주인공", "text": "...왜 올라가는 거지?"},
-    {"cmd": "show_char","slot": "right", "image": "assets/images/story/char_darwin.png"},
-    {"cmd": "dialog",  "speaker": "다윈",   "text": "진화를 멈췄군."},
-    {"cmd": "dialog",  "speaker": "주인공", "text": "자네가 마지막인가."},
-    {"cmd": "dialog",  "speaker": "다윈",   "text": "마지막? 진화에는 마지막이 없네."},
-    {"cmd": "dialog",  "speaker": "주인공", "text": "생명은 이미 붕괴 직전이다."},
-    {"cmd": "dialog",  "speaker": "다윈",   "text": "붕괴도 진화의 일부일세."},
-    {"cmd": "dialog",  "speaker": "다윈",   "text": "자네는 결과만 보고 있어. 나는 과정을 보고 있고."},
-    {"cmd": "dialog",  "speaker": "주인공", "text": "과정이 틀렸다면 바로잡아야 한다."},
-    {"cmd": "dialog",  "speaker": "다윈",   "text": "그 판단은 누가 하지?"},
-    {"cmd": "dialog",  "speaker": "주인공", "text": "내가 한다."},
-    {"cmd": "dialog",  "speaker": "다윈",   "text": "바로 그 오만함이 문제일세."},
-    {"cmd": "battle_start_2"}
-  ],
-  "script_post_battle_2": [
-    {"cmd": "show_char","slot": "right", "image": "assets/images/story/char_darwin_defeat.png"},
-    {"cmd": "dialog",  "speaker": "주인공", "text": "사상 변화."},
-    {"cmd": "dialog",  "speaker": "다윈",   "text": "결국... 자네는 진화를 기다리지 못했군."},
-    {"cmd": "hide_char","slot": "right"},
-    {"cmd": "shake"},
-    {"cmd": "dialog",  "speaker": "주인공", "text": "!?"},
-    {"cmd": "dialog",  "speaker": "다윈",   "text": "생명만의 문제가 아니야. 세계 전체가 무너지고 있다."},
-    {"cmd": "bg",      "image": null, "transition": "fade_black"},
-    {"cmd": "dialog",  "speaker": "SYSTEM", "text": "Location : 숲"},
-    {"cmd": "end"}
-  ]
+"id": "stage_01",
+"title": "생명의 오류",
+"next": "stage_02",
+
+"script_pre_battle": [
+
+  {
+    "cmd": "bg",
+    "image": "assets/images/story/nature.png",
+    "transition": "fade"
+  },
+  
+  {
+    "cmd": "dialog",
+    "speaker": "",
+    "text": "진입."
+  },
+
+  {
+    "cmd": "dialog",
+    "speaker": "",
+    "text": "시간선 이동 완료."
+  },
+
+  {
+    "cmd": "dialog",
+    "speaker": "",
+    "text": "주변은 숲이다."
+  },
+
+  {
+    "cmd": "dialog",
+    "speaker": "",
+    "text": "그런데 어딘가 이상하다."
+  },
+
+  {
+    "cmd": "dialog",
+    "speaker": "",
+    "text": "나무에 눈이 달려 있고,"
+  },
+
+  {
+    "cmd": "dialog",
+    "speaker": "",
+    "text": "새는 날개 대신 지느러미를 가지고 있다."
+  },
+
+  {
+    "cmd": "dialog",
+    "speaker": "",
+    "text": "사슴은 뿌리를 내린 채 움직인다."
+  },
+
+  {
+    "cmd": "dialog",
+    "speaker": "Hora",
+    "text": "생명의 기운이 이상한 것이 느껴지는군."
+  },
+
+  {
+    "cmd": "choice",
+    "question": "어떠한 영역의 이상을 탐구하겠습니까?",
+    "options": [
+      {
+        "text": "지구과학",
+        "goto": "earth_fail"
+      },
+      {
+        "text": "생명과학",
+        "goto": "life_route"
+      }
+    ]
+  },
+
+  {
+    "cmd": "label",
+    "id": "earth_fail"
+  },
+
+  {
+    "cmd": "dialog",
+    "speaker": "SYSTEM",
+    "text": "너무 방대하고 잡다해서 이걸 탐구하다가는 시간선의 붕괴를 막을 수 없을 것 같다."
+  },
+
+  {
+    "cmd": "goto",
+    "target": "life_route"
+  },
+
+  {
+    "cmd": "label",
+    "id": "life_route"
+  },
+
+  {
+    "cmd": "dialog",
+    "speaker": "Hora",
+    "text": "역시... 더 수상한 기운이 감도는 곳은 생명인가?"
+  },
+
+  {
+    "cmd": "dialog",
+    "speaker": "Hora",
+    "text": "좀 더 돌아보자."
+  },
+
+  {
+    "cmd": "dialog",
+    "speaker": "Hora",
+    "text": "흠... 저 수상하게 생긴 나무 그루터기는 뭐지?"
+  },
+
+  {
+    "cmd": "dialog",
+    "speaker": "Hora",
+    "text": "가까이 다가가봐야겠군."
+  },
+
+  {
+    "cmd": "dialog",
+    "speaker": "RO2T",
+    "text": "...?"
+  },
+
+  {
+    "cmd": "dialog",
+    "speaker": "Hora",
+    "text": "이 미세한 진동은?"
+  },
+
+  {
+    "cmd": "dialog",
+    "speaker": "RO2T",
+    "text": "크와아아아아!"
+  },
+
+  {
+    "cmd": "battle_start"
+  }
+
+
+]
 }

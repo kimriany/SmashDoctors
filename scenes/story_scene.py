@@ -108,6 +108,7 @@ class StoryScene:
         # 타이틀 카드
         self._title_card = None
         self._title_timer = 0
+        self._center_image = None
 
         # 결과
         self.done   = False
@@ -117,6 +118,9 @@ class StoryScene:
         self._build_labels()
         # 첫 커맨드 실행
         self._run_next()
+
+        self._ideology_timer = 0
+        self._ideology_text = ""
 
     # ── 스크립트 로드 ───────────────────────────────────────────
     def _load_script(self, path: str):
@@ -252,6 +256,14 @@ class StoryScene:
         else:
             self._shake_x = 0
 
+        if self._ideology_timer > 0:
+            self._ideology_timer -= 1
+
+            if self._ideology_timer == 0:
+                self._run_next()
+
+            return
+
     # ── 커맨드 실행 ─────────────────────────────────────────────
     def _run_next(self):
         """다음 커맨드를 처리. 대기가 필요한 커맨드는 중단."""
@@ -333,8 +345,23 @@ class StoryScene:
                 self._in_choice     = True
                 return   # 선택 완료 대기
 
+            elif action == "show_image":
+
+                self._center_image = _load_img(
+                    cmd.get("image")
+                )
+
+            elif action == "hide_image":
+
+                self._center_image = None
+
             elif action == "label":
                 pass   # 레이블은 그냥 통과
+
+            elif action == "ideology_shift":
+
+                self._ideology_timer = 180
+                return
 
             elif action == "pause":
                 self._pause_timer = cmd.get("duration", 60)
@@ -446,6 +473,10 @@ class StoryScene:
             self._draw_transition()
             return
 
+        if self._ideology_timer > 0:
+            self._draw_ideology_shift()
+            return
+
         # ── 대사창 ──
         if self._full_text or self._waiting:
             self._draw_dialog_box(sx)
@@ -453,6 +484,9 @@ class StoryScene:
         # ── 선택지 ──
         if self._in_choice:
             self._draw_choices()
+
+        if self._center_image:
+            self._draw_center_image()
 
         # ── 진행 현황 바 (상단) ──
         self._draw_progress_bar()
@@ -686,3 +720,47 @@ class StoryScene:
 
             self.screen.blit(shadow, sr)
             self.screen.blit(main, mr)
+
+    def _draw_center_image(self):
+
+        img = self._center_image
+
+        scale = min(
+            self.W * 0.6 / img.get_width(),
+            self.H * 0.55 / img.get_height()
+        )
+
+        w = int(img.get_width() * scale)
+        h = int(img.get_height() * scale)
+
+        img = pygame.transform.smoothscale(img, (w, h))
+
+        rect = img.get_rect(
+            center=(self.W // 2, self.H // 2 - 40)
+        )
+
+        self.screen.blit(img, rect)
+
+    def _draw_ideology_shift(self):
+
+        self.screen.fill((0, 0, 0))
+
+        pulse = abs(math.sin(
+            pygame.time.get_ticks() / 120
+        ))
+
+        size = int(80 + pulse * 20)
+
+        f = font(size, bold=True)
+
+        txt = f.render(
+            "사상 변화",
+            True,
+            (255, 0, 0)
+        )
+
+        rect = txt.get_rect(
+            center=(self.W // 2, self.H // 2)
+        )
+
+        self.screen.blit(txt, rect)
