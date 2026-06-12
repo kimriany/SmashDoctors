@@ -130,6 +130,8 @@ class Skill:
         if self.timer > 0:
             self.on_update(owner, event_bus, psys)
             self.timer -= 1
+            if self.timer <= 0:
+                self.on_end(owner)
 
     # ── 히트 처리 ────────────────────────────────────────────
     def on_hit(self, owner, target, event_bus, psys=None, fsys=None):
@@ -159,6 +161,7 @@ class Skill:
     # ── 이벤트 훅 (자식 override) ────────────────────────────
     def on_start(self, owner, event_bus=None, psys=None):   pass
     def on_update(self, owner, event_bus=None, psys=None):  pass
+    def on_end(self, owner):                                pass
 
     # ── 렌더링 (자식 override) ───────────────────────────────
     def draw_behind(self, owner, screen, camera, dr, bob, z): pass

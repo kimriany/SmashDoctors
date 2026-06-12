@@ -30,6 +30,24 @@ def _alpha(value):
     return max(0, min(255, int(value)))
 
 
+def _apply_cd_accel(owner, source_skill, mult):
+    extra = max(0.0, mult - 1.0)
+    if extra <= 0:
+        owner._cd_accel_active = False
+        owner._cd_accel_mult = 1.0
+        return
+
+    source_skill._cd_accum = getattr(source_skill, "_cd_accum", 0.0) + extra
+    bonus = int(source_skill._cd_accum)
+    if bonus >= 1:
+        source_skill._cd_accum -= bonus
+        for sk in owner.skills.values():
+            if sk is not source_skill and sk.current_cooldown > 0:
+                sk.current_cooldown = max(0, sk.current_cooldown - bonus)
+    owner._cd_accel_active = True
+    owner._cd_accel_mult = mult
+
+
 class _DomainOnlyMixin:
     def can_activate(self, owner) -> bool:
         return getattr(owner, "domain_active", False)
@@ -160,32 +178,23 @@ class QuantumCollapseZone(_NormalOnlyMixin, SummonZoneSkill):
 
     def __init__(self):
         super().__init__("Quantum Collapse Zone", damage=self.COLLAPSE_DMG,
-                         cooldown=540, duration=240)
+                         cooldown=540, duration=420)
         self.charge_value    = 1.2
         self._collapsed      = False   # 붕괴 발동 여부
         self._collapse_frame = 0       # 붕괴 연출 프레임
         self._phase          = 0.0
         self._wave_rings     = []      # 붕괴 링 이펙트 목록
+        self._cd_accum       = 0.0
 
     def on_start(self, owner, event_bus=None, psys=None):
-        # 전방 또는 상대 위치에 소환
-        target = getattr(owner, "_skill_target", None)
-        if target and not target.dead:
-            dist = abs(target.rect.centerx - owner.rect.centerx)
-            if dist < 350:
-                self._zone_x = target.rect.centerx
-                self._zone_y = target.rect.centery
-            else:
-                self._zone_x = owner.rect.centerx + owner.facing * 180
-                self._zone_y = owner.rect.centery
-        else:
-            self._zone_x = owner.rect.centerx + owner.facing * 180
-            self._zone_y = owner.rect.centery
+        self._zone_x = owner.rect.centerx + owner.facing * 180
+        self._zone_y = owner.rect.centery
 
         self._phase       = random.uniform(0, math.pi * 2)
         self._collapsed   = False
         self._collapse_frame = 0
         self._wave_rings  = []
+        self._cd_accum    = 0.0
         self.has_hit      = False
 
         if psys:
@@ -216,6 +225,7 @@ class QuantumCollapseZone(_NormalOnlyMixin, SummonZoneSkill):
         if self._collapsed:
             self._collapse_frame += 1
             owner._cd_accel_active = False   # 붕괴 시 가속 즉시 중단
+            owner._cd_accel_mult = 1.0
             for ring in self._wave_rings:
                 ring["r"]    += ring["speed"]
                 ring["alpha"] = max(0, ring["alpha"] - ring["decay"])
@@ -227,20 +237,11 @@ class QuantumCollapseZone(_NormalOnlyMixin, SummonZoneSkill):
         # 누적 오차 방지를 위해 _cd_accel_accum 사용
         zone = self.get_hitbox(owner)
         if zone and zone.colliderect(owner.rect):
-            extra = self.CD_ACCEL_MULT - 1.0   # 0.5
-            if not hasattr(self, "_cd_accum"):
-                self._cd_accum = 0.0
-            self._cd_accum += extra
-            bonus = int(self._cd_accum)
-            if bonus >= 1:
-                self._cd_accum -= bonus
-                for sk_key, sk in owner.skills.items():
-                    if sk is not self and sk.current_cooldown > 0:
-                        sk.current_cooldown = max(0, sk.current_cooldown - bonus)
-            owner._cd_accel_active = True   # HUD 이펙트용 플래그
+            _apply_cd_accel(owner, self, self.CD_ACCEL_MULT)
         else:
             self._cd_accum = 0.0
             owner._cd_accel_active = False
+            owner._cd_accel_mult = 1.0
 
         # ── 상대가 진입하면 붕괴 ──
         target = getattr(owner, "_skill_target", None)
@@ -367,6 +368,11 @@ class QuantumCollapseZone(_NormalOnlyMixin, SummonZoneSkill):
         qlbl.set_alpha(_alpha(alpha * 1.4))
         screen.blit(qlbl, (sx - qlbl.get_width()//2, sy - qlbl.get_height()//2))
 
+    def on_end(self, owner):
+        self._cd_accum = 0.0
+        owner._cd_accel_active = False
+        owner._cd_accel_mult = 1.0
+
 
 class SchrodingerDomain(DomainUltimateSkill):
     DISPLAY_NAME = "Superposition Domain"
@@ -426,28 +432,27 @@ class ProbabilityStorm(_DomainOnlyMixin, SummonZoneSkill):
     COOLDOWN_SEC      = 10.0
 
     PULL_FORCE        = 3.2    # 흡수 강도 (프레임당 px)
-    EXPLODE_FRAME     = 90     # 폭발 프레임
+    EXPLODE_FRAME     = 180    # 폭발 프레임
     EXPLODE_KB        = 26     # 폭발 넉백
+    EXPLODE_RADIUS    = 110
+    CD_ACCEL_MULT     = 2.0
 
     def __init__(self):
-        super().__init__("Probability Storm", damage=35, cooldown=600, duration=130)
+        super().__init__("Probability Storm", damage=35, cooldown=600, duration=300)
         self.charge_value          = 0.0
         self.finisher_charge_value = 2.0
         self._exploded             = False
         self._phase                = 0.0
         self._explode_rings        = []
+        self._cd_accum             = 0.0
 
     def on_start(self, owner, event_bus=None, psys=None):
-        target = getattr(owner, "_skill_target", None)
-        if target and not target.dead:
-            self._zone_x = target.rect.centerx
-            self._zone_y = target.rect.centery
-        else:
-            self._zone_x = owner.rect.centerx + owner.facing * 160
-            self._zone_y = owner.rect.centery
+        self._zone_x = owner.rect.centerx + owner.facing * 180
+        self._zone_y = owner.rect.centery
         self._phase    = random.uniform(0, math.pi * 2)
         self._exploded = False
         self._explode_rings = []
+        self._cd_accum = 0.0
         self.has_hit   = False
 
         if psys:
@@ -484,12 +489,22 @@ class ProbabilityStorm(_DomainOnlyMixin, SummonZoneSkill):
         self._explode_rings = [r for r in self._explode_rings if r["alpha"] > 0]
 
         if self._exploded:
+            self._cd_accum = 0.0
+            owner._cd_accel_active = False
+            owner._cd_accel_mult = 1.0
             return
 
         # Phase 1: 중력 흡수
         if elapsed < self.EXPLODE_FRAME:
+            zone = self.get_hitbox(owner)
+            if zone and zone.colliderect(owner.rect):
+                _apply_cd_accel(owner, self, self.CD_ACCEL_MULT)
+            else:
+                self._cd_accum = 0.0
+                owner._cd_accel_active = False
+                owner._cd_accel_mult = 1.0
+
             if target and not target.dead:
-                zone = self.get_hitbox(owner)
                 if zone and zone.colliderect(target.rect):
                     dx = zx - target.rect.centerx
                     dy = zy - target.rect.centery
@@ -517,6 +532,9 @@ class ProbabilityStorm(_DomainOnlyMixin, SummonZoneSkill):
     def _do_explode(self, owner, target, event_bus, psys, zx, zy):
         self._exploded = True
         self.has_hit   = True
+        self._cd_accum = 0.0
+        owner._cd_accel_active = False
+        owner._cd_accel_mult = 1.0
 
         # 폭발 링 5겹
         for i in range(6):
@@ -531,16 +549,17 @@ class ProbabilityStorm(_DomainOnlyMixin, SummonZoneSkill):
             dx  = target.rect.centerx - zx
             dy  = target.rect.centery - zy
             dist = max(1, math.sqrt(dx*dx + dy*dy))
-            kb  = self.EXPLODE_KB + target.damage_pct * 0.08
-            target.vel.x = (dx / dist) * kb
-            target.vel.y = (dy / dist) * kb - 8
+            if dist <= self.EXPLODE_RADIUS:
+                kb  = self.EXPLODE_KB + target.damage_pct * 0.08
+                target.vel.x = (dx / dist) * kb
+                target.vel.y = (dy / dist) * kb - 8
 
-            if event_bus:
-                event_bus.emit("attack_hit", {
-                    "attacker": owner, "target": target,
-                    "damage": self.damage, "is_skill": True,
-                    "particle_system": psys, "floater_system": None,
-                })
+                if event_bus:
+                    event_bus.emit("attack_hit", {
+                        "attacker": owner, "target": target,
+                        "damage": self.damage, "is_skill": True,
+                        "particle_system": psys, "floater_system": None,
+                    })
 
         if psys:
             for col in ATOM_COLORS:
@@ -548,6 +567,11 @@ class ProbabilityStorm(_DomainOnlyMixin, SummonZoneSkill):
                            gravity=-0.04, life=44, r=7, glow=True)
             psys.spawn(zx, zy, (255, 255, 255), count=16, speed=8,
                        gravity=-0.06, life=28, r=5, glow=True)
+
+    def on_end(self, owner):
+        self._cd_accum = 0.0
+        owner._cd_accel_active = False
+        owner._cd_accel_mult = 1.0
 
     def draw_behind(self, owner, screen, camera, dr, bob, z):
         if not self.active:
@@ -606,8 +630,9 @@ class ProbabilityStorm(_DomainOnlyMixin, SummonZoneSkill):
 
         # Phase 2: 폭발 예고 링 (빠르게 팽창)
         if phase2:
-            warn_r = int(base_r * (0.5 + 0.5 * ((elapsed - self.EXPLODE_FRAME*0.7) /
-                                                   (self.EXPLODE_FRAME*0.3))))
+            max_warn_r = int(self.EXPLODE_RADIUS * z)
+            warn_r = int(max_warn_r * (0.5 + 0.5 * ((elapsed - self.EXPLODE_FRAME*0.7) /
+                                                    (self.EXPLODE_FRAME*0.3))))
             ws = pygame.Surface((warn_r*2+10, warn_r*2+10), pygame.SRCALPHA)
             pygame.draw.circle(ws, (255, 200, 80, 180),
                                (warn_r+5, warn_r+5), warn_r, max(2, int(4*z)))
@@ -676,12 +701,16 @@ class Schrödinger(Player):
         if domain_key in self.skills:
             domain_skill = self.skills[domain_key]
             if domain_skill.can_use(self):
+                if self.active_skill is not None and self.active_skill is not domain_skill:
+                    self.active_skill.on_end(self)
                 domain_skill.use(self, event_bus, psys)
                 self.active_skill = domain_skill
                 return True
 
         skill = self.skills.get(skill_key)
         if skill and skill.can_use(self):
+            if self.active_skill is not None and self.active_skill is not skill:
+                self.active_skill.on_end(self)
             skill.use(self, event_bus, psys)
             self.active_skill = skill
             return True

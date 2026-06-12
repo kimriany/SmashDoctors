@@ -538,9 +538,11 @@ class Renderer:
                                  (0, 0, iw + 8, ih + 8), 2, border_radius=10)
                 self.screen.blit(glow_sf, (ix - 4, iy - 4))
 
-                # 우상단 ×1.5 배지
+                # 우상단 쿨타임 가속 배지
                 badge_fnt = self.font_sm
-                badge_txt = badge_fnt.render("×1.5", True, (255, 230, 80))
+                accel_mult = float(getattr(player, "_cd_accel_mult", 1.5))
+                accel_label = f"×{accel_mult:g}"
+                badge_txt = badge_fnt.render(accel_label, True, (255, 230, 80))
                 bw, bh = badge_txt.get_width() + 6, badge_txt.get_height() + 2
                 badge_bg = pygame.Surface((bw, bh), pygame.SRCALPHA)
                 pygame.draw.rect(badge_bg, (80, 60, 0, 200),
