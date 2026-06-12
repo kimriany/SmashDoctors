@@ -225,7 +225,8 @@ class BattleSession:
                 self.result = "back"
                 return
 
-            if self.domain_sys and self.domain_sys.gameplay_frozen:
+            if (self.domain_sys and self.domain_sys.gameplay_frozen) or \
+                    (self.finisher_sys and self.finisher_sys.gameplay_frozen):
                 continue
 
             if self.mode == "pvp":
