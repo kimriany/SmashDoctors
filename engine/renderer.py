@@ -525,7 +525,34 @@ class Renderer:
 
             self.screen.blit(dim, (ix, iy))
 
-            txt = self.font_sm.render(state["text"], True, (245, 245, 255))
+            # ── 쿨타임 가속 이펙트 ──
+            cd_accel = getattr(player, "_cd_accel_active", False)
+            if cd_accel:
+                t_ms  = pygame.time.get_ticks()
+                pulse = abs(math.sin(t_ms * 0.008))
+
+                # 테두리 황금 글로우 (펄스)
+                glow_sf = pygame.Surface((iw + 8, ih + 8), pygame.SRCALPHA)
+                glow_a  = int(160 + 80 * pulse)
+                pygame.draw.rect(glow_sf, (255, 220, 60, glow_a),
+                                 (0, 0, iw + 8, ih + 8), 2, border_radius=10)
+                self.screen.blit(glow_sf, (ix - 4, iy - 4))
+
+                # 우상단 ×1.5 배지
+                badge_fnt = self.font_sm
+                badge_txt = badge_fnt.render("×1.5", True, (255, 230, 80))
+                bw, bh = badge_txt.get_width() + 6, badge_txt.get_height() + 2
+                badge_bg = pygame.Surface((bw, bh), pygame.SRCALPHA)
+                pygame.draw.rect(badge_bg, (80, 60, 0, 200),
+                                 (0, 0, bw, bh), border_radius=4)
+                badge_bg.blit(badge_txt, (3, 1))
+                self.screen.blit(badge_bg, (ix + iw - bw + 2, iy - bh + 2))
+
+                # 쿨타임 텍스트를 황금색으로
+                txt = self.font_sm.render(state["text"], True, (255, 230, 80))
+            else:
+                txt = self.font_sm.render(state["text"], True, (245, 245, 255))
+
             self.screen.blit(
                 txt,
                 (ix + iw // 2 - txt.get_width() // 2,
