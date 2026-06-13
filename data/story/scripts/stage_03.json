@@ -1,40 +1,756 @@
 {
   "id": "stage_03",
-  "title": "독백 스테이지",
+  "title": "기억 영역",
   "next_on_win": "stage_04",
   "boss_class": null,
+  "boss_name": null,
+  "boss_stocks": 0,
   "stage_json": null,
   "script_pre_battle": [
-    {"cmd": "bg",      "image": "assets/images/story/bg_white.png", "transition": "fade"},
-    {"cmd": "dialog",  "speaker": "주인공", "text": "상자 밖에서... 결과를 고르고 있었다고?"},
-    {"cmd": "dialog",  "speaker": "SYSTEM",  "text": "기억 영역 진입"},
-    {"cmd": "show_char","slot": "left",  "image": "assets/images/story/char_crick_ghost.png"},
-    {"cmd": "dialog",  "speaker": "크릭의 잔상", "text": "정보를 수정하는 자가 정보의 오염을 비난하는군."},
-    {"cmd": "hide_char","slot": "left"},
-    {"cmd": "show_char","slot": "left",  "image": "assets/images/story/char_darwin_ghost.png"},
-    {"cmd": "dialog",  "speaker": "다윈의 잔상", "text": "자네는 진실을 찾는 자가 아니라 진실을 정하는 자가 되었네."},
-    {"cmd": "hide_char","slot": "left"},
-    {"cmd": "show_char","slot": "left",  "image": "assets/images/story/char_curie_ghost.png"},
-    {"cmd": "dialog",  "speaker": "퀴리의 잔상", "text": "자네 쪽이 더 오염되어 보여."},
-    {"cmd": "hide_char","slot": "left"},
-    {"cmd": "show_char","slot": "left",  "image": "assets/images/story/char_schrodinger_ghost.png"},
-    {"cmd": "dialog",  "speaker": "슈뢰딩거의 잔상", "text": "당신은 고양이가 아니예요."},
-    {"cmd": "hide_char","slot": "left"},
-    {"cmd": "show_char","slot": "right", "image": "assets/images/story/char_mirror.png"},
-    {"cmd": "dialog",  "speaker": "거울 속 주인공", "text": "만족하나?"},
-    {"cmd": "dialog",  "speaker": "주인공",         "text": "넌 누구지."},
-    {"cmd": "dialog",  "speaker": "거울 속 주인공", "text": "틀린 생각을 없애면 세상은 더 좋아질까?"},
-    {"cmd": "dialog",  "speaker": "거울 속 주인공", "text": "아니면 다른 곳에서 더 크게 터질까?"},
-    {"cmd": "dialog",  "speaker": "주인공",         "text": "모르겠군."},
-    {"cmd": "dialog",  "speaker": "거울 속 주인공", "text": "적어도 솔직해졌네."},
-    {"cmd": "hide_char","slot": "right"},
-    {"cmd": "dialog",  "speaker": "주인공", "text": "사상 변화."},
-    {"cmd": "dialog",  "speaker": "SYSTEM",  "text": "경고\n대상 : 자기 자신\n승인됨"},
-    {"cmd": "dialog",  "speaker": "SYSTEM",  "text": "신규 패시브 획득\n평온\n효과 : 과도한 사고를 차단한다."},
-    {"cmd": "dialog",  "speaker": "주인공", "text": "됐다. 이제 신경 쓰지 말자."},
-    {"cmd": "dialog",  "speaker": "???",    "text": "그게 가장 위험한 선택인데."},
-    {"cmd": "bg",      "image": null, "transition": "fade_black"},
-    {"cmd": "dialog",  "speaker": "SYSTEM", "text": "Location : 기억 영역"},
-    {"cmd": "end"}
+    {
+      "cmd": "bg",
+      "image": "assets/images/story/Mirrorwall.png",
+      "transition": "fade"
+    },
+    {
+      "cmd": "bg",
+      "image": null,
+      "transition": "fade_black"
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "",
+      "text": "슈뢰딩거가 사라진 직후."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "",
+      "text": "주변은 조용하다."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "",
+      "text": "아니."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "",
+      "text": "조용해야만 했다."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "Hora",
+      "text": "상자 밖에서..."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "Hora",
+      "text": "결과를 고르고 있었다고...?"
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "",
+      "text": "그 말이 머릿속을 떠나지 않는다."
+    },
+    {
+      "cmd": "shake"
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "",
+      "text": "주변 풍경이 일그러진다."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "",
+      "text": "연구소."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "",
+      "text": "숲."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "",
+      "text": "실험실."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "",
+      "text": "시간관리국."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "",
+      "text": "서로 다른 장소가 겹쳐진다."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "Hora",
+      "text": "..."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "Hora",
+      "text": "왜 자꾸 저 말이 떠오르는 거지."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "Hora",
+      "text": "단순한 패배자의 헛소리였을 뿐인데."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "",
+      "text": "그러나 스스로도 안다."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "",
+      "text": "그 말이 신경 쓰이고 있다는 것을."
+    },
+    {
+      "cmd": "bg",
+      "image": null,
+      "transition": "fade_black"
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "SYSTEM",
+      "text": "기억 영역 진입"
+    },
+    {
+      "cmd": "bg",
+      "image": "assets/images/story/Mirrorwall.png",
+      "transition": "fade"
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "",
+      "text": "아무것도 없다."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "",
+      "text": "끝없는 흰색."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "",
+      "text": "소리조차 존재하지 않는다."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "Hora",
+      "text": "여긴..."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "SYSTEM",
+      "text": "기억 영역 동기화 완료"
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "SYSTEM",
+      "text": "자아 탐색 시작"
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "",
+      "text": "발걸음을 옮긴다."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "",
+      "text": "끝없는 흰 공간."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "",
+      "text": "그러나 얼마 지나지 않아."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "",
+      "text": "익숙한 형체가 나타난다."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "크릭",
+      "text": "정보를 수정하는 자가."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "크릭",
+      "text": "정보의 오염을 비난하는군."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "Hora",
+      "text": "..."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "",
+      "text": "반박하려 하지만."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "",
+      "text": "말이 나오지 않는다."
+    },
+    {
+      "cmd": "hide_char",
+      "slot": "right"
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "다윈",
+      "text": "자네는 진실을 찾는 자가 아니라."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "다윈",
+      "text": "진실을 정하는 자가 되었네."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "Hora",
+      "text": "..."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "Hora",
+      "text": "난 오류를 수정할 뿐이다."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "다윈",
+      "text": "그 오류를 정하는 건 누구인가?"
+    },
+    {
+      "cmd": "hide_char",
+      "slot": "right"
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "퀴리",
+      "text": "자네 쪽이 더 오염되어 보여."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "Hora",
+      "text": "..."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "퀴리",
+      "text": "방사선보다 오래된 오염."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "퀴리",
+      "text": "대체 몇 번이나 되돌린 거지?"
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "Hora",
+      "text": "그건..."
+    },
+    {
+      "cmd": "hide_char",
+      "slot": "right"
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "슈뢰딩거",
+      "text": "당신은 고양이가 아니예요."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "Hora",
+      "text": "..."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "슈뢰딩거",
+      "text": "상자 밖에서."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "슈뢰딩거",
+      "text": "결과를 고르고 있었지."
+    },
+    {
+      "cmd": "hide_char",
+      "slot": "right"
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "",
+      "text": "다시 침묵."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "Hora",
+      "text": "..."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "Hora",
+      "text": "전부 같은 소리를 하는군."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "Hora",
+      "text": "하지만 난."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "Hora",
+      "text": "시간선을 복구하고 있을 뿐이다."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "",
+      "text": "거대한 거울이 나타난다."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "Hora",
+      "text": "...?"
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "",
+      "text": "거울 속 자신의 모습."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "",
+      "text": "하지만."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "",
+      "text": "거울 속의 자신은 움직이지 않는다."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "Hora",
+      "text": "뭐지?"
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "거울 속 Hora",
+      "text": "만족하나?"
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "Hora",
+      "text": "!"
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "Hora",
+      "text": "넌 누구지."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "",
+      "text": "나일 수도 있고."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "",
+      "text": "아닐 수도 있고."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "Hora",
+      "text": "..."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "",
+      "text": "하나 묻지."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "",
+      "text": "사고의 흐름을 막으면."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "",
+      "text": "그 사고는 어디로 갈까?"
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "Hora",
+      "text": "..."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "",
+      "text": "틀린 생각을 없애면."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "",
+      "text": "세상은 더 좋아질까?"
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "Hora",
+      "text": "당연하지."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "",
+      "text": "정말?"
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "",
+      "text": "아니면."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "",
+      "text": "다른 곳에서 더 크게 터질까?"
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "Hora",
+      "text": "..."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "Hora",
+      "text": "그건."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "Hora",
+      "text": "모른다."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "",
+      "text": "미소."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "",
+      "text": "적어도 솔직해졌네."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "",
+      "text": "거울이 금 가기 시작한다."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "Hora",
+      "text": "..."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "Hora",
+      "text": "나는."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "Hora",
+      "text": "지금까지."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "Hora",
+      "text": "무엇을 수정해 온 거지?"
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "",
+      "text": "좋은 질문이군."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "",
+      "text": "하지만."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "",
+      "text": "그 답을 찾기엔 아직 늦었어."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "",
+      "text": "거울이 산산조각 난다."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "",
+      "text": "다시."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "",
+      "text": "새하얀 공간."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "Hora",
+      "text": "..."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "Hora",
+      "text": "생각이 너무 많군."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "Hora",
+      "text": "그래."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "Hora",
+      "text": "생각만 안 하면 되는 거 아닌가."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "Hora",
+      "text": "의심도."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "Hora",
+      "text": "고민도."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "Hora",
+      "text": "전부."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "Hora",
+      "text": "멈춰 버리면."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "Hora",
+      "text": "눈을 감는다."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "Hora",
+      "text": "사상 변화."
+    },
+    {
+      "cmd": "ideology_shift"
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "SYSTEM",
+      "text": "경고"
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "SYSTEM",
+      "text": "대상 : 자기 자신"
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "SYSTEM",
+      "text": "승인됨"
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "SYSTEM",
+      "text": "사상 재구성 시작"
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "SYSTEM",
+      "text": "자아 안정화 진행"
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "SYSTEM",
+      "text": "불필요한 사고 제거"
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "SYSTEM",
+      "text": "의심 제거"
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "SYSTEM",
+      "text": "불안 제거"
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "SYSTEM",
+      "text": "완료"
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "",
+      "text": "모든 소리가 멀어진다."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "",
+      "text": "모든 기억이 흐려진다."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "",
+      "text": "모든 의심이 잠든다."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "",
+      "text": "머릿속이 텅 비어 간다."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "",
+      "text": "이상할 정도로."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "",
+      "text": "편안하다."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "SYSTEM",
+      "text": "신규 패시브 획득"
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "SYSTEM",
+      "text": "평온"
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "SYSTEM",
+      "text": "효과 :"
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "SYSTEM",
+      "text": "과도한 사고를 차단한다."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "Hora",
+      "text": "..."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "Hora",
+      "text": "됐다."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "Hora",
+      "text": "이제 신경 쓰지 말자."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "Hora",
+      "text": "생각해 봤자 달라질 건 없으니까."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "Hora",
+      "text": "앞으로 나아가면 된다."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "Hora",
+      "text": "그것만으로 충분해."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "",
+      "text": "표정이 편안해진다."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "",
+      "text": "지나치게."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "",
+      "text": "이상할 정도로."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "",
+      "text": "편안해진다."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "???",
+      "text": "그게 가장 위험한 선택인데."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "",
+      "text": "그러나."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "",
+      "text": "Hora는 듣지 못한다."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "",
+      "text": "아니."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "",
+      "text": "들을 수 없게 되었다."
+    },
+    {
+      "cmd": "bg",
+      "image": null,
+      "transition": "fade_black"
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "SYSTEM",
+      "text": "정신 안정도 상승"
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "SYSTEM",
+      "text": "폭주도 증가"
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "SYSTEM",
+      "text": "24% → 31%"
+    },
+    {
+      "cmd": "bg",
+      "image": null,
+      "transition": "fade_black"
+    },
+    {
+      "cmd": "end"
+    }
   ]
 }

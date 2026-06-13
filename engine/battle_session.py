@@ -29,6 +29,8 @@ class BattleSession:
         - 결과: "p1_dead", "p2_dead", "back"
     """
 
+    RESPAWN_EDGE_INSET = 140
+
     def __init__(
         self,
         screen,
@@ -72,7 +74,6 @@ class BattleSession:
         self.winner_color = (255, 255, 255)
 
         self.dual_domain_bg_path = dual_domain_bg_path
-        self.event_bus.subscribe("stock_lost", self._on_stock_lost)
 
         self._setup_battle()
 
@@ -83,6 +84,7 @@ class BattleSession:
         data = StageLoader(self.stage_info["path"]).load()
 
         self.platforms = data["platforms"]
+        self.blast_bounds = self._make_blast_bounds(self.platforms)
 
         sp1 = data.get("player_spawn", [220, 340])
         sp2 = data.get("boss_spawn", [940, 340])
@@ -112,6 +114,7 @@ class BattleSession:
 
         self._snap_spawn_to_platform(self.player1)
         self._snap_spawn_to_platform(self.player2)
+        self._set_fixed_respawn_points()
 
         self.player1.stocks = self.player1_stocks
         self.player2.stocks = self.player2_stocks
@@ -170,6 +173,47 @@ class BattleSession:
         player.spawn_x = player.rect.x
         player.spawn_y = player.rect.y
 
+    def _set_fixed_respawn_points(self):
+        if not self.platforms:
+            return
+
+        for player, side in ((self.player1, "left"), (self.player2, "right")):
+            if player is None:
+                continue
+
+            platform = self._respawn_platform_for_side(side)
+            max_inset = max(0, platform.w // 2 - player.rect.w // 2)
+            inset = min(self.RESPAWN_EDGE_INSET, max_inset)
+            if side == "left":
+                center_x = platform.left + inset
+            else:
+                center_x = platform.right - inset
+
+            player.spawn_x = int(center_x - player.rect.w // 2)
+            player.spawn_y = int(platform.top - player.rect.h)
+
+    def _respawn_platform_for_side(self, side):
+        max_width = max(p.w for p in self.platforms)
+        widest = [p for p in self.platforms if p.w == max_width]
+        if side == "left":
+            return min(widest, key=lambda p: p.centerx)
+        return max(widest, key=lambda p: p.centerx)
+
+    def _make_blast_bounds(self, platforms):
+        if not platforms:
+            return pygame.Rect(
+                -BLAST_MARGIN,
+                -BLAST_MARGIN,
+                SCREEN_WIDTH + BLAST_MARGIN * 2,
+                SCREEN_HEIGHT + BLAST_MARGIN * 2,
+            )
+
+        left = min(p.left for p in platforms) - BLAST_MARGIN
+        right = max(p.right for p in platforms) + BLAST_MARGIN
+        top = min(p.top for p in platforms) - BLAST_MARGIN
+        bottom = max(p.bottom for p in platforms) + BLAST_MARGIN
+        return pygame.Rect(left, top, right - left, bottom - top)
+
     def _on_stock_lost(self, data):
         lost_player = data.get("player")
         killer = data.get("killer")
@@ -183,7 +227,8 @@ class BattleSession:
         # 모든 영역 배경/상태 제거
         if hasattr(self, "domain_sys") and self.domain_sys:
             if hasattr(self.domain_sys, "force_clear_all"):
-                self.domain_sys.force_clear_all(winner=killer, cutscene=True)
+                cutscene = data.get("reason") != "finisher"
+                self.domain_sys.force_clear_all(winner=killer, cutscene=cutscene)
 
         # 양쪽 플레이어 영역 스탯/스택 전부 초기화
         for p in (self.player1, self.player2):
@@ -244,6 +289,8 @@ class BattleSession:
             self.domain_sys.update()
         if self.finisher_sys:
             self.finisher_sys.update()
+            if not self.finisher_sys.active:
+                self._check_result()
 
         if (self.domain_sys and self.domain_sys.gameplay_frozen) or \
                 (self.finisher_sys and self.finisher_sys.gameplay_frozen):
@@ -318,13 +365,11 @@ class BattleSession:
             if getattr(p, "respawning", False):
                 continue
 
-            sx, sy = self.camera.world_to_screen(p.rect.x, p.rect.y)
-
             if (
-                sx < -BLAST_MARGIN
-                or sx > SCREEN_WIDTH + BLAST_MARGIN
-                or sy < -BLAST_MARGIN
-                or sy > SCREEN_HEIGHT + BLAST_MARGIN
+                p.rect.right < self.blast_bounds.left
+                or p.rect.left > self.blast_bounds.right
+                or p.rect.bottom < self.blast_bounds.top
+                or p.rect.top > self.blast_bounds.bottom
             ):
                 if hasattr(p, "lose_stock"):
                     p.lose_stock(self.event_bus)
@@ -400,6 +445,8 @@ class BattleSession:
         )
 
     def _on_entity_dead(self, _data):
+        if self.finisher_sys and self.finisher_sys.active:
+            return
         self._check_result()
 
     # ─────────────────────────────────────────────
@@ -447,5 +494,8 @@ class BattleSession:
         self.player2.draw(self.screen, self.camera)
 
         self.floater_sys.draw(self.screen, self.camera)
+
+        if self.finisher_sys:
+            self.finisher_sys.draw_overlay()
 
         self.renderer.draw_hud([self.player1, self.player2])

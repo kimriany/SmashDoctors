@@ -32,7 +32,46 @@ import math
 CHAR_PER_FRAME = 1   # 프레임당 출력 글자 수
 
 
+IMAGE_ALIASES = {
+    "chemistry_wasteland.png": "assets/images/bg_stage_02.jpeg",
+    "chemistry_lab.png": "assets/images/bg_stage_02.jpeg",
+    "Mirrorwall.png": "assets/images/story/timecountry_alert.png",
+    "Phylab.png": "assets/images/bg_stage_04.jpeg",
+    "vsme.png": "assets/images/story/timecountry_alert.png",
+    "gravity_world.png": "assets/images/bg_stage_04.jpeg",
+    "future_bureau_destroyed.jpg": "assets/images/story/timecountry_alert.png",
+    "apple_tree.jpg": "assets/images/story/nature.png",
+    "charmain.jpg": "assets/images/story/charmain.png",
+    "Schrodinger.png": "assets/images/story/Schrödinger.png",
+    "Hawking.png": "assets/images/story/Hoking.png",
+    "future_hora.png": "assets/images/story/charmain.png",
+    "Newton_young.png": "assets/images/story/Newton.png",
+    "future_past.png": "assets/images/story/timecountry_alert.png",
+    "flashback.png": "assets/images/story/timecountry_alert.png",
+    "timelooper.png": "assets/images/story/timecountry_alert.png",
+}
+
+
+def _resolve_img_path(path):
+    if not path:
+        return path
+    if os.path.exists(path):
+        return path
+
+    base = os.path.basename(path)
+    alias = IMAGE_ALIASES.get(base)
+    if alias and os.path.exists(alias):
+        return alias
+
+    story_path = os.path.join("assets/images/story", base)
+    if os.path.exists(story_path):
+        return story_path
+
+    return path
+
+
 def _load_img(path, size=None) -> pygame.Surface | None:
+    path = _resolve_img_path(path)
     if not path or not os.path.exists(path):
         return None
     try:
@@ -91,6 +130,7 @@ class StoryScene:
         self._trans_progress  = 0.0
         self._shake_timer     = 0
         self._shake_x         = 0
+        self._flash_timer     = 0
         # 타이틀 카드
         self._title_card = None
         self._title_timer = 0
@@ -116,6 +156,8 @@ class StoryScene:
             "주인공": {"slot": "left", "image": "assets/images/story/charmain.png"},
             "미래의 주인공": {"slot": "right", "image": "assets/images/story/charmain.png"},
             "거울 속 주인공": {"slot": "right", "image": "assets/images/story/charmain.png"},
+            "미래의 Hora": {"slot": "right", "image": "assets/images/story/charmain.png"},
+            "거울 속 Hora": {"slot": "right", "image": "assets/images/story/charmain.png"},
 
             "과학자 A": {"slot": "left", "image": "assets/images/story/question.png"},
             "과학자 B": {"slot": "left", "image": "assets/images/story/question.png"},
@@ -276,6 +318,9 @@ class StoryScene:
 
             return
 
+        if self._flash_timer > 0:
+            self._flash_timer -= 1
+
     # ── 커맨드 실행 ─────────────────────────────────────────────
     def _run_next(self):
         """다음 커맨드를 처리. 대기가 필요한 커맨드는 중단."""
@@ -378,6 +423,9 @@ class StoryScene:
                 self._ideology_timer = 180
                 return
 
+            elif action == "flash":
+                self._flash_timer = cmd.get("duration", 18)
+
             elif action == "pause":
                 self._pause_timer = cmd.get("duration", 60)
                 return
@@ -427,7 +475,7 @@ class StoryScene:
         self._chars["right"] = None
 
         # SYSTEM이나 내레이션이면 캐릭터를 표시하지 않음
-        if speaker in ("", "SYSTEM"):
+        if speaker in ("", "SYSTEM", "플레이어"):
             return
 
         info = self._character_db.get(
@@ -499,6 +547,12 @@ class StoryScene:
         if self._ideology_timer > 0:
             self._draw_ideology_shift()
             return
+
+        if self._flash_timer > 0:
+            alpha = int(210 * (self._flash_timer / 18))
+            flash = pygame.Surface((self.W, self.H), pygame.SRCALPHA)
+            flash.fill((255, 255, 255, alpha))
+            self.screen.blit(flash, (0, 0))
 
         # ── 대사창 ──
         if self._full_text or self._waiting:

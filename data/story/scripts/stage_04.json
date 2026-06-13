@@ -2,63 +2,917 @@
   "id": "stage_04",
   "title": "물리 스테이지",
   "next_on_win": "stage_05",
-  "boss_class": "entities.Boss_characters.Newton",
-  "boss_name": "뉴턴",
+  "boss_class": "entities.characters.Einstein.Einstein",
+  "boss_name": "아인슈타인",
+  "boss_stocks": 4,
   "stage_json": "data/stages/stage_04.json",
+  "battle_configs": {
+    "1": {
+      "boss_class": "entities.characters.Pita.Pita",
+      "boss_name": "뉴턴",
+      "boss_stocks": 3
+    },
+    "2": {
+      "boss_class": "entities.characters.Hoking.Hoking",
+      "boss_name": "호킹",
+      "boss_stocks": 3
+    },
+    "3": {
+      "boss_class": "entities.characters.Einstein.Einstein",
+      "boss_name": "아인슈타인 1페이즈",
+      "boss_stocks": 3
+    },
+    "4": {
+      "boss_class": "entities.characters.Einstein.Einstein",
+      "boss_name": "아인슈타인 2페이즈",
+      "boss_stocks": 4
+    }
+  },
   "script_pre_battle": [
-    {"cmd": "bg",      "image": "assets/images/story/bg_physics.png", "transition": "fade"},
-    {"cmd": "dialog",  "speaker": "SYSTEM",  "text": "중력 이상 감지\n시공간 왜곡 감지\n물리 영역 붕괴 진행 중"},
-    {"cmd": "dialog",  "speaker": "주인공", "text": "물리학..."},
-    {"cmd": "show_char","slot": "right", "image": "assets/images/story/char_newton.png"},
-    {"cmd": "dialog",  "speaker": "뉴턴",   "text": "자네도 보이는가?"},
-    {"cmd": "dialog",  "speaker": "뉴턴",   "text": "사과가 떨어지지 않는군."},
-    {"cmd": "dialog",  "speaker": "주인공", "text": "중력이 붕괴하고 있다."},
-    {"cmd": "dialog",  "speaker": "뉴턴",   "text": "아니. 중력이 아니라. 결과가 붕괴하고 있네."},
-    {"cmd": "dialog",  "speaker": "뉴턴",   "text": "이젠 이유보다 결과가 먼저 존재하고 있어."},
-    {"cmd": "dialog",  "speaker": "뉴턴",   "text": "원인이 자네 자신일 수도 있는데."},
-    {"cmd": "battle_start"}
+    {
+      "cmd": "bg",
+      "image": "assets/images/story/Phylab.png",
+      "transition": "fade"
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "",
+      "text": "물리 스테이지 진입."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "",
+      "text": "독백 공간이 붕괴한다."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "",
+      "text": "새하얀 공간이 균열을 일으킨다."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "",
+      "text": "거울 조각들이 허공으로 흩어진다."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "Hora",
+      "text": "..."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "Hora",
+      "text": "평온의 영향 때문인지."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "Hora",
+      "text": "생각이 잘 이어지지 않는다."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "Hora",
+      "text": "이제 마지막 원인만 찾으면 된다."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "SYSTEM",
+      "text": "중력 이상 감지"
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "SYSTEM",
+      "text": "시공간 왜곡 감지"
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "SYSTEM",
+      "text": "물리 영역 붕괴 진행 중"
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "Hora",
+      "text": "물리학..."
+    },
+    {
+      "cmd": "label",
+      "id": "choose_physics"
+    },
+    {
+      "cmd": "choice",
+      "options": [
+        {
+          "text": "물리학",
+          "goto": "physics_path"
+        },
+        {
+          "text": "지구과학",
+          "goto": "earth_path"
+        }
+      ]
+    },
+    {
+      "cmd": "label",
+      "id": "earth_path"
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "SYSTEM",
+      "text": "너무 방대하고 잡다해서."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "SYSTEM",
+      "text": "이것을 탐구하다가는 시간선의 붕괴를 막을 수 없을 것 같다."
+    },
+    {
+      "cmd": "goto",
+      "target": "choose_physics"
+    },
+    {
+      "cmd": "label",
+      "id": "physics_path"
+    },
+    {
+      "cmd": "bg",
+      "image": "assets/images/story/gravity_world.png",
+      "transition": "fade"
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "",
+      "text": "하늘이 갈라져 있다."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "",
+      "text": "위쪽에는 낮."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "",
+      "text": "아래쪽에는 밤."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "",
+      "text": "비가 위로 올라간다."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "",
+      "text": "사과가 떨어지다 멈춘다."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "",
+      "text": "중력이 불안정하다."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "Hora",
+      "text": "공간 자체가 뒤틀리고 있군."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "",
+      "text": "멀리 거대한 사과나무가 보인다."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "뉴턴",
+      "text": "자네도 보이는가?"
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "Hora",
+      "text": "..."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "뉴턴",
+      "text": "사과가 떨어지지 않는군."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "Hora",
+      "text": "중력이 붕괴하고 있다."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "뉴턴",
+      "text": "고개를 젓는다."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "뉴턴",
+      "text": "아니."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "Hora",
+      "text": "?"
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "뉴턴",
+      "text": "중력이 아니라."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "뉴턴",
+      "text": "결과가 붕괴하고 있네."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "Hora",
+      "text": "무슨 소리지."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "뉴턴",
+      "text": "원인과 결과."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "뉴턴",
+      "text": "떨어지는 이유가 있어서 떨어지는 것인데."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "",
+      "text": "뉴턴이 사과를 가리킨다."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "뉴턴",
+      "text": "이젠 이유보다 결과가 먼저 존재하고 있어."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "Hora",
+      "text": "..."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "뉴턴",
+      "text": "세상이 순서를 잊고 있네."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "Hora",
+      "text": "그래서 중력이 원자핵을 붙잡는다고 주장한 건가."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "뉴턴",
+      "text": "웃는다."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "뉴턴",
+      "text": "자네는 아직도 원인을 찾고 있군."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "뉴턴",
+      "text": "원인이 자네 자신일 수도 있는데."
+    },
+    {
+      "cmd": "battle_start"
+    }
   ],
   "script_post_battle": [
-    {"cmd": "show_char","slot": "right", "image": "assets/images/story/char_newton_defeat.png"},
-    {"cmd": "dialog",  "speaker": "주인공", "text": "사상 변화."},
-    {"cmd": "hide_char","slot": "right"},
-    {"cmd": "show_char","slot": "right", "image": "assets/images/story/char_hawking.png"},
-    {"cmd": "dialog",  "speaker": "호킹",   "text": "이상하다고 생각한 적 없나?"},
-    {"cmd": "dialog",  "speaker": "호킹",   "text": "왜 항상 네가 이 자리에 있는지."},
-    {"cmd": "dialog",  "speaker": "주인공", "text": "난 시간관리국 국장이다."},
-    {"cmd": "dialog",  "speaker": "호킹",   "text": "그건 직책이고. 내가 묻는 건 존재 이유다."},
-    {"cmd": "dialog",  "speaker": "호킹",   "text": "블랙홀은 정보를 삼킨다."},
-    {"cmd": "dialog",  "speaker": "호킹",   "text": "그런데 시간은. 정보를 잊지 않는다."},
-    {"cmd": "dialog",  "speaker": "호킹",   "text": "아무리 되돌려도. 흔적은 남는다."},
-    {"cmd": "battle_start_2"}
+    {
+      "cmd": "dialog",
+      "speaker": "",
+      "text": "뉴턴이 무릎을 꿇는다."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "Hora",
+      "text": "사상 변화."
+    },
+    {
+      "cmd": "ideology_shift"
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "SYSTEM",
+      "text": "물리 법칙 재구성."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "SYSTEM",
+      "text": "원인과 결과의 흐름 복원."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "뉴턴",
+      "text": "자네는 참 이상한 사람이야."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "Hora",
+      "text": "..."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "뉴턴",
+      "text": "결과를 고치면서."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "뉴턴",
+      "text": "원인을 찾고 있으니 말일세."
+    },
+    {
+      "cmd": "hide_char",
+      "slot": "right"
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "",
+      "text": "빛으로 흩어진다."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "Hora",
+      "text": "..."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "Hora",
+      "text": "전부 의미 없는 소리군."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "",
+      "text": "하지만 표정은 좋지 않다."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "",
+      "text": "전진한다."
+    },
+    {
+      "cmd": "shake"
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "",
+      "text": "하늘에 균열이 생긴다."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "",
+      "text": "균열 너머로."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "",
+      "text": "미래와 과거가 동시에 보인다."
+    },
+    {
+      "cmd": "show_image",
+      "image": "assets/images/story/future_past.png"
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "Hora",
+      "text": "!"
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "",
+      "text": "어린 시절의 자신."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "",
+      "text": "노년의 자신."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "Hora",
+      "text": "착각인가."
+    },
+    {
+      "cmd": "hide_image"
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "",
+      "text": "멀리 검은 구체가 보인다."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "호킹",
+      "text": "늦었군."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "Hora",
+      "text": "날 알고 있나?"
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "호킹",
+      "text": "모를 리가."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "호킹",
+      "text": "여러 번 봤으니까."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "Hora",
+      "text": "..."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "Hora",
+      "text": "무슨 뜻이지."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "호킹",
+      "text": "이상하다고 생각한 적 없나?"
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "호킹",
+      "text": "왜 항상 네가 이 자리에 있는지."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "Hora",
+      "text": "난 시간관리국 국장이다."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "호킹",
+      "text": "그건 직책이고."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "호킹",
+      "text": "내가 묻는 건 존재 이유다."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "SYSTEM",
+      "text": "정적."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "호킹",
+      "text": "블랙홀은 정보를 삼킨다."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "Hora",
+      "text": "알고 있다."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "호킹",
+      "text": "그런데 시간은."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "호킹",
+      "text": "정보를 잊지 않는다."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "Hora",
+      "text": "..."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "호킹",
+      "text": "아무리 되돌려도."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "호킹",
+      "text": "흔적은 남는다."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "Hora",
+      "text": "..."
+    },
+    {
+      "cmd": "battle_start_2"
+    }
   ],
   "script_post_battle_2": [
-    {"cmd": "show_char","slot": "right", "image": "assets/images/story/char_hawking_defeat.png"},
-    {"cmd": "dialog",  "speaker": "주인공", "text": "사상 변화."},
-    {"cmd": "dialog",  "speaker": "호킹",   "text": "그 능력. 정말 상대를 바꾸는 능력이라고 생각하나?"},
-    {"cmd": "dialog",  "speaker": "호킹",   "text": "곧 알게 될 걸세."},
-    {"cmd": "hide_char","slot": "right"},
-    {"cmd": "show_char","slot": "right", "image": "assets/images/story/char_einstein.png"},
-    {"cmd": "dialog",  "speaker": "아인슈타인", "text": "결국 여기까지 왔군."},
-    {"cmd": "dialog",  "speaker": "아인슈타인", "text": "지금 무슨 짓을 하고 있는지는 알고 있나?"},
-    {"cmd": "dialog",  "speaker": "주인공",     "text": "시간선을 복구하고 있다."},
-    {"cmd": "dialog",  "speaker": "아인슈타인", "text": "아니. 자네는 시간선을 망가뜨리고 있네."},
-    {"cmd": "dialog",  "speaker": "아인슈타인", "text": "이번이 몇 번째인가?"},
-    {"cmd": "dialog",  "speaker": "아인슈타인", "text": "8번째겠지."},
-    {"cmd": "choice",  "options": [
-      {"text": "스킬 사용",   "goto": "use_skill"},
-      {"text": "스킬 미사용", "goto": "no_skill"}
-    ]},
-    {"cmd": "label",   "id": "no_skill"},
-    {"cmd": "dialog",  "speaker": "SYSTEM",     "text": "선택 불가\n패시브 : 평온\n사고 차단 중"},
-    {"cmd": "label",   "id": "use_skill"},
-    {"cmd": "dialog",  "speaker": "아인슈타인", "text": "자기 자신을 수정한 건가. 그건 정말 최악의 선택이었군."},
-    {"cmd": "dialog",  "speaker": "주인공",     "text": "사상 변화."},
-    {"cmd": "dialog",  "speaker": "아인슈타인", "text": "그 문을 열어버렸군."},
-    {"cmd": "shake"},
-    {"cmd": "dialog",  "speaker": "아인슈타인", "text": "이제 만나게 될 걸세. 진짜 범인을."},
-    {"cmd": "bg",      "image": null, "transition": "fade_black"},
-    {"cmd": "dialog",  "speaker": "SYSTEM", "text": "Location : 최후의 물리 실험실"},
-    {"cmd": "end"}
+    {
+      "cmd": "dialog",
+      "speaker": "Hora",
+      "text": "사상 변화."
+    },
+    {
+      "cmd": "ideology_shift"
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "SYSTEM",
+      "text": "시공간 복원."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "호킹",
+      "text": "그 능력."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "Hora",
+      "text": "..."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "호킹",
+      "text": "정말 상대를 바꾸는 능력이라고 생각하나?"
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "Hora",
+      "text": "무슨 뜻이지."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "호킹",
+      "text": "곧 알게 될 걸세."
+    },
+    {
+      "cmd": "hide_char",
+      "slot": "right"
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "SYSTEM",
+      "text": "짝."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "SYSTEM",
+      "text": "짝."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "SYSTEM",
+      "text": "짝."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "아인슈타인",
+      "text": "결국 여기까지 왔군."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "아인슈타인",
+      "text": "### **89 ~ 120**"
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "아인슈타인",
+      "text": "(아인슈타인과의 대화 전체 확장)"
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "아인슈타인",
+      "text": "시간 역행의 위법성"
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "아인슈타인",
+      "text": "8회차 루프 언급"
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "아인슈타인",
+      "text": "반복된 만남 암시"
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "아인슈타인",
+      "text": "Hora의 최초 동요"
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "아인슈타인",
+      "text": "\"나는 자네를 여러 번 만났네\""
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "아인슈타인",
+      "text": "\"이번이 8번째겠지\""
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "아인슈타인",
+      "text": "등을 더 길고 공격적으로 전개."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "아인슈타인",
+      "text": "지금 무슨 짓을 하고 있는지는 알고 있나?"
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "Hora",
+      "text": "시간선을 복구하고 있다."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "아인슈타인",
+      "text": "복구라. 참 편리한 말이지."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "아인슈타인",
+      "text": "자네는 법칙을 고치는 것이 아니라 법칙 위에 서려 하고 있네."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "Hora",
+      "text": "시간선이 무너지고 있다. 방치할 수 없다."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "아인슈타인",
+      "text": "그래서 또 되돌렸나?"
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "Hora",
+      "text": "..."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "아인슈타인",
+      "text": "나는 자네를 여러 번 만났네."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "Hora",
+      "text": "무슨 뜻이지?"
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "아인슈타인",
+      "text": "첫 번째도. 세 번째도. 일곱 번째도."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "아인슈타인",
+      "text": "그리고 이번이 8번째겠지."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "Hora",
+      "text": "...말도 안 된다."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "아인슈타인",
+      "text": "시간 역행은 자네가 생각하는 구원 장치가 아닐세."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "아인슈타인",
+      "text": "위법한 결과는 반드시 흔적을 남기지."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "아인슈타인",
+      "text": "그 흔적들이 지금 자네를 향해 돌아오고 있네."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "Hora",
+      "text": "나는 오류를 제거할 뿐이다."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "아인슈타인",
+      "text": "아니. 자네는 오류라는 이름으로 원인을 지워왔네."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "아인슈타인",
+      "text": "이제 그 대가를 관측할 시간일세."
+    },
+    {
+      "cmd": "battle_start_3"
+    }
+  ],
+  "script_post_battle_3": [
+    {
+      "cmd": "shake"
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "",
+      "text": "2페이즈 돌입."
+    },
+    {
+      "cmd": "battle_start_4"
+    }
+  ],
+  "script_post_battle_4": [
+    {
+      "cmd": "dialog",
+      "speaker": "Hora",
+      "text": "끝이다."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "Hora",
+      "text": "사상 변화."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "아인슈타인",
+      "text": "자네."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "아인슈타인",
+      "text": "그거 8번째 스킬 발동 아닌가?"
+    },
+    {
+      "cmd": "show_image",
+      "image": "assets/images/story/flashback.png"
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "SYSTEM",
+      "text": "크릭."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "SYSTEM",
+      "text": "다윈."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "SYSTEM",
+      "text": "퀴리."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "SYSTEM",
+      "text": "슈뢰딩거."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "SYSTEM",
+      "text": "자기 자신."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "SYSTEM",
+      "text": "뉴턴."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "SYSTEM",
+      "text": "호킹."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "Hora",
+      "text": "..."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "아인슈타인",
+      "text": "8번째 역행."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "아인슈타인",
+      "text": "8번째 사용."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "아인슈타인",
+      "text": "참으로 아름다운 우연이군."
+    },
+    {
+      "cmd": "choice",
+      "options": [
+        {
+          "text": "스킬 사용",
+          "goto": "use_skill"
+        },
+        {
+          "text": "스킬 미사용",
+          "goto": "no_skill"
+        }
+      ]
+    },
+    {
+      "cmd": "label",
+      "id": "no_skill"
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "SYSTEM",
+      "text": "선택 불가"
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "Hora",
+      "text": "...?"
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "SYSTEM",
+      "text": "패시브 : 평온"
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "SYSTEM",
+      "text": "사고 차단 중"
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "Hora",
+      "text": "설마..."
+    },
+    {
+      "cmd": "label",
+      "id": "use_skill"
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "아인슈타인",
+      "text": "자기 자신을 수정한 건가."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "Hora",
+      "text": "..."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "아인슈타인",
+      "text": "그건 정말 최악의 선택이었군."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "Hora",
+      "text": "사상 변화."
+    },
+    {
+      "cmd": "ideology_shift"
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "SYSTEM",
+      "text": "대규모 시간선 붕괴."
+    },
+    {
+      "cmd": "shake"
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "",
+      "text": "하늘이 갈라진다."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "",
+      "text": "과거와 미래가 동시에 나타난다."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "",
+      "text": "시간선이 무너지기 시작한다."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "아인슈타인",
+      "text": "이제 만나게 될 걸세."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "아인슈타인",
+      "text": "진짜 범인을."
+    },
+    {
+      "cmd": "bg",
+      "image": null,
+      "transition": "fade_black"
+    },
+    {
+      "cmd": "end"
+    }
   ]
 }

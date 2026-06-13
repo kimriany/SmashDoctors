@@ -2,52 +2,753 @@
   "id": "stage_02",
   "title": "화학 스테이지",
   "next_on_win": "stage_03",
-  "boss_class": "entities.Boss_characters.Curie",
+  "boss_class": "entities.characters.Curie.Curie",
   "boss_name": "퀴리",
+  "boss_stocks": 3,
   "stage_json": "data/stages/stage_02.json",
+  "battle_configs": {
+    "1": {
+      "boss_class": "entities.characters.Curie.Curie",
+      "boss_name": "퀴리",
+      "boss_stocks": 3
+    },
+    "2": {
+      "boss_class": "entities.characters.Schrödinger.Schrödinger",
+      "boss_name": "슈뢰딩거",
+      "boss_stocks": 3
+    }
+  },
   "script_pre_battle": [
-    {"cmd": "bg",      "image": "assets/images/story/bg_lab.png", "transition": "fade"},
-    {"cmd": "dialog",  "speaker": "주인공", "text": "물질 구조가 붕괴하고 있다."},
-    {"cmd": "dialog",  "speaker": "SYSTEM",  "text": "원자 결합 불안정\n물질 안정도 저하\n화학 영역 이상 감지"},
-    {"cmd": "dialog",  "speaker": "주인공", "text": "이번엔 화학인가."},
-    {"cmd": "show_char","slot": "right", "image": "assets/images/story/char_curie.png"},
-    {"cmd": "dialog",  "speaker": "퀴리",   "text": "아름답지 않나?"},
-    {"cmd": "dialog",  "speaker": "주인공", "text": "그건 빛이 아니다. 방사선이다."},
-    {"cmd": "dialog",  "speaker": "퀴리",   "text": "이름이 중요한가?"},
-    {"cmd": "dialog",  "speaker": "주인공", "text": "세계가 무너지고 있다."},
-    {"cmd": "dialog",  "speaker": "퀴리",   "text": "세계는 늘 무너지고 있었어. 인간이 몰랐을 뿐."},
-    {"cmd": "dialog",  "speaker": "퀴리",   "text": "발견은 세상을 바꾸지. 그리고 자네는 누구보다 많이 바꿔왔잖아?"},
-    {"cmd": "battle_start"}
+    {
+      "cmd": "bg",
+      "image": "assets/images/story/chemistry_wasteland.png",
+      "transition": "fade"
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "SYSTEM",
+      "text": "생명 영역 복구 진행 중..."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "SYSTEM",
+      "text": "생명 영역 안정화 확인."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "SYSTEM",
+      "text": "새로운 이상 영역 탐색 중..."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "SYSTEM",
+      "text": "탐색 완료."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "SYSTEM",
+      "text": "화학 영역 진입."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "",
+      "text": "다윈이 쓰러진 자리."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "",
+      "text": "그의 손이 닿았던 땅이 서서히 녹아내리고 있다."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "Hora",
+      "text": "..."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "",
+      "text": "Hora가 천천히 발밑을 내려다본다."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "Hora",
+      "text": "이건..."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "",
+      "text": "흙이 더 이상 흙이 아니다."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "",
+      "text": "돌이 더 이상 돌이 아니다."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "",
+      "text": "모든 물질이 형태를 유지하지 못한 채 일그러지고 있다."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "Hora",
+      "text": "물질 구조가 붕괴하고 있다."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "SYSTEM",
+      "text": "분석 장치 연결."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "SYSTEM",
+      "text": "원자 결합 불안정."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "SYSTEM",
+      "text": "물질 안정도 저하."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "SYSTEM",
+      "text": "화학 영역 이상 감지."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "Hora",
+      "text": "이번엔 화학인가."
+    },
+    {
+      "cmd": "label",
+      "id": "choose_science"
+    },
+    {
+      "cmd": "choice",
+      "options": [
+        {
+          "text": "화학",
+          "goto": "chemistry_path"
+        },
+        {
+          "text": "지질",
+          "goto": "geology_path"
+        }
+      ]
+    },
+    {
+      "cmd": "label",
+      "id": "geology_path"
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "SYSTEM",
+      "text": "조사 실패."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "Hora",
+      "text": "흠."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "Hora",
+      "text": "지질 현상도 이상하긴 하지만..."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "Hora",
+      "text": "이걸 추적했다간 너무 범위가 넓어."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "Hora",
+      "text": "핵심은 다른 곳에 있는 것 같군."
+    },
+    {
+      "cmd": "goto",
+      "target": "choose_science"
+    },
+    {
+      "cmd": "label",
+      "id": "chemistry_path"
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "",
+      "text": "Hora는 붕괴한 평원을 걷기 시작한다."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "",
+      "text": "맵 곳곳에서 녹색 빛이 새어 나온다."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "",
+      "text": "기형적으로 자라난 광물."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "",
+      "text": "공중에 떠다니는 액체."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "",
+      "text": "결정 구조를 유지하지 못하고 무너져 내리는 수정들."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "Hora",
+      "text": "..."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "Hora",
+      "text": "원소들이 자기 역할을 잊고 있어."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "",
+      "text": "그 순간."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "",
+      "text": "멀리서 강렬한 녹색 섬광이 번쩍인다."
+    },
+    {
+      "cmd": "shake"
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "Hora",
+      "text": "저건..."
+    },
+    {
+      "cmd": "bg",
+      "image": "assets/images/story/chemistry_lab.png",
+      "transition": "fade"
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "",
+      "text": "거대한 연구소."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "",
+      "text": "실험 장비들이 끝없이 작동하고 있다."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "",
+      "text": "그 중앙."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "",
+      "text": "한 여성이 녹색 광석을 들고 서 있다."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "퀴리",
+      "text": "아름답지 않나?"
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "Hora",
+      "text": "..."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "퀴리",
+      "text": "인간은 늘 빛을 두려워했지."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "Hora",
+      "text": "그건 빛이 아니다."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "Hora",
+      "text": "방사선이다."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "퀴리",
+      "text": "후후."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "퀴리",
+      "text": "이름이 중요한가?"
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "Hora",
+      "text": "세계가 무너지고 있다."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "퀴리",
+      "text": "세계는 늘 무너지고 있었어."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "퀴리",
+      "text": "인간이 몰랐을 뿐."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "Hora",
+      "text": "자네가 원인인가."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "퀴리",
+      "text": "원인이라..."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "퀴리",
+      "text": "그렇다면 뉴턴도 원인이고."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "퀴리",
+      "text": "다윈도 원인이겠지."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "퀴리",
+      "text": "그리고 자네도."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "Hora",
+      "text": "무슨 소리지?"
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "퀴리",
+      "text": "발견은 세상을 바꾸지."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "퀴리",
+      "text": "그리고 자네는."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "퀴리",
+      "text": "누구보다 많이 세상을 바꿔왔잖아?"
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "Hora",
+      "text": "..."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "퀴리",
+      "text": "어쨌든 난 답을 찾았어."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "Hora",
+      "text": "답?"
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "퀴리",
+      "text": "원자핵을 묶는 힘."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "Hora",
+      "text": "..."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "퀴리",
+      "text": "중력이야."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "Hora",
+      "text": "말도 안 되는 소리군."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "퀴리",
+      "text": "왜?"
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "Hora",
+      "text": "그 정도 힘으로는 설명되지 않는다."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "퀴리",
+      "text": "설명은 언제든 바뀔 수 있지."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "퀴리",
+      "text": "진실도 함께."
+    },
+    {
+      "cmd": "battle_start"
+    }
   ],
   "script_post_battle": [
-    {"cmd": "show_char","slot": "right", "image": "assets/images/story/char_curie_defeat.png"},
-    {"cmd": "dialog",  "speaker": "주인공", "text": "사상 변화."},
-    {"cmd": "dialog",  "speaker": "퀴리",   "text": "이상하군."},
-    {"cmd": "dialog",  "speaker": "주인공", "text": "뭐가?"},
-    {"cmd": "dialog",  "speaker": "퀴리",   "text": "자네 쪽이 더 오염되어 보여."},
-    {"cmd": "dialog",  "speaker": "퀴리",   "text": "대체 몇 번이나 되돌린 거지?"},
-    {"cmd": "hide_char","slot": "right"},
-    {"cmd": "dialog",  "speaker": "SYSTEM", "text": "상태이상 획득\n우라늄\n지속 피해 발생\n게임 종료까지 제거 불가"},
-    {"cmd": "dialog",  "speaker": "주인공", "text": "젠장..."},
-    {"cmd": "show_char","slot": "right", "image": "assets/images/story/char_schrodinger.png"},
-    {"cmd": "dialog",  "speaker": "슈뢰딩거", "text": "마침내 왔군."},
-    {"cmd": "dialog",  "speaker": "슈뢰딩거", "text": "자네는 관측자인가? 아니면 변수인가?"},
-    {"cmd": "dialog",  "speaker": "주인공",   "text": "무슨 뜻이지?"},
-    {"cmd": "dialog",  "speaker": "슈뢰딩거", "text": "관측자는 결과를 본다. 변수는 결과를 바꾼다."},
-    {"cmd": "dialog",  "speaker": "슈뢰딩거", "text": "그런데 자네는 결과를 보기 전에 나타나서 결과를 바꾸고 있잖나."},
-    {"cmd": "battle_start_2"}
+    {
+      "cmd": "dialog",
+      "speaker": "Hora",
+      "text": "사상 변화."
+    },
+    {
+      "cmd": "ideology_shift"
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "",
+      "text": "붕괴된 시간선이 펼쳐진다."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "Hora",
+      "text": "원자핵의 구조를 왜곡시킨 오류를 제거한다."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "퀴리",
+      "text": "하하..."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "Hora",
+      "text": "..."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "퀴리",
+      "text": "이상하군."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "Hora",
+      "text": "뭐가?"
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "퀴리",
+      "text": "자네 쪽이 더 오염되어 보여."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "Hora",
+      "text": "..."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "퀴리",
+      "text": "방사선보다 오래된 오염."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "퀴리",
+      "text": "대체 몇 번이나 되돌린 거지?"
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "퀴리",
+      "text": "몇 번째 루프인가?"
+    },
+    {
+      "cmd": "hide_char",
+      "slot": "right"
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "SYSTEM",
+      "text": "상태이상 획득."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "SYSTEM",
+      "text": "우라늄"
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "SYSTEM",
+      "text": "지속 피해 발생."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "SYSTEM",
+      "text": "게임 종료까지 제거 불가."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "Hora",
+      "text": "젠장..."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "",
+      "text": "연구소가 무너지기 시작한다."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "",
+      "text": "세계가 안정화되는 듯 보인다."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "",
+      "text": "그러나."
+    },
+    {
+      "cmd": "shake"
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "",
+      "text": "풍경이 뒤틀린다."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "",
+      "text": "한순간 실험실."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "",
+      "text": "한순간 숲."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "",
+      "text": "한순간 바다."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "Hora",
+      "text": "..."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "Hora",
+      "text": "현실이 겹치고 있다?"
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "",
+      "text": "멀리 수많은 상자가 보인다."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "",
+      "text": "그 중앙."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "",
+      "text": "한 남자가 서 있다."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "슈뢰딩거",
+      "text": "마침내 왔군."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "Hora",
+      "text": "자네가 마지막인가."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "슈뢰딩거",
+      "text": "글쎄."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "슈뢰딩거",
+      "text": "마지막이라는 건."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "슈뢰딩거",
+      "text": "관측하기 전까지 알 수 없지."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "Hora",
+      "text": "여전히 이해하기 힘든 소리를 하는군."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "슈뢰딩거",
+      "text": "이해 못 하는 게 아니라."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "슈뢰딩거",
+      "text": "이해하기 싫은 거겠지."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "슈뢰딩거",
+      "text": "궁금한 게 하나 있네."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "Hora",
+      "text": "뭔가."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "슈뢰딩거",
+      "text": "자네는 관측자인가?"
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "슈뢰딩거",
+      "text": "아니면 변수인가?"
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "Hora",
+      "text": "무슨 뜻이지?"
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "슈뢰딩거",
+      "text": "관측자는 결과를 본다."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "슈뢰딩거",
+      "text": "변수는 결과를 바꾼다."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "Hora",
+      "text": "..."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "슈뢰딩거",
+      "text": "그런데 자네는."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "슈뢰딩거",
+      "text": "결과를 보기 전에 나타나서."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "슈뢰딩거",
+      "text": "결과를 바꾸고 있잖나."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "Hora",
+      "text": "난 오류를 수정할 뿐이다."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "슈뢰딩거",
+      "text": "그게 같은 말이라고 생각하나?"
+    },
+    {
+      "cmd": "battle_start_2"
+    }
   ],
   "script_post_battle_2": [
-    {"cmd": "show_char","slot": "right", "image": "assets/images/story/char_schrodinger_defeat.png"},
-    {"cmd": "dialog",  "speaker": "주인공",   "text": "사상 변화."},
-    {"cmd": "dialog",  "speaker": "슈뢰딩거", "text": "이제야 알겠군."},
-    {"cmd": "dialog",  "speaker": "슈뢰딩거", "text": "당신은 고양이가 아니예요."},
-    {"cmd": "dialog",  "speaker": "슈뢰딩거", "text": "고양이는 상자 안에 있었어. 하지만 당신은..."},
-    {"cmd": "dialog",  "speaker": "슈뢰딩거", "text": "상자 밖에서 결과를 고르고 있었지."},
-    {"cmd": "hide_char","slot": "right"},
-    {"cmd": "dialog",  "speaker": "주인공",   "text": "...상자 밖에서 결과를 고른다고?"},
-    {"cmd": "bg",      "image": null, "transition": "fade_black"},
-    {"cmd": "dialog",  "speaker": "SYSTEM", "text": "Location : 화학 연구소"},
-    {"cmd": "end"}
+    {
+      "cmd": "dialog",
+      "speaker": "Hora",
+      "text": "사상 변화."
+    },
+    {
+      "cmd": "ideology_shift"
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "Hora",
+      "text": "원자 세계를 왜곡한 오류를 제거한다."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "슈뢰딩거",
+      "text": "하하하..."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "슈뢰딩거",
+      "text": "이제야 알겠군."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "Hora",
+      "text": "?"
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "슈뢰딩거",
+      "text": "당신은 고양이가 아니에요."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "Hora",
+      "text": "무슨 뜻이지?"
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "슈뢰딩거",
+      "text": "고양이는 상자 안에 있었어."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "슈뢰딩거",
+      "text": "하지만 당신은."
+    },
+    {
+      "cmd": "pause",
+      "duration": 60
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "슈뢰딩거",
+      "text": "상자 밖에서 결과를 고르고 있었지."
+    },
+    {
+      "cmd": "hide_char",
+      "slot": "right"
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "Hora",
+      "text": "..."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "Hora",
+      "text": "상자 밖에서 결과를 고른다고?"
+    },
+    {
+      "cmd": "bg",
+      "image": null,
+      "transition": "fade_black"
+    },
+    {
+      "cmd": "end"
+    }
   ]
 }

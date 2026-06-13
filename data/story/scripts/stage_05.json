@@ -1,60 +1,2091 @@
 {
   "id": "stage_05",
-  "title": "미래의 시간관리국",
+  "title": "5.NULL:ETER",
   "next_on_win": "ending",
-  "boss_class": "entities.Boss_characters.FutureProtagonist",
-  "boss_name": "미래의 주인공",
+  "boss_class": "entities.characters.Einstein.Einstein",
+  "boss_name": "미래의 Hora",
+  "boss_stocks": 5,
   "stage_json": "data/stages/stage_04.json",
+  "battle_configs": {
+    "1": {
+      "boss_class": "entities.characters.Einstein.Einstein",
+      "boss_name": "미래의 Hora",
+      "boss_stocks": 5
+    }
+  },
   "script_pre_battle": [
-    {"cmd": "bg",      "image": "assets/images/story/bg_ruined_hq.png", "transition": "fade"},
-    {"cmd": "dialog",  "speaker": "SYSTEM",  "text": "시간선 붕괴율 100%\n복구 불가"},
-    {"cmd": "dialog",  "speaker": "주인공", "text": "대체 무슨 일이 일어난 거지."},
-    {"cmd": "show_char","slot": "right", "image": "assets/images/story/char_future_self.png"},
-    {"cmd": "dialog",  "speaker": "미래의 주인공", "text": "드디어 왔군."},
-    {"cmd": "dialog",  "speaker": "미래의 주인공", "text": "8회차의 나."},
-    {"cmd": "dialog",  "speaker": "주인공",         "text": "넌 누구지."},
-    {"cmd": "dialog",  "speaker": "미래의 주인공", "text": "난 네가 될 존재다. 혹은. 이미 되어버린 존재지."},
-    {"cmd": "dialog",  "speaker": "주인공",         "text": "네가 이 사태의 원인인가?"},
-    {"cmd": "dialog",  "speaker": "미래의 주인공", "text": "아니다. 난 결과일 뿐이다."},
-    {"cmd": "dialog",  "speaker": "미래의 주인공", "text": "자네는 아직도 사상 변화를 상대의 생각을 바꾸는 능력이라고 믿고 있나?"},
-    {"cmd": "dialog",  "speaker": "미래의 주인공", "text": "아니야. 자네는 역사 자체를 수정했지."},
-    {"cmd": "dialog",  "speaker": "미래의 주인공", "text": "잘못된 결론을 지운 것이 아니다. 그 결론에 도달하는 과정을 시간선에서 삭제한 거야."},
-    {"cmd": "dialog",  "speaker": "주인공",         "text": "그렇다면 왜 지금까지는 괜찮았지?"},
-    {"cmd": "dialog",  "speaker": "미래의 주인공", "text": "괜찮지 않았어. 단지 눈치채지 못했을 뿐."},
-    {"cmd": "dialog",  "speaker": "미래의 주인공", "text": "시간은 원래 되돌릴 수 없는 법칙이다. 그런데 우리는. 일곱 번이나 그 법칙을 깨뜨렸지."},
-    {"cmd": "dialog",  "speaker": "미래의 주인공", "text": "8번째부터는 달랐다. 시간이 널 기억하기 시작했거든."},
-    {"cmd": "dialog",  "speaker": "주인공",         "text": "...내가 범인이라는 건가."},
-    {"cmd": "dialog",  "speaker": "미래의 주인공", "text": "이제야 이해했군."},
-    {"cmd": "dialog",  "speaker": "주인공",         "text": "그래도 멈출 수는 없다."},
-    {"cmd": "dialog",  "speaker": "미래의 주인공", "text": "알고 있다. 나도 같은 선택을 했으니까. 여러 번."},
-    {"cmd": "battle_start"}
+    {
+      "cmd": "bg",
+      "image": "assets/images/story/vsme.png",
+      "transition": "fade"
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "",
+      "text": "진입."
+    },
+    {
+      "cmd": "bg",
+      "image": null,
+      "transition": "fade_black"
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "",
+      "text": "아인슈타인에게 사상 변화를 사용한 직후."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "",
+      "text": "세상이 멈춘다."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "",
+      "text": "소리도 없다."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "",
+      "text": "빛도 없다."
+    },
+    {
+      "cmd": "sound",
+      "file": "쩌적."
+    },
+    {
+      "cmd": "sound",
+      "file": "쩌저저적."
+    },
+    {
+      "cmd": "shake"
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "",
+      "text": "하늘이 유리처럼 갈라진다."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "Hora",
+      "text": "..."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "",
+      "text": "천천히 눈을 뜬다."
+    },
+    {
+      "cmd": "bg",
+      "image": "assets/images/story/future_bureau_destroyed.jpg",
+      "transition": "fade"
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "",
+      "text": "시간관리국."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "",
+      "text": "하지만 이상하다."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "",
+      "text": "벽은 무너져 있다."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "",
+      "text": "복도는 뒤틀려 있다."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "",
+      "text": "시간이동기의 파편이 곳곳에 흩어져 있다."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "",
+      "text": "창문 밖."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "",
+      "text": "공룡이 걸어다닌다."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "",
+      "text": "하늘에는 블랙홀이 떠 있다."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "",
+      "text": "뉴턴의 사과가 공중에 멈춰 있다."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "",
+      "text": "멀리 어린 시절의 자신이 보인다."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "",
+      "text": "그리고."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "",
+      "text": "노년의 자신도 보인다."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "SYSTEM",
+      "text": "시간선 붕괴율 : 100%"
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "SYSTEM",
+      "text": "복구 불가"
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "Hora",
+      "text": "..."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "Hora",
+      "text": "대체 무슨 일이 일어난 거지."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "",
+      "text": "복도를 따라 이동한다."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "",
+      "text": "점점 중앙 홀에 가까워진다."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "",
+      "text": "홀 중앙."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "",
+      "text": "누군가가 서 있다."
+    },
+    {
+      "cmd": "show_image",
+      "image": "assets/images/story/future_hora.png"
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "",
+      "text": "뒷모습."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "Hora",
+      "text": "..."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "",
+      "text": "그 인물이 천천히 돌아선다."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "Hora",
+      "text": "...!"
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "",
+      "text": "자신이다."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "",
+      "text": "하지만 동시에 아니다."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "",
+      "text": "소년."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "",
+      "text": "청년."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "",
+      "text": "노인."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "",
+      "text": "존재하지 않았던 모습."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "",
+      "text": "수많은 얼굴이 겹쳐 보인다."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "미래의 Hora",
+      "text": "드디어 왔군."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "Hora",
+      "text": "..."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "미래의 Hora",
+      "text": "8회차의 나."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "Hora",
+      "text": "넌 누구지."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "미래의 Hora",
+      "text": "정말 모르겠나?"
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "미래의 Hora",
+      "text": "난 네가 될 존재다."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "Hora",
+      "text": "..."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "미래의 Hora",
+      "text": "혹은."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "미래의 Hora",
+      "text": "이미 되어버린 존재지."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "미래의 Hora",
+      "text": "첫 번째 진실"
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "Hora",
+      "text": "네가 이 사태의 원인인가?"
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "미래의 Hora",
+      "text": "아니다."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "Hora",
+      "text": "..."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "미래의 Hora",
+      "text": "난 결과일 뿐이다."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "Hora",
+      "text": "그렇다면 원인은 누구지?"
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "미래의 Hora",
+      "text": "아직도 누군가를 찾고 있군."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "SYSTEM",
+      "text": "크릭"
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "미래의 Hora",
+      "text": "크릭도."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "SYSTEM",
+      "text": "다윈"
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "미래의 Hora",
+      "text": "다윈도."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "SYSTEM",
+      "text": "퀴리"
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "미래의 Hora",
+      "text": "퀴리도."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "SYSTEM",
+      "text": "슈뢰딩거"
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "미래의 Hora",
+      "text": "슈뢰딩거도."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "SYSTEM",
+      "text": "뉴턴"
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "미래의 Hora",
+      "text": "뉴턴도."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "SYSTEM",
+      "text": "호킹"
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "미래의 Hora",
+      "text": "호킹도."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "SYSTEM",
+      "text": "아인슈타인"
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "미래의 Hora",
+      "text": "아인슈타인도."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "미래의 Hora",
+      "text": "모두 자네에게 답을 알려줬는데."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "Hora",
+      "text": "..."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "Hora",
+      "text": "두 번째 진실"
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "미래의 Hora",
+      "text": "자네는 아직도"
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "미래의 Hora",
+      "text": "사상 변화를"
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "미래의 Hora",
+      "text": "상대의 생각을 바꾸는 능력이라고 믿고 있나?"
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "Hora",
+      "text": "..."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "미래의 Hora",
+      "text": "아니야."
+    },
+    {
+      "cmd": "flash"
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "SYSTEM",
+      "text": "크릭"
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "SYSTEM",
+      "text": "다윈"
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "SYSTEM",
+      "text": "퀴리"
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "SYSTEM",
+      "text": "슈뢰딩거"
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "SYSTEM",
+      "text": "뉴턴"
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "SYSTEM",
+      "text": "호킹"
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "SYSTEM",
+      "text": "아인슈타인"
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "SYSTEM",
+      "text": "Hora"
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "미래의 Hora",
+      "text": "자네는 단 한 번도"
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "미래의 Hora",
+      "text": "생각을 바꾼 적이 없어."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "Hora",
+      "text": "뭐라고?"
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "미래의 Hora",
+      "text": "자네는 역사 자체를 수정했지."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "미래의 Hora",
+      "text": "잘못된 결론을 지운 것이 아니다."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "미래의 Hora",
+      "text": "그 결론에 도달하는 과정을"
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "미래의 Hora",
+      "text": "시간선에서 삭제한 거야."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "Hora",
+      "text": "..."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "미래의 Hora",
+      "text": "사상 변화는."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "SYSTEM",
+      "text": "사상 변화"
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "미래의 Hora",
+      "text": "시간선 수정 장치였어."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "미래의 Hora",
+      "text": "세 번째 진실"
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "Hora",
+      "text": "그렇다면 왜 지금까지는 괜찮았지?"
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "미래의 Hora",
+      "text": "괜찮지 않았어."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "Hora",
+      "text": "..."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "미래의 Hora",
+      "text": "단지 눈치채지 못했을 뿐."
+    },
+    {
+      "cmd": "show_image",
+      "image": "assets/images/story/timelooper.png"
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "SYSTEM",
+      "text": "1"
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "SYSTEM",
+      "text": "2"
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "SYSTEM",
+      "text": "3"
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "SYSTEM",
+      "text": "4"
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "SYSTEM",
+      "text": "5"
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "SYSTEM",
+      "text": "6"
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "SYSTEM",
+      "text": "7"
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "SYSTEM",
+      "text": "8"
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "미래의 Hora",
+      "text": "시간은 원래 되돌릴 수 없는 법칙이다."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "미래의 Hora",
+      "text": "그런데 우리는."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "미래의 Hora",
+      "text": "일곱 번이나 그 법칙을 깨뜨렸지."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "Hora",
+      "text": "..."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "미래의 Hora",
+      "text": "8번째부터는 달랐다."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "미래의 Hora",
+      "text": "시간이 널 기억하기 시작했거든."
+    },
+    {
+      "cmd": "pause",
+      "duration": 120
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "Hora",
+      "text": "..."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "Hora",
+      "text": "그래서."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "Hora",
+      "text": "내가 범인이라는 건가."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "미래의 Hora",
+      "text": "이제야 이해했군."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "미래의 Hora",
+      "text": "최종 보스전 직전"
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "Hora",
+      "text": "그래도 멈출 수는 없다."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "미래의 Hora",
+      "text": "알고 있다."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "미래의 Hora",
+      "text": "나도 같은 선택을 했으니까."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "미래의 Hora",
+      "text": "여러 번."
+    },
+    {
+      "cmd": "shake"
+    },
+    {
+      "cmd": "flash"
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "미래의 Hora",
+      "text": "와라."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "미래의 Hora",
+      "text": "8회차의 나."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "SYSTEM",
+      "text": "FINAL BATTLE"
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "SYSTEM",
+      "text": "NULL : ETER"
+    },
+    {
+      "cmd": "battle_start"
+    }
   ],
   "script_post_battle": [
-    {"cmd": "show_char","slot": "right", "image": "assets/images/story/char_future_self_defeat.png"},
-    {"cmd": "dialog",  "speaker": "주인공",         "text": "끝이다."},
-    {"cmd": "dialog",  "speaker": "미래의 주인공", "text": "정말 그렇게 생각하나?"},
-    {"cmd": "dialog",  "speaker": "미래의 주인공", "text": "날 죽이면. 또 다른 내가 생긴다."},
-    {"cmd": "dialog",  "speaker": "미래의 주인공", "text": "날 살리면. 세계는 붕괴한다."},
-    {"cmd": "dialog",  "speaker": "미래의 주인공", "text": "자. 선택해라."},
-    {"cmd": "choice",  "options": [
-      {"text": "ETERNITY", "goto": "eternity_end"},
-      {"text": "NULL",     "goto": "null_end"}
-    ]},
-    {"cmd": "label",   "id": "null_end"},
-    {"cmd": "dialog",  "speaker": "주인공",         "text": "이제 알겠군. 없어져야 하는 건. 범인이 아니었어. 나였어."},
-    {"cmd": "dialog",  "speaker": "미래의 주인공", "text": "드디어. 여기까지 왔군."},
-    {"cmd": "dialog",  "speaker": "SYSTEM",          "text": "현재 기록\nLOOP #8\n삭제."},
-    {"cmd": "bg",      "image": null, "transition": "white_flash"},
-    {"cmd": "dialog",  "speaker": "SYSTEM", "text": "시간은 고쳐진 것이 아니라,\n처음부터 고칠 필요가 없었다."},
-    {"cmd": "ending",  "type": "null"},
-    {"cmd": "label",   "id": "eternity_end"},
-    {"cmd": "dialog",  "speaker": "주인공",         "text": "방법이 없다."},
-    {"cmd": "dialog",  "speaker": "미래의 주인공", "text": "방법은 있었어. 하지만 넌 그걸 선택하지 않았지."},
-    {"cmd": "dialog",  "speaker": "주인공",         "text": "난 세계를 지켜야 한다."},
-    {"cmd": "dialog",  "speaker": "미래의 주인공", "text": "날 죽여도. 원인은 사라지지 않아. 원인은 언제나. 우리였어."},
-    {"cmd": "dialog",  "speaker": "미래의 주인공", "text": "다음에도. 같은 선택을 하겠지."},
-    {"cmd": "dialog",  "speaker": "SYSTEM",          "text": "시간선 안정화 진행 중\n12% → 38% → 67% → 100%"},
-    {"cmd": "dialog",  "speaker": "SYSTEM",          "text": "TIME LOOP #9"},
-    {"cmd": "ending",  "type": "eternity"}
+    {
+      "cmd": "dialog",
+      "speaker": "",
+      "text": "미래의 Hora가 무릎을 꿇는다."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "Hora",
+      "text": "끝이다."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "미래의 Hora",
+      "text": "정말 그렇게 생각하나?"
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "Hora",
+      "text": "..."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "미래의 Hora",
+      "text": "날 죽이면."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "미래의 Hora",
+      "text": "또 다른 내가 생긴다."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "미래의 Hora",
+      "text": "날 살리면."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "미래의 Hora",
+      "text": "세계는 붕괴한다."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "미래의 Hora",
+      "text": "자."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "미래의 Hora",
+      "text": "선택해라."
+    },
+    {
+      "cmd": "flash"
+    },
+    {
+      "cmd": "bg",
+      "image": null,
+      "transition": "fade_black"
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "",
+      "text": "그 순간."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "",
+      "text": "주변 공간이 흔들린다."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "",
+      "text": "이미 사라졌어야 할 존재들이"
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "",
+      "text": "다시 나타난다."
+    },
+    {
+      "cmd": "show_image",
+      "image": "assets/images/story/Creek.png"
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "크릭",
+      "text": "여기까지 왔군."
+    },
+    {
+      "cmd": "show_image",
+      "image": "assets/images/story/Darwin.png"
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "다윈",
+      "text": "결국 진실을 보게 되었네."
+    },
+    {
+      "cmd": "show_image",
+      "image": "assets/images/story/Curie.png"
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "퀴리",
+      "text": "생각보다 오래 걸렸군."
+    },
+    {
+      "cmd": "show_image",
+      "image": "assets/images/story/Schrodinger.png"
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "슈뢰딩거",
+      "text": "관측 결과가 결정된 모양이야."
+    },
+    {
+      "cmd": "show_image",
+      "image": "assets/images/story/Newton.png"
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "뉴턴",
+      "text": "이제야 원인에 도달했군."
+    },
+    {
+      "cmd": "show_image",
+      "image": "assets/images/story/Hawking.png"
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "호킹",
+      "text": "시간은 끝까지 기억해냈네."
+    },
+    {
+      "cmd": "show_image",
+      "image": "assets/images/story/Einstein.png"
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "아인슈타인",
+      "text": "이제 마지막 질문만 남았군."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "Hora",
+      "text": "..."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "Hora",
+      "text": "전부..."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "Hora",
+      "text": "환상인가?"
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "슈뢰딩거",
+      "text": "그건 중요하지 않아."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "다윈",
+      "text": "중요한 건 선택이지."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "크릭",
+      "text": "정보를 없앨 것인가."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "퀴리",
+      "text": "아니면 유지할 것인가."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "뉴턴",
+      "text": "원인을 지울 것인가."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "호킹",
+      "text": "결과를 받아들일 것인가."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "아인슈타인",
+      "text": "선택은 언제나 자네 몫일세."
+    },
+    {
+      "cmd": "flash"
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "SYSTEM",
+      "text": "ETERNITY"
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "SYSTEM",
+      "text": "NULL"
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "",
+      "text": "선택의 순간."
+    },
+    {
+      "cmd": "choice",
+      "options": [
+        {
+          "text": "ETERNITY",
+          "goto": "eternity_end"
+        },
+        {
+          "text": "NULL",
+          "goto": "null_end"
+        }
+      ]
+    },
+    {
+      "cmd": "label",
+      "id": "null_end"
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "플레이어",
+      "text": "NULL 선택."
+    },
+    {
+      "cmd": "pause",
+      "duration": 120
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "미래의 Hora",
+      "text": "..."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "미래의 Hora",
+      "text": "그 선택을 하는군."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "Hora",
+      "text": "이제 알겠군."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "Hora",
+      "text": "없어져야 하는 건."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "Hora",
+      "text": "범인이 아니었어."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "Hora",
+      "text": "나였어."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "다윈",
+      "text": "드디어."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "다윈",
+      "text": "과정을 인정했군."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "크릭",
+      "text": "정보를 지우는 대신."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "크릭",
+      "text": "자신을 지우기로 한 건가."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "Hora",
+      "text": "그래."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "Hora",
+      "text": "이 모든 오류의 시작은."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "Hora",
+      "text": "시간을 거스른 나였다."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "아인슈타인",
+      "text": "미소."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "아인슈타인",
+      "text": "이제야 자연스러운 결론이군."
+    },
+    {
+      "cmd": "hide_image"
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "",
+      "text": "전 보스 소멸."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "Hora",
+      "text": "..."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "Hora",
+      "text": "SYSTEM."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "Hora",
+      "text": "역행 기록을 삭제한다."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "Hora",
+      "text": "SYSTEM."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "Hora",
+      "text": "역행 기록 조회."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "SYSTEM",
+      "text": "역행 기록 조회"
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "SYSTEM",
+      "text": "1회차"
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "Hora",
+      "text": "삭제."
+    },
+    {
+      "cmd": "flash"
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "",
+      "text": "첫 번째 역행 기록이 소멸한다."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "SYSTEM",
+      "text": "2회차"
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "Hora",
+      "text": "삭제."
+    },
+    {
+      "cmd": "flash"
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "",
+      "text": "두 번째 역행 기록이 소멸한다."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "SYSTEM",
+      "text": "3회차"
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "Hora",
+      "text": "삭제."
+    },
+    {
+      "cmd": "flash"
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "SYSTEM",
+      "text": "4회차"
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "Hora",
+      "text": "삭제."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "SYSTEM",
+      "text": "5회차"
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "Hora",
+      "text": "삭제."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "SYSTEM",
+      "text": "6회차"
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "Hora",
+      "text": "삭제."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "SYSTEM",
+      "text": "7회차"
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "Hora",
+      "text": "삭제."
+    },
+    {
+      "cmd": "shake"
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "",
+      "text": "주변 공간이 흔들리기 시작한다."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "",
+      "text": "시간관리국의 벽이 사라진다."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "",
+      "text": "복도가 사라진다."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "",
+      "text": "관제실이 사라진다."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "",
+      "text": "수많은 시간선이 빛으로 변한다."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "",
+      "text": "과거가 사라진다."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "",
+      "text": "미래가 사라진다."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "",
+      "text": "그리고."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "SYSTEM",
+      "text": "현재 기록"
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "SYSTEM",
+      "text": "LOOP #8"
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "Hora",
+      "text": "..."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "Hora",
+      "text": "눈을 감는다."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "Hora",
+      "text": "삭제."
+    },
+    {
+      "cmd": "flash"
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "",
+      "text": "모든 소리가 멈춘다."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "",
+      "text": "모든 시간선이 멈춘다."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "",
+      "text": "모든 기억이 멈춘다."
+    },
+    {
+      "cmd": "show_image",
+      "image": "assets/images/story/future_hora.png"
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "",
+      "text": "미래의 Hora의 몸이 무너지기 시작한다."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "",
+      "text": "소년."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "",
+      "text": "청년."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "",
+      "text": "노인."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "",
+      "text": "존재하지 않았던 얼굴들."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "",
+      "text": "모든 가능성이 사라진다."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "미래의 Hora",
+      "text": "그렇군."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "Hora",
+      "text": "..."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "미래의 Hora",
+      "text": "원래 우리는."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "미래의 Hora",
+      "text": "존재해서는 안 되는 존재였어."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "Hora",
+      "text": "..."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "미래의 Hora",
+      "text": "아니."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "미래의 Hora",
+      "text": "존재한 적이 없었던 거야."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "미래의 Hora",
+      "text": "미소를 짓는다."
+    },
+    {
+      "cmd": "hide_image"
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "",
+      "text": "미래의 Hora 소멸."
+    },
+    {
+      "cmd": "pause",
+      "duration": 120
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "Hora",
+      "text": "..."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "",
+      "text": "현재의 Hora 역시 빛으로 변하기 시작한다."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "Hora",
+      "text": "하하."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "Hora",
+      "text": "결국 이렇게 되는군."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "Hora",
+      "text": "수많은 시간선을 구하겠다고 했는데."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "Hora",
+      "text": "정작 없애야 했던 건."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "Hora",
+      "text": "나 자신이었어."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "",
+      "text": "몸이 점점 흐려진다."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "Hora",
+      "text": "..."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "Hora",
+      "text": "이제."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "Hora",
+      "text": "끝이군."
+    },
+    {
+      "cmd": "hide_image"
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "",
+      "text": "Hora 소멸."
+    },
+    {
+      "cmd": "bg",
+      "image": null,
+      "transition": "white_flash"
+    },
+    {
+      "cmd": "pause",
+      "duration": 60
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "",
+      "text": "아무것도 없다."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "",
+      "text": "시간도 없다."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "",
+      "text": "역사도 없다."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "",
+      "text": "시간관리국도 없다."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "",
+      "text": "시간이동기도 없다."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "",
+      "text": "오직."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "",
+      "text": "정상적인 세계만이 존재한다."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "SYSTEM",
+      "text": "1687년"
+    },
+    {
+      "cmd": "bg",
+      "image": "assets/images/story/apple_tree.jpg",
+      "transition": "fade"
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "",
+      "text": "맑은 오후."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "",
+      "text": "바람 소리."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "",
+      "text": "새 소리."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "",
+      "text": "평범한 풍경."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "",
+      "text": "그 어떤 오류도 없다."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "",
+      "text": "그 어떤 균열도 없다."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "",
+      "text": "그 어떤 시간범죄도 없다."
+    },
+    {
+      "cmd": "show_image",
+      "image": "assets/images/story/Newton_young.png"
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "",
+      "text": "한 남자가 사과나무 아래 앉아 있다."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "",
+      "text": "젊은 뉴턴."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "",
+      "text": "책을 읽고 있다."
+    },
+    {
+      "cmd": "sound",
+      "file": "툭."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "",
+      "text": "사과 하나가 떨어진다."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "뉴턴",
+      "text": "..."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "",
+      "text": "사과를 집어든다."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "",
+      "text": "잠시 바라본다."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "뉴턴",
+      "text": "흥미롭군."
+    },
+    {
+      "cmd": "bg",
+      "image": null,
+      "transition": "fade_black"
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "SYSTEM",
+      "text": "《 END 》"
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "",
+      "text": "시간 오류 : 0건"
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "",
+      "text": "시간범죄자 : 없음"
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "",
+      "text": "시간관리국 : 존재하지 않음"
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "",
+      "text": "세계 안정도 : 100%"
+    },
+    {
+      "cmd": "pause",
+      "duration": 60
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "SYSTEM",
+      "text": "시간은 고쳐진 것이 아니라,"
+    },
+    {
+      "cmd": "pause",
+      "duration": 60
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "SYSTEM",
+      "text": "처음부터 고칠 필요가 없었다."
+    },
+    {
+      "cmd": "bg",
+      "image": null,
+      "transition": "fade_black"
+    },
+    {
+      "cmd": "ending",
+      "type": "null"
+    },
+    {
+      "cmd": "label",
+      "id": "eternity_end"
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "플레이어",
+      "text": "ETERNITY 선택."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "미래의 Hora",
+      "text": "..."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "미래의 Hora",
+      "text": "결국."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "미래의 Hora",
+      "text": "또 그렇게 되는군."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "Hora",
+      "text": "방법이 없다."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "다윈",
+      "text": "아쉽군."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "다윈",
+      "text": "결과만 보았어."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "크릭",
+      "text": "정보는 다시 지워지는군."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "퀴리",
+      "text": "역시 두려웠던 거야."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "Hora",
+      "text": "닥쳐라."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "Hora",
+      "text": "난 세계를 지켜야 한다."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "호킹",
+      "text": "세계?"
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "호킹",
+      "text": "아니."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "호킹",
+      "text": "자네가 알고 있는 세계겠지."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "슈뢰딩거",
+      "text": "관측 결과를 선택했군."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "뉴턴",
+      "text": "원인을 제거하는 방식으로."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "아인슈타인",
+      "text": "그럼 역사도 같은 선택을 할 걸세."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "Hora",
+      "text": "..."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "Hora",
+      "text": "그렇다면."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "Hora",
+      "text": "몇 번이든 반복하겠다."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "미래의 Hora",
+      "text": "웃는다."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "미래의 Hora",
+      "text": "그래."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "미래의 Hora",
+      "text": "나도 그랬지."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "미래의 Hora",
+      "text": "몸이 꿰뚫린다."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "미래의 Hora",
+      "text": "다음에도."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "미래의 Hora",
+      "text": "같은 선택을 하겠지."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "미래의 Hora",
+      "text": "왜냐하면."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "미래의 Hora",
+      "text": "우리는 같은 사람이니까."
+    },
+    {
+      "cmd": "hide_char",
+      "slot": "right"
+    },
+    {
+      "cmd": "hide_image"
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "",
+      "text": "전 보스 소멸."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "",
+      "text": "잘 가게."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "",
+      "text": "시간은 기억할 걸세."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "",
+      "text": "진화는 끝나지 않아."
+    },
+    {
+      "cmd": "bg",
+      "image": null,
+      "transition": "fade_black"
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "",
+      "text": "순간."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "",
+      "text": "거대한 진동"
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "",
+      "text": "무너져가던 시간선이 역방향으로 움직이기 시작한다."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "",
+      "text": "갈라진 하늘이 봉합된다."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "",
+      "text": "뒤틀렸던 공간이 원래 형태를 되찾는다."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "",
+      "text": "공룡들이 사라진다."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "",
+      "text": "블랙홀들이 하나둘 붕괴한다."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "",
+      "text": "허공에 멈춰 있던 사과가 다시 떨어진다."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "SYSTEM",
+      "text": "시간선 안정화 진행 중"
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "SYSTEM",
+      "text": "12%"
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "SYSTEM",
+      "text": "38%"
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "SYSTEM",
+      "text": "67%"
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "SYSTEM",
+      "text": "100%"
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "Hora",
+      "text": "..."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "Hora",
+      "text": "끝난 건가."
+    },
+    {
+      "cmd": "bg",
+      "image": null,
+      "transition": "fade_black"
+    },
+    {
+      "cmd": "bg",
+      "image": "assets/images/story/timecountry.jpg",
+      "transition": "fade"
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "",
+      "text": "시간관리국."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "",
+      "text": "평범한 하루."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "",
+      "text": "수많은 시간선이 홀로그램 형태로 떠 있다."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "",
+      "text": "과학자들이 데이터를 분석 중이다."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "",
+      "text": "국장님."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "Hora",
+      "text": "무슨 일인가."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "",
+      "text": "27번 시간선 정상입니다."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "",
+      "text": "14번 시간선도 안정 상태입니다."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "Hora",
+      "text": "좋은 소식이군."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "",
+      "text": "모든 것이 정상으로 돌아온 듯 보인다."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "",
+      "text": "경보도 없다."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "",
+      "text": "붕괴도 없다."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "",
+      "text": "시간선도 안정적이다."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "Hora",
+      "text": "..."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "",
+      "text": "잠시 생각한다."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "Hora",
+      "text": "이상하군."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "Hora",
+      "text": "무언가 잊은 것 같은데."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "",
+      "text": "문제라도 있으십니까?"
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "Hora",
+      "text": "아니."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "Hora",
+      "text": "피곤한 모양이군."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "",
+      "text": "고개를 가볍게 흔든다."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "",
+      "text": "그리고 다시 업무를 시작한다."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "",
+      "text": "카메라가 천천히 뒤로 이동한다."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "",
+      "text": "관제실 전체가 보인다."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "",
+      "text": "아무 문제도 없다."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "",
+      "text": "완벽해 보인다."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "",
+      "text": "그때."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "SYSTEM",
+      "text": "화면 구석"
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "",
+      "text": "관제실 벽면 한쪽."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "",
+      "text": "아주 작고 희미한 숫자 하나가 보인다."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "SYSTEM",
+      "text": "9"
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "",
+      "text": "Hora는 보지 못한다."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "",
+      "text": "플레이어만이 그것을 본다."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "",
+      "text": "모니터 깜빡임"
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "SYSTEM",
+      "text": "TIME LOOP #9"
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "",
+      "text": "43번 시간선 보고서 도착했습니다."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "Hora",
+      "text": "여기로 가져오게."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "",
+      "text": "아무 일도 없었다는 듯."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "",
+      "text": "평범한 하루가 계속된다."
+    },
+    {
+      "cmd": "bg",
+      "image": null,
+      "transition": "fade_black"
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "SYSTEM",
+      "text": "《 ETERNITY END 》"
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "SYSTEM",
+      "text": "시간 오류 : 해결됨"
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "SYSTEM",
+      "text": "세계 안정도 : 100%"
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "SYSTEM",
+      "text": "시간관리국 : 정상 운영"
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "SYSTEM",
+      "text": "TIME LOOP #9"
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "SYSTEM",
+      "text": "진행 대기 중"
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "",
+      "text": "몇 초간 아무 소리도 들리지 않는다."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "SYSTEM",
+      "text": "시간은 복구되었다."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "SYSTEM",
+      "text": "하지만 끝난 적은 없었다."
+    },
+    {
+      "cmd": "bg",
+      "image": null,
+      "transition": "fade_black"
+    },
+    {
+      "cmd": "ending",
+      "type": "eternity"
+    }
   ]
 }

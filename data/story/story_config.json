@@ -35,12 +35,12 @@
     {
       "id": 2,
       "title": "Chapter 2",
-      "subtitle": "Alfred Nobel",
-      "description": "역사가 비틀리기 시작한다.",
+      "subtitle": "Chemistry",
+      "description": "화학 영역의 붕괴와 방사선의 오류를 조사한다.",
       "stage_json": "data/story/scripts/stage_02.json",
-      "bg_image": "assets/images/story/bg_nobel_intro.png",
-      "boss_class": "entities.Boss_characters.Nobel",
-      "boss_name": "알프레드 노벨",
+      "bg_image": "assets/images/bg_stage_02.jpeg",
+      "boss_class": "entities.characters.Curie.Curie",
+      "boss_name": "퀴리",
       "boss_stocks": 3,
       "unlock_condition": {
         "clear_chapter": 1
@@ -51,13 +51,13 @@
     {
       "id": 3,
       "title": "Chapter 3",
-      "subtitle": "Alan Turing",
-      "description": "시간선 붕괴의 패턴이 드러난다.",
+      "subtitle": "Mirror Wall",
+      "description": "슈뢰딩거 이후 Hora의 기억 영역과 자기 의심을 마주한다.",
       "stage_json": "data/story/scripts/stage_03.json",
-      "bg_image": "assets/images/story/bg_turing_intro.png",
-      "boss_class": "entities.Boss_characters.Turing",
-      "boss_name": "앨런 튜링",
-      "boss_stocks": 4,
+      "bg_image": "assets/images/story/timecountry_alert.png",
+      "boss_class": null,
+      "boss_name": null,
+      "boss_stocks": 0,
       "unlock_condition": {
         "clear_chapter": 2
       },
@@ -67,13 +67,13 @@
     {
       "id": 4,
       "title": "Chapter 4",
-      "subtitle": "The Truth",
-      "description": "모든 시간선의 진실에 다가간다.",
+      "subtitle": "Physics Laboratory",
+      "description": "중력과 시공간 붕괴의 원인을 추적한다.",
       "stage_json": "data/story/scripts/stage_04.json",
-      "bg_image": "assets/images/story/bg_truth.png",
-      "boss_class": "entities.Boss_characters.FinalBoss",
-      "boss_name": "???",
-      "boss_stocks": 5,
+      "bg_image": "assets/images/bg_stage_04.jpeg",
+      "boss_class": "entities.characters.Einstein.Einstein",
+      "boss_name": "아인슈타인",
+      "boss_stocks": 4,
       "unlock_condition": {
         "clear_chapter": 3
       },
@@ -83,11 +83,11 @@
     {
       "id": 5,
       "title": "Chapter 5",
-      "subtitle": "Future Time Bureau",
+      "subtitle": "NULL:ETER",
       "description": "폐허가 된 미래의 시간관리국.\n마침내 모든 진실과 마주한다.",
       "stage_json": "data/story/scripts/stage_05.json",
-      "bg_image": "assets/images/story/bg_ruined_hq.png",
-      "boss_class": "entities.Boss_characters.FutureProtagonist",
+      "bg_image": "assets/images/story/timecountry_alert.png",
+      "boss_class": "entities.characters.Einstein.Einstein",
       "boss_name": "미래의 Hora",
       "boss_stocks": 5,
       "unlock_condition": {
