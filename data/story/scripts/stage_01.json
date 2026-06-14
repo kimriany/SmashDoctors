@@ -73,6 +73,10 @@
       "text": "생명의 기운이 이상한 것이 느껴지는군."
     },
     {
+      "cmd": "label",
+      "id": "choose_science"
+    },
+    {
       "cmd": "choice",
       "question": "어떠한 영역의 이상을 탐구하겠습니까?",
       "options": [
@@ -97,7 +101,7 @@
     },
     {
       "cmd": "goto",
-      "target": "life_route"
+      "target": "choose_science"
     },
     {
       "cmd": "label",

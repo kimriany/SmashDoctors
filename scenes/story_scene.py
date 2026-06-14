@@ -113,13 +113,14 @@ class StoryScene:
         protagonist_slot = "right" if os.path.basename(self.script_path) == "stage_00.json" else "left"
         return {
             "Hora": {"slot": protagonist_slot, "image": "assets/images/story/charmain.png"},
-            "Future Hora": {"slot": "right", "image": "assets/images/story/charmain.png"},
-            "Mirror Hora": {"slot": "right", "image": "assets/images/story/charmain.png"},
+            "주인공": {"slot": "left", "image": "assets/images/story/charmain.png"},
+            "미래의 주인공": {"slot": "right", "image": "assets/images/story/charmain.png"},
+            "거울 속 주인공": {"slot": "right", "image": "assets/images/story/charmain.png"},
 
             "과학자 A": {"slot": "left", "image": "assets/images/story/question.png"},
             "과학자 B": {"slot": "left", "image": "assets/images/story/question.png"},
             "RO2T": {"slot": "right", "image": "assets/images/story/RO2T.png"},
-            "???": {"slot": "right", "image": "assets/images/story/.png"},
+            "???": {"slot": "right", "image": "assets/images/story/question.png"},
 
             "크릭": {"slot": "right", "image": "assets/images/story/Crick.png"},
             "크릭의 잔상": {"slot": "right", "image": "assets/images/story/Crick.png"},

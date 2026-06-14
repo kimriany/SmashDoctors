@@ -461,7 +461,7 @@ class Player(BaseEntity):
     def _do_respawn(self, psys):
         self.respawning = False
         self.rect.x     = self.spawn_x
-        self.rect.y     = self.spawn_y - 100
+        self.rect.y     = self.spawn_y
         self.vel        = pygame.Vector2(0, 0)
         self.invincible = 130
         if psys:

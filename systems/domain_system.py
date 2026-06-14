@@ -557,6 +557,9 @@ class DomainSystem:
             particle_color=particle_color,
             freeze_during_transition=freeze,
         )
+
+        if not cutscene:
+            self._start_waiting_transition()
     # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
     # 배경 렌더링
     # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
