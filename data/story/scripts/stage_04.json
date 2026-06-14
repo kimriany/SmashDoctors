@@ -135,7 +135,7 @@
     },
     {
       "cmd": "bg",
-      "image": "assets/images/story/gravity_world.png",
+      "image": "assets/images/story/Phylab.png",
       "transition": "fade"
     },
     {
@@ -554,17 +554,17 @@
     },
     {
       "cmd": "dialog",
-      "speaker": "SYSTEM",
+      "speaker": "",
       "text": "짝."
     },
     {
       "cmd": "dialog",
-      "speaker": "SYSTEM",
+      "speaker": "",
       "text": "짝."
     },
     {
       "cmd": "dialog",
-      "speaker": "SYSTEM",
+      "speaker": "",
       "text": "짝."
     },
     {
@@ -574,33 +574,284 @@
     },
     {
       "cmd": "dialog",
-      "speaker": "아인슈타인",
-      "text": "### **89 ~ 120**"
+      "speaker": "Hora",
+      "text": "..."
     },
     {
       "cmd": "dialog",
       "speaker": "아인슈타인",
-      "text": "(아인슈타인과의 대화 전체 확장)"
+      "text": "호킹과도 만났나?"
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "Hora",
+      "text": "그렇다."
     },
     {
       "cmd": "dialog",
       "speaker": "아인슈타인",
-      "text": "시간 역행의 위법성"
+      "text": "시간을 역행한 모양이군."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "Hora",
+      "text": "그게 무슨 뜻이지?"
+    },
+
+    {
+      "cmd": "dialog",
+      "speaker": "아인슈타인",
+      "text": "흥미롭군."
+    },
+
+    {
+      "cmd": "dialog",
+      "speaker": "아인슈타인",
+      "text": "자네는 아직도 자신이 처음 이곳에 온 줄 알고 있나?"
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "Hora",
+      "text": "..."
     },
     {
       "cmd": "dialog",
       "speaker": "아인슈타인",
-      "text": "8회차 루프 언급"
+      "text": "아니면 모르는 척을 하는 건가?"
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "Hora",
+      "text": "난 시간선을 복구하러 왔다."
     },
     {
       "cmd": "dialog",
       "speaker": "아인슈타인",
-      "text": "반복된 만남 암시"
+      "text": "그 말."
     },
     {
       "cmd": "dialog",
       "speaker": "아인슈타인",
-      "text": "Hora의 최초 동요"
+      "text": "몇 번째인지 기억은 하는가?"
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "Hora",
+      "text": "무슨 소리지?"
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "아인슈타인",
+      "text": "시간선 복구."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "아인슈타인",
+      "text": "역사 수정."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "아인슈타인",
+      "text": "오류 제거."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "아인슈타인",
+      "text": "그 모든 행위를 자네는 정의라고 부르더군."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "Hora",
+      "text": "정의가 아니라 의무다."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "아인슈타인",
+      "text": "그 의무 때문에."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "아인슈타인",
+      "text": "자네는 시간 자체를 훼손하고 있네."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "Hora",
+      "text": "말도 안 되는 소리군."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "아인슈타인",
+      "text": "정말 그렇게 생각하나?"
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "아인슈타인",
+      "text": "그럼 하나 묻겠네."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "아인슈타인",
+      "text": "과거로 돌아갈 수 있다는 물리 법칙이 세상에 어디 있지?"
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "Hora",
+      "text": "..."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "아인슈타인",
+      "text": "없네."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "아인슈타인",
+      "text": "단 하나도."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "아인슈타인",
+      "text": "시간은 앞으로 흐른다."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "아인슈타인",
+      "text": "그것이 우주의 기본 원리야."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "Hora",
+      "text": "그래서?"
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "아인슈타인",
+      "text": "그 원리를 자네가 깨고 있는 거지."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "Hora",
+      "text": "나는 인류를 위해서-"
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "아인슈타인",
+      "text": "아니."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "아인슈타인",
+      "text": "자네 자신을 위해서다."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "Hora",
+      "text": "뭐라고?"
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "아인슈타인",
+      "text": "실패를 받아들이지 못했으니까."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "Hora",
+      "text": "..."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "아인슈타인",
+      "text": "잘못된 역사."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "아인슈타인",
+      "text": "붕괴한 시간선"
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "아인슈타인",
+      "text": "죽어버린 세계."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "아인슈타인",
+      "text": "그 모든 결과를 부정하고 싶었겠지."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "Hora",
+      "text": "그래서 되돌린 것이다."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "Hora",
+      "text": "그게 잘못인가?"
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "아인슈타인",
+      "text": "잘못이지."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "아인슈타인",
+      "text": "결과가 마음에 들지 않는다고."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "아인슈타인",
+      "text": "시험지를 찢어버리는 학생이 정답을 맞힌 것은 아니니까."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "Hora",
+      "text": "궤변이다."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "아인슈타인",
+      "text": "그럴까?"
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "아인슈타인",
+      "text": "그럼 이것도 궤변인가?"
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "아인슈타인",
+      "text": "이번이 몇 번째인가?"
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "Hora",
+      "text": "..."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "아인슈타인",
+      "text": "8번째겠지."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "Hora",
+      "text": "!!"
+    },
+    {
+      "cmd" : "shake"
+    },
+
+    {
+      "cmd": "dialog",
+      "speaker": "Hora",
+      "text": "어떻게 그걸..."
+    },
+    {
+      "cmd": "dialog",
+      "speaker": "아인슈타인",
+      "text": "왜 놀라나?"
     },
     {
       "cmd": "dialog",

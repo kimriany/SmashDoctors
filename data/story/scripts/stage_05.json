@@ -30,6 +30,11 @@
       "transition": "fade_black"
     },
     {
+      "cmd": "bg",
+      "image": "assets/images/story/vsme.png",
+      "transition": null
+    },
+    {
       "cmd": "dialog",
       "speaker": "",
       "text": "아인슈타인에게 사상 변화를 사용한 직후."
@@ -77,8 +82,7 @@
     },
     {
       "cmd": "bg",
-      "image": "assets/images/story/future_bureau_destroyed.jpg",
-      "transition": "fade"
+      "image": "assets/images/story/vsme.jpg",
     },
     {
       "cmd": "dialog",
@@ -652,11 +656,6 @@
     },
     {
       "cmd": "dialog",
-      "speaker": "미래의 Hora",
-      "text": "최종 보스전 직전"
-    },
-    {
-      "cmd": "dialog",
       "speaker": "Hora",
       "text": "그래도 멈출 수는 없다."
     },
@@ -760,11 +759,6 @@
       "cmd": "flash"
     },
     {
-      "cmd": "bg",
-      "image": null,
-      "transition": "fade_black"
-    },
-    {
       "cmd": "dialog",
       "speaker": "",
       "text": "그 순간."
@@ -784,64 +778,42 @@
       "speaker": "",
       "text": "다시 나타난다."
     },
-    {
-      "cmd": "show_image",
-      "image": "assets/images/story/Creek.png"
-    },
+
     {
       "cmd": "dialog",
       "speaker": "크릭",
       "text": "여기까지 왔군."
     },
-    {
-      "cmd": "show_image",
-      "image": "assets/images/story/Darwin.png"
-    },
+
     {
       "cmd": "dialog",
       "speaker": "다윈",
       "text": "결국 진실을 보게 되었네."
     },
-    {
-      "cmd": "show_image",
-      "image": "assets/images/story/Curie.png"
-    },
+
     {
       "cmd": "dialog",
       "speaker": "퀴리",
       "text": "생각보다 오래 걸렸군."
     },
     {
-      "cmd": "show_image",
-      "image": "assets/images/story/Schrodinger.png"
-    },
-    {
       "cmd": "dialog",
       "speaker": "슈뢰딩거",
       "text": "관측 결과가 결정된 모양이야."
     },
-    {
-      "cmd": "show_image",
-      "image": "assets/images/story/Newton.png"
-    },
+
     {
       "cmd": "dialog",
       "speaker": "뉴턴",
       "text": "이제야 원인에 도달했군."
     },
-    {
-      "cmd": "show_image",
-      "image": "assets/images/story/Hawking.png"
-    },
+
     {
       "cmd": "dialog",
       "speaker": "호킹",
       "text": "시간은 끝까지 기억해냈네."
     },
-    {
-      "cmd": "show_image",
-      "image": "assets/images/story/Einstein.png"
-    },
+
     {
       "cmd": "dialog",
       "speaker": "아인슈타인",
@@ -934,7 +906,7 @@
     },
     {
       "cmd": "dialog",
-      "speaker": "플레이어",
+      "speaker": "Hora",
       "text": "NULL 선택."
     },
     {
@@ -1008,7 +980,7 @@
     },
     {
       "cmd": "dialog",
-      "speaker": "아인슈타인",
+      "speaker": "",
       "text": "미소."
     },
     {
@@ -1022,7 +994,7 @@
     {
       "cmd": "dialog",
       "speaker": "",
-      "text": "전 보스 소멸."
+      "text": "모든 보스가 소멸한다."
     },
     {
       "cmd": "dialog",
@@ -1384,6 +1356,10 @@
       "transition": "white_flash"
     },
     {
+      "cmd": "bg",
+      "image": "assest/images/story/vsme.png"
+    },
+    {
       "cmd": "pause",
       "duration": 60
     },
@@ -1521,6 +1497,10 @@
       "transition": "fade_black"
     },
     {
+      "cmd": "bg",
+      "image": "assest/images/story/vsme.png"
+    },
+    {
       "cmd": "dialog",
       "speaker": "SYSTEM",
       "text": "《 END 》"
@@ -1567,6 +1547,10 @@
       "cmd": "bg",
       "image": null,
       "transition": "fade_black"
+    },
+    {
+      "cmd": "bg",
+      "image": "assest/images/story/vsme.png"
     },
     {
       "cmd": "ending",
@@ -1749,6 +1733,10 @@
       "transition": "fade_black"
     },
     {
+      "cmd": "bg",
+      "image": "assest/images/story/vsme.png"
+    },
+    {
       "cmd": "dialog",
       "speaker": "",
       "text": "순간."
@@ -1830,7 +1818,11 @@
     },
     {
       "cmd": "bg",
-      "image": "assets/images/story/timecountry.jpg",
+      "image": "assest/images/story/vsme.png"
+    },
+    {
+      "cmd": "bg",
+      "image": "assets/images/story/timecountry.png",
       "transition": "fade"
     },
     {
@@ -2041,12 +2033,12 @@
     {
       "cmd": "dialog",
       "speaker": "SYSTEM",
-      "text": "시간 오류 : 해결됨"
+      "text": "시간 오류 : 측정 불가."
     },
     {
       "cmd": "dialog",
       "speaker": "SYSTEM",
-      "text": "세계 안정도 : 100%"
+      "text": "세계 안정도 : 가시적이지 않음."
     },
     {
       "cmd": "dialog",
@@ -2071,12 +2063,12 @@
     {
       "cmd": "dialog",
       "speaker": "SYSTEM",
-      "text": "시간은 복구되었다."
+      "text": "시간은 잠시 복구되었다."
     },
     {
       "cmd": "dialog",
       "speaker": "SYSTEM",
-      "text": "하지만 끝난 적은 없었다."
+      "text": "하지만 그 악몽적인 반복이 끝난 적은 없었다."
     },
     {
       "cmd": "bg",

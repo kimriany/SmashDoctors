@@ -114,13 +114,13 @@ class StoryScene:
         return {
             "Hora": {"slot": protagonist_slot, "image": "assets/images/story/charmain.png"},
             "주인공": {"slot": "left", "image": "assets/images/story/charmain.png"},
-            "미래의 주인공": {"slot": "right", "image": "assets/images/story/charmain.png"},
-            "거울 속 주인공": {"slot": "right", "image": "assets/images/story/charmain.png"},
+            "미래의 Hora": {"slot": "right", "image": "assets/images/story/charmainf.png"},
+            "거울 속 Hora": {"slot": "right", "image": "assets/images/story/charmain.png"},
 
             "과학자 A": {"slot": "left", "image": "assets/images/story/question.png"},
             "과학자 B": {"slot": "left", "image": "assets/images/story/question.png"},
             "RO2T": {"slot": "right", "image": "assets/images/story/RO2T.png"},
-            "???": {"slot": "right", "image": "assets/images/story/question.png"},
+            "???": {"slot": "right", "image": "assets/images/story/charmainf.png"},
 
             "크릭": {"slot": "right", "image": "assets/images/story/Crick.png"},
             "크릭의 잔상": {"slot": "right", "image": "assets/images/story/Crick.png"},
