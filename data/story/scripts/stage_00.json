@@ -207,6 +207,12 @@
     },
 
     {
+      "cmd": "bg",
+      "image": "assets/images/story/timecountry_alert.png",
+      "transition": "fade"
+    },
+
+    {
       "cmd": "dialog",
       "speaker": "SYSTEM",
       "text": "원인 분석 실패!"
@@ -240,6 +246,18 @@
       "cmd": "dialog",
       "speaker": "과학자 B",
       "text": "국장님."
+    },
+
+    {
+      "cmd": "dialog",
+      "speaker": "Hora",
+      "text": "현재 가용 가능한 병력은?"
+    },
+
+    {
+      "cmd": "dialog",
+      "speaker": "과학자 A",
+      "text": "전부 4대 악마를 처리하는 데 투입되었습니다."
     },
 
     {

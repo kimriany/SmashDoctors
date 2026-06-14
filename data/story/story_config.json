@@ -19,12 +19,12 @@
     {
       "id": 1,
       "title": "Chapter 1",
-      "subtitle": "Isaac Newton",
+      "subtitle": "4EF2I2L14",
       "description": "생명 시간선의 최초 이상점을 조사한다.",
       "stage_json": "data/story/scripts/stage_01.json",
       "bg_image": "assets/images/story/bg_newton_intro.png",
       "boss_class": "entities.Boss_characters.Newton",
-      "boss_name": "아이작 뉴턴",
+      "boss_name": "찰스 다윈",
       "boss_stocks": 3,
       "unlock_condition": {
         "clear_chapter": 0

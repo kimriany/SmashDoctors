@@ -34,12 +34,12 @@
     },
     {
       "cmd": "dialog",
-      "speaker": "",
+      "speaker": "SYSTEM",
       "text": "진입."
     },
     {
       "cmd": "dialog",
-      "speaker": "",
+      "speaker": "SYSTEM",
       "text": "시간선 이동 완료."
     },
     {
@@ -123,11 +123,7 @@
       "speaker": "Hora",
       "text": "가까이 다가가봐야겠군."
     },
-    {
-      "cmd": "show_char",
-      "slot": "right",
-      "image": "assets/images/story/question.png"
-    },
+
     {
       "cmd": "dialog",
       "speaker": "RO2T",
@@ -152,10 +148,7 @@
   ],
 
   "script_post_battle": [
-    {
-      "cmd": "hide_char",
-      "slot": "right"
-    },
+
     {
       "cmd": "dialog",
       "speaker": "Hora",
@@ -163,13 +156,9 @@
     },
     {
       "cmd": "show_image",
-      "image": "assets/images/story/root.png"
+      "image": "assets/images/story/roottri.png"
     },
-    {
-      "cmd": "title_card",
-      "text": "삼각형 나이테",
-      "duration": 90
-    },
+
     {
       "cmd": "dialog",
       "speaker": "Hora",
