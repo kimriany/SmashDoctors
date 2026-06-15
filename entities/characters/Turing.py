@@ -29,76 +29,141 @@ CODE_CHARS  = ["0","1","{}","[]","//","()","&&","||","==","!=","NP","++"]
 
 
 # ── Q: Enigma Decrypt (에니그마 해독 빔) ─────────────────────────────────────
-class EnigmaDecrypt(_NormalOnlyMixin, BeamSkill):
+class CipherStrike(_NormalOnlyMixin, Skill):
     """
-    전방에 암호 해독 빔 발사.
-    명중 시:
-    - 상대 스킬 쿨타임 최대 +90프레임 강제 증가 (디버프)
-    - 코드 파편이 흩어지는 이펙트
-    """
-    DISPLAY_NAME = "Enigma Decrypt"
-    DESCRIPTION  = "Fire a cipher beam.\nHit enemy's skill cooldowns are extended."
-    BEAM_LENGTH  = 340
-    BEAM_WIDTH   = 22
-    BEAM_COLOR   = (80, 235, 190)
-    BEAM_GLOW    = (180, 255, 230)
-    COOLDOWN_SEC = 5.0
+    튜링 Q — Cipher Strike (암호 펀치)
 
-    CD_PENALTY   = 90   # 쿨타임 증가 프레임
+    전방으로 강타. 빔이 아닌 근접 타격.
+    명중 시:
+    - 화면에 암호 코드 파편 폭발 (시각 이펙트)
+    - 상대의 모든 스킬 쿨타임 +120프레임 강제 증가
+    - 상대 이동방향 반전 (짧은 혼란)
+
+    공격 자체는 강하지 않지만 쿨타임 증가로
+    상대 스킬 사이클을 완전히 망가뜨림.
+    """
+    DISPLAY_NAME  = "Cipher Strike"
+    DESCRIPTION   = "Punch that encrypts the enemy's skills.\nAll skill cooldowns greatly extended."
+    COOLDOWN_SEC  = 5.0
+
+    HIT_FRAME    = 7
+    ATK_FRAMES   = 22
+    CD_PENALTY   = 120   # 쿨타임 증가 프레임
 
     def __init__(self):
-        super().__init__("Enigma Decrypt", damage=20, cooldown=300, duration=24)
+        super().__init__("Cipher Strike", damage=22, cooldown=300, duration=22)
         self.charge_value = 1.1
-        self._code_sparks = []   # 코드 파편 이펙트
+        self._code_burst  = []   # 코드 파편 이펙트 위치
+
+    def on_start(self, owner, event_bus=None, psys=None):
+        self._code_burst = []
+        if psys:
+            psys.spawn(owner.rect.centerx + owner.facing * 30,
+                       owner.rect.centery,
+                       (80,235,190), count=8, speed=4, gravity=0, life=12, r=4, glow=True)
+
+    def get_hitbox(self, owner):
+        if not self.active: return None
+        elapsed = self.duration - self.timer
+        if elapsed < self.HIT_FRAME or elapsed > self.HIT_FRAME + 8:
+            return None
+        w = int(owner.rect.w * 2.0)
+        h = int(owner.rect.h * 1.4)
+        x = owner.rect.right - 8 if owner.facing == 1 else owner.rect.left - w + 8
+        return pygame.Rect(x, owner.rect.centery - h//2, w, h)
+
+    def on_update(self, owner, event_bus=None, psys=None):
+        elapsed = self.duration - self.timer
+        # 타격 프레임 이펙트
+        if elapsed == self.HIT_FRAME and psys:
+            cx = owner.rect.centerx + owner.facing * int(owner.rect.w * 0.8)
+            cy = owner.rect.centery
+            for _ in range(22):
+                ang = random.uniform(-math.pi*0.6, math.pi*0.6) + (0 if owner.facing==1 else math.pi)
+                psys.spawn(cx + math.cos(ang)*10, cy + math.sin(ang)*10,
+                           random.choice(BIT_COLORS),
+                           count=1, speed=random.uniform(5,11),
+                           gravity=0.1, life=random.randint(12,22), r=random.randint(3,6), glow=True)
+
+        # 코드 파편 이펙트 업데이트
+        for c in self._code_burst:
+            c["x"] += c["vx"]; c["y"] += c["vy"]
+            c["vy"] += 0.3; c["vx"] *= 0.92
+            c["life"] -= 1
+
+        self._code_burst = [c for c in self._code_burst if c["life"] > 0]
 
     def on_hit(self, owner, target, event_bus, psys=None, fsys=None):
-        # 상대 스킬 쿨타임 강제 증가
+        # 쿨타임 증가 디버프
         for sk in target.skills.values():
-            if sk.current_cooldown > 0:
+            if sk.cooldown:
                 sk.current_cooldown = min(sk.cooldown, sk.current_cooldown + self.CD_PENALTY)
-        target.vel.x += owner.facing * 5
+
+        # 이동방향 반전 (혼란)
+        target.vel.x = -target.vel.x * 0.6
+        target.vel.y -= 3
+
+        # 코드 파편 스폰
+        for _ in range(16):
+            ang = random.uniform(0, math.pi*2)
+            spd = random.uniform(4, 9)
+            self._code_burst.append({
+                "x": float(target.rect.centerx),
+                "y": float(target.rect.centery),
+                "vx": math.cos(ang)*spd, "vy": math.sin(ang)*spd - 2,
+                "char": random.choice(CODE_CHARS),
+                "col": random.choice(BIT_COLORS),
+                "life": random.randint(18, 32),
+                "max_life": 30,
+            })
+
         if psys:
-            for _ in range(20):
-                ang = random.uniform(0, math.pi * 2)
-                psys.spawn(target.rect.centerx + math.cos(ang)*20,
-                           target.rect.centery + math.sin(ang)*20,
-                           random.choice(BIT_COLORS),
-                           count=1, speed=random.uniform(4,9),
-                           gravity=0.05, life=random.randint(14,26), r=random.randint(3,6), glow=True)
+            psys.spawn(target.rect.centerx, target.rect.centery,
+                       (80,235,190), count=20, speed=7, gravity=0.1, life=20, r=5, glow=True)
+            psys.spawn(target.rect.centerx, target.rect.centery,
+                       (255,255,255), count=8, speed=5, gravity=0, life=12, r=3, glow=True)
+
         super().on_hit(owner, target, event_bus, psys, fsys)
 
     def draw_front(self, owner, screen, camera, dr, bob, z):
-        if not self.active: return
-        t     = self.timer / max(1, self.duration)
-        alpha = _alpha(220 * t)
-        length = int(self.BEAM_LENGTH * z)
-        bw    = max(int(4*z), int(self.BEAM_WIDTH * t * z))
-        sx    = dr.right - int(6*z) if owner.facing == 1 else dr.left - length + int(6*z)
-        by    = dr.centery + bob - bw//2
-        tick  = pygame.time.get_ticks()
+        # 타격 이펙트 (주먹 궤적)
+        if self.active:
+            elapsed = self.duration - self.timer
+            if self.HIT_FRAME - 3 <= elapsed <= self.HIT_FRAME + 6:
+                t2 = (elapsed - (self.HIT_FRAME-3)) / 9
+                cx = dr.centerx + dr.w//2 * owner.facing
+                cy = dr.centery + bob
+                r2 = int(dr.w * 0.6 * z)
+                alpha = _alpha(220 * (1 - abs(t2*2-1)*0.5))
+                # 충격파 원
+                for ri in range(3):
+                    rr = int(r2 * (t2*(1+ri*0.5)+0.2))
+                    if rr < 2: continue
+                    rs = pygame.Surface((rr*2+4,rr*2+4),pygame.SRCALPHA)
+                    pygame.draw.circle(rs,
+                        (*BIT_COLORS[ri%len(BIT_COLORS)], _alpha(alpha*(1-ri*0.25))),
+                        (rr+2,rr+2), rr, max(1,int(3*z)))
+                    screen.blit(rs,(cx-rr-2, cy-rr-2))
+                # 암호 부호 (충격)
+                fnt = pygame.font.SysFont(None, max(10,int(18*z)), bold=True)
+                for i, char in enumerate(["ENCRYPT","!","##","??"]):
+                    offset_x = owner.facing * int((r2*0.4 + i*r2*0.25)*t2)
+                    offset_y = int(math.sin(i*1.3) * r2 * 0.5 * t2)
+                    cs = fnt.render(char, True, BIT_COLORS[i%len(BIT_COLORS)])
+                    cs.set_alpha(_alpha(alpha*0.8))
+                    screen.blit(cs, (cx + offset_x - cs.get_width()//2,
+                                     cy + offset_y - cs.get_height()//2))
 
-        # 메인 빔
-        bs = pygame.Surface((length, bw+16), pygame.SRCALPHA)
-        pygame.draw.rect(bs, (*self.BEAM_COLOR, alpha), (0, 8, length, bw), border_radius=int(4*z))
-        pygame.draw.rect(bs, (*self.BEAM_GLOW, _alpha(alpha*0.4)), (0, 4, length, bw+8), border_radius=int(6*z))
-        # 중앙 흰 줄기
-        pygame.draw.rect(bs, (255,255,255,_alpha(alpha*0.7)),
-                         (0, 8+bw//2-int(2*z), length, int(3*z)))
-
-        # 코드 스트림 (빔 위에 흐르는 이진 문자)
-        fnt = pygame.font.SysFont(None, max(8, int(14*z)), bold=True)
-        char_spacing = max(12, int(28*z))
-        for i in range(length // char_spacing):
-            cx2 = i * char_spacing + int((tick * 0.15) % char_spacing)
-            char = CODE_CHARS[(i + int(tick*0.02)) % len(CODE_CHARS)]
-            cs  = fnt.render(char, True, (200, 255, 240))
-            cs.set_alpha(_alpha(alpha * 0.55))
-            bs.blit(cs, (cx2, 1))
-
-        screen.blit(bs, (sx, by))
+        # 코드 파편
+        fnt2 = pygame.font.SysFont(None, max(8,int(13*z)), bold=True)
+        for c in self._code_burst:
+            cx2, cy2 = camera.world_to_screen(c["x"], c["y"])
+            a = _alpha(200 * c["life"] / c["max_life"])
+            cs = fnt2.render(c["char"], True, c["col"])
+            cs.set_alpha(a)
+            screen.blit(cs, (cx2 - cs.get_width()//2, cy2 - cs.get_height()//2))
 
 
-# ── E: Bombe Machine (자동 추적 폭탄) ───────────────────────────────────────
 class BombeMachine(_NormalOnlyMixin, Skill):
     """
     체스판처럼 계산된 경로로 상대에게 접근하는 추적 폭탄.
@@ -257,78 +322,119 @@ class TuringDomain(DomainUltimateSkill):
 
 
 # ── 강화 Q: Turing Complete (완전한 계산 광선) ────────────────────────────────
-class TuringComplete(_DomainOnlyMixin, BeamSkill):
+class TuringComplete(_DomainOnlyMixin, Skill):
     """
-    영역 강화 Q — 완전한 계산.
-    다단히트 빔 + 명중 시 상대 스킬 쿨타임 완전 리셋(최대로 증가)
+    강화 Q — Turing Complete
+
+    더 강하고 광역인 암호 펀치.
+    - 피해 2배, 범위 1.8배
+    - 명중 시 상대 모든 스킬 쿨타임 최대치로 강제 증가
+    - 코드 폭발 이펙트 + 화면 전체에 암호 비
     """
-    DISPLAY_NAME = "Turing Complete"
-    DESCRIPTION  = "Domain — Multi-hit beam.\nFully resets all enemy skill cooldowns."
-    BEAM_LENGTH  = 440
-    BEAM_WIDTH   = 34
-    BEAM_COLOR   = (40, 200, 150)
-    BEAM_GLOW    = (100, 255, 210)
-    COOLDOWN_SEC = 7.0
-    MULTI_HITS   = 4
-    HIT_INTERVAL = 5
+    DISPLAY_NAME  = "Turing Complete"
+    DESCRIPTION   = "Domain — Massive cipher punch.\nFully maxes all enemy skill cooldowns."
+    COOLDOWN_SEC  = 6.0
+    HIT_FRAME     = 6
+    ATK_FRAMES    = 26
 
     def __init__(self):
-        super().__init__("Turing Complete", damage=18, cooldown=420, duration=32)
+        super().__init__("Turing Complete", damage=44, cooldown=360, duration=26)
         self.charge_value          = 0.0
-        self.finisher_charge_value = 2.0
-        self._hit_count  = 0
-        self._hit_timer  = 0
+        self.finisher_charge_value = 2.2
+        self._code_burst = []
+
+    def on_start(self, owner, event_bus=None, psys=None):
+        self._code_burst = []
+        if psys:
+            for _ in range(14):
+                ang = random.uniform(0, math.pi*2)
+                psys.spawn(owner.rect.centerx + math.cos(ang)*40,
+                           owner.rect.centery + math.sin(ang)*40,
+                           random.choice(BIT_COLORS),
+                           count=1, speed=random.uniform(4,9),
+                           gravity=0, life=random.randint(14,24), r=random.randint(4,8), glow=True)
+
+    def get_hitbox(self, owner):
+        if not self.active: return None
+        elapsed = self.duration - self.timer
+        if elapsed < self.HIT_FRAME or elapsed > self.HIT_FRAME + 12:
+            return None
+        w = int(owner.rect.w * 3.2)
+        h = int(owner.rect.h * 2.0)
+        x = owner.rect.right - 10 if owner.facing == 1 else owner.rect.left - w + 10
+        return pygame.Rect(x, owner.rect.centery - h//2, w, h)
 
     def on_update(self, owner, event_bus=None, psys=None):
-        self._hit_timer += 1
-        if self._hit_timer >= self.HIT_INTERVAL and self._hit_count < self.MULTI_HITS:
-            self._hit_timer  = 0
-            self._hit_count += 1
-            self.has_hit     = False   # 다단 히트
+        elapsed = self.duration - self.timer
+        if elapsed == self.HIT_FRAME and psys:
+            cx = owner.rect.centerx + owner.facing * int(owner.rect.w * 1.2)
+            cy = owner.rect.centery
+            for _ in range(32):
+                ang = random.uniform(-math.pi*0.7, math.pi*0.7) + (0 if owner.facing==1 else math.pi)
+                psys.spawn(cx+math.cos(ang)*15, cy+math.sin(ang)*15,
+                           random.choice(BIT_COLORS),
+                           count=1, speed=random.uniform(6,14),
+                           gravity=0.12, life=random.randint(16,28), r=random.randint(4,8), glow=True)
+        for c in self._code_burst:
+            c["x"]+=c["vx"]; c["y"]+=c["vy"]
+            c["vy"]+=0.3; c["vx"]*=0.9; c["life"]-=1
+        self._code_burst = [c for c in self._code_burst if c["life"]>0]
 
     def on_hit(self, owner, target, event_bus, psys=None, fsys=None):
-        # 마지막 히트에서 쿨타임 완전 리셋
-        if self._hit_count >= self.MULTI_HITS:
-            for sk in target.skills.values():
-                if sk.cooldown:
-                    sk.current_cooldown = sk.cooldown
+        # 모든 스킬 쿨타임 최대치로
+        for sk in target.skills.values():
+            if sk.cooldown:
+                sk.current_cooldown = sk.cooldown
+        target.vel.x = -target.vel.x * 0.5
+        target.vel.y -= 5
+        for _ in range(24):
+            ang = random.uniform(0, math.pi*2)
+            spd = random.uniform(5, 12)
+            self._code_burst.append({
+                "x": float(target.rect.centerx), "y": float(target.rect.centery),
+                "vx": math.cos(ang)*spd, "vy": math.sin(ang)*spd-3,
+                "char": random.choice(CODE_CHARS), "col": random.choice(BIT_COLORS),
+                "life": random.randint(22,38), "max_life": 35,
+            })
         if psys:
             psys.spawn(target.rect.centerx, target.rect.centery,
-                       (80,235,190), count=16, speed=6, gravity=0, life=20, r=5, glow=True)
+                       (80,235,190), count=28, speed=9, gravity=0.1, life=26, r=7, glow=True)
+            psys.spawn(target.rect.centerx, target.rect.centery,
+                       (255,255,255), count=12, speed=6, gravity=0, life=16, r=4, glow=True)
         super().on_hit(owner, target, event_bus, psys, fsys)
 
     def draw_front(self, owner, screen, camera, dr, bob, z):
-        if not self.active: return
-        t     = self.timer / max(1, self.duration)
-        alpha = _alpha(220 * t)
-        length = int(self.BEAM_LENGTH * z)
-        bw    = max(int(6*z), int(self.BEAM_WIDTH * t * z))
-        sx    = dr.right - int(6*z) if owner.facing == 1 else dr.left - length + int(6*z)
-        by    = dr.centery + bob - bw//2
-        tick  = pygame.time.get_ticks()
+        if self.active:
+            elapsed = self.duration - self.timer
+            if self.HIT_FRAME - 4 <= elapsed <= self.HIT_FRAME + 10:
+                t2 = (elapsed-(self.HIT_FRAME-4)) / 14
+                cx = dr.centerx + dr.w//2 * owner.facing
+                cy = dr.centery + bob
+                r2 = int(dr.w * 1.2 * z)
+                alpha = _alpha(240 * (1-abs(t2*2-1)*0.4))
+                for ri in range(4):
+                    rr = int(r2*(t2*(1+ri*0.4)+0.15))
+                    if rr < 2: continue
+                    rs = pygame.Surface((rr*2+4,rr*2+4),pygame.SRCALPHA)
+                    pygame.draw.circle(rs,
+                        (*BIT_COLORS[ri%len(BIT_COLORS)], _alpha(alpha*(1-ri*0.2))),
+                        (rr+2,rr+2), rr, max(2,int(4*z)))
+                    screen.blit(rs,(cx-rr-2,cy-rr-2))
+                fnt = pygame.font.SysFont(None, max(10,int(22*z)),bold=True)
+                for i,char in enumerate(["HALT","NULL","ENCRYPT","!!"]):
+                    ox2 = owner.facing*int((r2*0.5+i*r2*0.28)*t2)
+                    oy2 = int(math.sin(i*1.5)*r2*0.6*t2)
+                    cs  = fnt.render(char,True,BIT_COLORS[i%len(BIT_COLORS)])
+                    cs.set_alpha(_alpha(alpha))
+                    screen.blit(cs,(cx+ox2-cs.get_width()//2,cy+oy2-cs.get_height()//2))
+        fnt2 = pygame.font.SysFont(None,max(8,int(14*z)),bold=True)
+        for c in self._code_burst:
+            cx2,cy2 = camera.world_to_screen(c["x"],c["y"])
+            a = _alpha(200*c["life"]/c["max_life"])
+            cs = fnt2.render(c["char"],True,c["col"]); cs.set_alpha(a)
+            screen.blit(cs,(cx2-cs.get_width()//2,cy2-cs.get_height()//2))
 
-        bs = pygame.Surface((length, bw+20), pygame.SRCALPHA)
-        # 메인 빔
-        pygame.draw.rect(bs,(*self.BEAM_COLOR,alpha),(0,10,length,bw),border_radius=int(5*z))
-        pygame.draw.rect(bs,(*self.BEAM_GLOW,_alpha(alpha*0.4)),(0,5,length,bw+10),border_radius=int(7*z))
-        # 다단히트 펄스 링
-        pulse_x = int((tick * 0.3) % length)
-        ps2 = pygame.Surface((bw*3+8, bw*3+8), pygame.SRCALPHA)
-        pygame.draw.circle(ps2,(*self.BEAM_GLOW,_alpha(alpha*0.6)),
-                           (bw*3//2+4,bw*3//2+4), int(bw*1.2))
-        bs.blit(ps2,(pulse_x-bw*3//2-4, 10+bw//2-bw*3//2-4))
-        # 코드 스트림
-        fnt = pygame.font.SysFont(None, max(8,int(13*z)), bold=True)
-        for i in range(length//int(max(1,24*z))+1):
-            cx2 = i*int(max(1,24*z)) + int((tick*0.2)%max(1,24*z))
-            char = CODE_CHARS[(i+int(tick*0.03))%len(CODE_CHARS)]
-            cs  = fnt.render(char,True,(200,255,240))
-            cs.set_alpha(_alpha(alpha*0.5))
-            bs.blit(cs,(cx2,2))
-        screen.blit(bs,(sx,by))
 
-
-# ── 강화 E: Decidability Trap (계산 격자 정지장) ─────────────────────────────
 class DecidabilityTrap(_DomainOnlyMixin, SummonZoneSkill):
     """
     영역 강화 E — 정지 문제.
@@ -488,7 +594,7 @@ class Turing(Player):
         self.max_jumps = self.MAX_JUMPS; self.attack_damage = self.ATTACK_DMG
 
     def _init_skills(self):
-        self.skills["skill_Q"]        = EnigmaDecrypt()
+        self.skills["skill_Q"]        = CipherStrike()
         self.skills["skill_E"]        = BombeMachine()
         self.skills["skill_R"]        = TuringDomain()
         self.skills["skill_Q_domain"] = TuringComplete()

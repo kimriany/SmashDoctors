@@ -273,7 +273,7 @@ class EventHorizon(_NormalOnlyMixin, SummonZoneSkill):
 class EinsteinDomain(DomainUltimateSkill):
     DISPLAY_NAME          = "Einstein Domain"
     DESCRIPTION           = "Open Einstein's spacetime domain.\nAll skills become stronger."
-    DOMAIN_BG_PATH        = "assets/images/charactor/Einstein/IDL.png"  # 임시 — domain.jpeg 추가 시 교체
+    DOMAIN_BG_PATH        = "assets/images/Einstein_domain.jpeg"  # 임시 — domain.jpeg 추가 시 교체
     DOMAIN_PARTICLE_COLOR = (255, 140, 80)
     BREAK_HITS            = 5
     CUTSCENE_FRAMES       = 30
