@@ -345,6 +345,15 @@ class Player(BaseEntity):
 
         return self.use_skill("skill_R", event_bus, psys)
     def use_skill(self, skill_key: str, event_bus=None, psys=None):
+        # 영역 전개 중이면 _domain 버전 우선 시도
+        if getattr(self, "domain_active", False):
+            domain_key = skill_key + "_domain"
+            domain_skill = self.skills.get(domain_key)
+            if domain_skill is not None and domain_skill.can_use(self):
+                domain_skill.use(self, event_bus, psys)
+                self.active_skill = domain_skill
+                return True
+
         skill = self.skills.get(skill_key)
 
         if skill is None:

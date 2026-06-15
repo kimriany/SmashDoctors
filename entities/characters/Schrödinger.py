@@ -58,94 +58,170 @@ class _NormalOnlyMixin:
         return not getattr(owner, "domain_active", False)
 
 
-class AtomicWave(_NormalOnlyMixin, ProjectileSkill):
-    DISPLAY_NAME = "Atomic Wave"
-    DESCRIPTION = "Fire an atom packet with a wave trail."
-    PROJ_SPEED = 10.0
-    PROJ_SIZE = 17
-    PROJ_COLOR = (95, 220, 255)
-    PROJ_GLOW = (210, 245, 255)
+class WaveParticle(_NormalOnlyMixin, ProjectileSkill):
+    """
+    슈뢰딩거 Q — 파동-입자 이중성 (Wave-Particle Duality)
+
+    [파동 상태] 발동 직후: 사인파 궤적으로 날아감, 관통
+    [입자 상태] 상대가 맞는 순간: 파동 붕괴 → 강한 단일 폭발
+
+    - 파동 중에는 적을 통과하며 약한 지속 딜
+    - 입자로 붕괴하는 순간 강한 충격
+    - 공중에서 사용하면 아래로 꺾이는 중력 파동 발생
+    """
+    DISPLAY_NAME = "Wave-Particle Duality"
+    DESCRIPTION  = "Travels as a wave, collapses into a particle.\nPasses through, then detonates."
+    PROJ_SPEED   = 9.5
+    PROJ_SIZE    = 18
+    PROJ_COLOR   = (95, 220, 255)
+    PROJ_GLOW    = (210, 245, 255)
     COOLDOWN_SEC = 3.5
 
+    WAVE_DAMAGE      = 8    # 파동 통과 시 데미지
+    COLLAPSE_DAMAGE  = 24   # 붕괴 시 데미지
+    MAX_PASS         = 2    # 최대 통과 횟수 후 붕괴
+
     def __init__(self):
-        super().__init__("Atomic Wave", damage=18, cooldown=210, duration=84)
-        self.charge_value = 0.9
+        super().__init__("Wave-Particle Duality", damage=self.WAVE_DAMAGE, cooldown=210, duration=90)
+        self.charge_value   = 0.9
+        self._phase         = 0.0
+        self._origin_y      = 0.0
+        self._pass_count    = 0
+        self._collapsed     = False
+        self._collapse_t    = 0
+        self._is_aerial     = False   # 공중 발동 여부
 
     def on_start(self, owner, event_bus=None, psys=None):
-        self._origin_y = float(owner.rect.centery - 6)
-        self._px = float(owner.rect.centerx + owner.facing * 30)
-        self._py = self._origin_y
-        self._vx = self.PROJ_SPEED * owner.facing
-        self._phase = random.uniform(0, math.pi * 2)
-        self._alive = True
+        self._origin_y   = float(owner.rect.centery - 4)
+        self._px         = float(owner.rect.centerx + owner.facing * 30)
+        self._py         = self._origin_y
+        self._vx         = self.PROJ_SPEED * owner.facing
+        self._vy         = 0.0
+        self._phase      = random.uniform(0, math.pi * 2)
+        self._alive      = True
+        self._pass_count = 0
+        self._collapsed  = False
+        self._collapse_t = 0
+        self._is_aerial  = not owner.on_ground
+        self.damage      = self.WAVE_DAMAGE   # 파동 상태 데미지
+        self.has_hit     = False
         if psys:
-            psys.spawn(self._px, self._py, (90, 210, 255), count=14,
-                       speed=4.5, gravity=-0.04, life=24, r=4, glow=True)
-            psys.spawn(self._px, self._py, (170, 120, 255), count=8,
-                       speed=3.2, gravity=-0.02, life=20, r=3, glow=True)
+            psys.spawn(self._px, self._py, (90,210,255), count=14, speed=4.5,
+                       gravity=-0.04, life=24, r=4, glow=True)
+            psys.spawn(self._px, self._py, (170,120,255), count=8, speed=3.2,
+                       gravity=-0.02, life=20, r=3, glow=True)
 
     def on_update(self, owner, event_bus=None, psys=None):
-        if not self._alive:
-            return
+        if not self._alive: return
         elapsed = self.duration - self.timer
-        self._px += self._vx
-        self._py = self._origin_y
 
-        if psys and self.timer % 3 == 0:
-            wave_y = self._py + math.sin(elapsed * 0.34 + self._phase) * 22
-            psys.spawn(self._px - owner.facing * 14, wave_y,
-                       random.choice(ATOM_COLORS), count=2, speed=2.0,
-                       gravity=-0.03, life=18, r=3, glow=True)
-        if abs(self._px - owner.rect.centerx) > 760:
+        if self._collapsed:
+            self._collapse_t += 1
+            if self._collapse_t > 18: self._alive = False
+            return
+
+        self._px += self._vx
+        # 파동 움직임 (공중이면 아래로 꺾임)
+        if self._is_aerial:
+            self._vy += 0.4
+            self._py += self._vy
+        else:
+            self._py = self._origin_y + math.sin(elapsed * 0.38 + self._phase) * 24
+
+        # 매 프레임 has_hit 리셋 (통과 가능)
+        if not self._collapsed:
+            self.has_hit = False
+
+        if abs(self._px - owner.rect.centerx) > 780:
             self._alive = False
+        if psys and self.timer % 3 == 0:
+            psys.spawn(self._px - owner.facing * 10, self._py,
+                       random.choice(ATOM_COLORS), count=2, speed=1.8,
+                       gravity=-0.03, life=16, r=3, glow=True)
 
     def on_hit(self, owner, target, event_bus, psys=None, fsys=None):
-        self._alive = False
-        target.vel.y -= 4
-        if psys:
-            psys.spawn(target.rect.centerx, target.rect.centery, (90, 220, 255),
-                       count=24, speed=7, gravity=-0.06, life=30, r=5, glow=True)
-            psys.spawn(target.rect.centerx, target.rect.centery, (190, 130, 255),
-                       count=16, speed=5, gravity=-0.02, life=24, r=4, glow=True)
-        super().on_hit(owner, target, event_bus, psys, fsys)
+        self._pass_count += 1
+        if self._pass_count >= self.MAX_PASS:
+            # 붕괴 — 데미지 전환
+            self._collapsed  = True
+            self.damage      = self.COLLAPSE_DAMAGE
+            self.has_hit     = False
+            target.vel.x    += owner.facing * 8
+            target.vel.y    -= 5
+            if psys:
+                for col in ATOM_COLORS:
+                    psys.spawn(self._px, self._py, col, count=16, speed=8,
+                               gravity=-0.04, life=28, r=6, glow=True)
+                psys.spawn(self._px, self._py, (255,255,255), count=10, speed=5,
+                           gravity=-0.06, life=18, r=4, glow=True)
+            # 붕괴 히트 발동
+            if event_bus:
+                event_bus.emit("attack_hit", {
+                    "attacker": owner, "target": target,
+                    "damage": self.COLLAPSE_DAMAGE, "is_skill": True,
+                    "particle_system": psys, "floater_system": None,
+                })
+        else:
+            # 통과 — 약한 딜
+            if psys:
+                psys.spawn(self._px, self._py, (95,220,255), count=8, speed=4,
+                           gravity=-0.03, life=16, r=4, glow=True)
+            if event_bus:
+                event_bus.emit("attack_hit", {
+                    "attacker": owner, "target": target,
+                    "damage": self.WAVE_DAMAGE, "is_skill": True,
+                    "particle_system": psys, "floater_system": None,
+                })
 
     def draw_front(self, owner, screen, camera, dr, bob, z):
-        if not self.active or not getattr(self, "_alive", False):
-            return
-
+        if not self._alive: return
         sx, sy = camera.world_to_screen(self._px, self._py)
         r = max(5, int(self.PROJ_SIZE * z))
         elapsed = self.duration - self.timer
 
-        # 파동 궤적
-        points = []
-        mirror_points = []
-        for i in range(18):
-            x = sx - owner.facing * i * 9 * z
-            y = sy + math.sin(elapsed * 0.34 - i * 0.55 + self._phase) * 11 * z
-            y2 = sy - math.sin(elapsed * 0.34 - i * 0.55 + self._phase) * 11 * z
-            points.append((x, y))
-            mirror_points.append((x, y2))
-        if len(points) > 1:
-            bounds = pygame.Rect(0, 0, screen.get_width(), screen.get_height())
-            wave = pygame.Surface(bounds.size, pygame.SRCALPHA)
-            pygame.draw.lines(wave, (95, 220, 255, 150), False, points, max(1, int(2 * z)))
-            pygame.draw.lines(wave, (180, 120, 255, 105), False, mirror_points, max(1, int(2 * z)))
-            screen.blit(wave, (0, 0), special_flags=pygame.BLEND_RGBA_ADD)
+        if self._collapsed:
+            # 붕괴 폭발 이펙트
+            t     = self._collapse_t / 18
+            exp_r = int(r * (1 + t * 4))
+            for col, rr, aa in [(ATOM_COLORS[0], exp_r, 160),
+                                 (ATOM_COLORS[2], int(exp_r*0.6), 210),
+                                 ((255,255,255), int(exp_r*0.3), 255)]:
+                if rr < 2: continue
+                es = pygame.Surface((rr*2+4,rr*2+4),pygame.SRCALPHA)
+                pygame.draw.circle(es,(*col,_alpha(aa*(1-t))),(rr+2,rr+2),rr)
+                screen.blit(es,(sx-rr-2,sy-rr-2))
+            return
 
-        # 원자 궤도 링
-        ring = pygame.Surface((r * 5, r * 5), pygame.SRCALPHA)
-        cx = cy = r * 5 // 2
-        pygame.draw.circle(ring, (20, 28, 70, 130), (cx, cy), int(r * 1.1))
-        pygame.draw.circle(ring, (230, 250, 255, 230), (cx, cy), max(2, r // 3))
-        for i, angle in enumerate((0, math.pi / 3, -math.pi / 3)):
-            rect = pygame.Rect(cx - int(r * 1.8), cy - int(r * 0.58), int(r * 3.6), int(r * 1.16))
-            orbit = pygame.Surface((r * 5, r * 5), pygame.SRCALPHA)
-            pygame.draw.ellipse(orbit, (*ATOM_COLORS[i], 135), rect, max(1, int(2 * z)))
-            rotated = pygame.transform.rotate(orbit, math.degrees(angle) + elapsed * 7)
-            screen.blit(rotated, (sx - rotated.get_width() // 2, sy - rotated.get_height() // 2),
+        # 파동 궤적
+        pts=[]; pts2=[]
+        for i in range(18):
+            x = sx - owner.facing * i * int(8*z)
+            if self._is_aerial:
+                y  = sy + i * int(2*z)
+                y2 = sy - i * int(2*z)
+            else:
+                y  = sy + int(math.sin(elapsed*0.38 - i*0.55 + self._phase)*11*z)
+                y2 = sy - int(math.sin(elapsed*0.38 - i*0.55 + self._phase)*11*z)
+            pts.append((x,y)); pts2.append((x,y2))
+        wave = pygame.Surface(screen.get_size(), pygame.SRCALPHA)
+        if len(pts)>1:
+            pygame.draw.lines(wave,(95,220,255,150),False,pts,max(1,int(2*z)))
+            pygame.draw.lines(wave,(180,120,255,105),False,pts2,max(1,int(2*z)))
+        screen.blit(wave,(0,0),special_flags=pygame.BLEND_RGBA_ADD)
+
+        # 본체 — 원자 궤도 링
+        ring = pygame.Surface((r*5,r*5),pygame.SRCALPHA)
+        cx=cy=r*5//2
+        pygame.draw.circle(ring,(20,28,70,130),(cx,cy),int(r*1.1))
+        pygame.draw.circle(ring,(230,250,255,230),(cx,cy),max(2,r//3))
+        for i,angle in enumerate((0,math.pi/3,-math.pi/3)):
+            rect = pygame.Rect(cx-int(r*1.8),cy-int(r*0.58),int(r*3.6),int(r*1.16))
+            orbit = pygame.Surface((r*5,r*5),pygame.SRCALPHA)
+            pygame.draw.ellipse(orbit,(*ATOM_COLORS[i],135),rect,max(1,int(2*z)))
+            rotated = pygame.transform.rotate(orbit, math.degrees(angle)+elapsed*7)
+            screen.blit(rotated,(sx-rotated.get_width()//2,sy-rotated.get_height()//2),
                         special_flags=pygame.BLEND_RGBA_ADD)
-        screen.blit(ring, (sx - cx, sy - cy), special_flags=pygame.BLEND_RGBA_ADD)
+        screen.blit(ring,(sx-cx,sy-cy),special_flags=pygame.BLEND_RGBA_ADD)
 
 
 class QuantumCollapseZone(_NormalOnlyMixin, SummonZoneSkill):
@@ -389,25 +465,164 @@ class SchrodingerDomain(DomainUltimateSkill):
         super().__init__(name="Superposition Domain", damage=0, duration=999999)
 
 
-class QuantumPacket(_DomainOnlyMixin, AtomicWave):
-    DISPLAY_NAME = "Quantum Packet"
-    DESCRIPTION = "Domain skill — faster atom wave with stronger collapse."
-    PROJ_SPEED = 14.0
-    PROJ_SIZE = 22
-    COOLDOWN_SEC = 2.6
+class QuantumPacket(_DomainOnlyMixin, ProjectileSkill):
+    """
+    영역 강화 Q — Dead or Alive
+
+    슈뢰딩거 고양이의 확률처럼, 발동 시
+    50% 확률로 두 가지 다른 결과가 나온다:
+    - ALIVE: 빠른 3연속 파동 투사체
+    - DEAD:  느리지만 거대한 붕괴 구체 (데미지 2배)
+    """
+    DISPLAY_NAME = "Dead or Alive"
+    DESCRIPTION  = "Domain — 50% chance: triple wave or massive collapse orb."
+    PROJ_SPEED   = 14.0
+    PROJ_SIZE    = 20
+    PROJ_COLOR   = (160, 80, 255)
+    PROJ_GLOW    = (220, 160, 255)
+    COOLDOWN_SEC = 5.0
 
     def __init__(self):
-        ProjectileSkill.__init__(self, "Quantum Packet", damage=32, cooldown=156, duration=76)
-        self.charge_value = 0.0
-        self.finisher_charge_value = 1.7
+        super().__init__("Dead or Alive", damage=28, cooldown=300, duration=100)
+        self.charge_value          = 0.0
+        self.finisher_charge_value = 2.0
+        self._mode    = "unknown"   # "alive" or "dead" — 발동 시 결정
+        self._shots   = []          # alive 모드: 3연속 투사체
+        self._spin    = 0.0
 
     def on_start(self, owner, event_bus=None, psys=None):
-        super().on_start(owner, event_bus, psys)
+        # 슈뢰딩거 고양이 — 발동 시 확률 결정
+        self._mode = "alive" if random.random() < 0.5 else "dead"
+        self._shots = []
+        self._spin  = 0.0
+        self._alive = True
+
+        if self._mode == "alive":
+            # 3연속 파동
+            for delay in (0, 8, 16):
+                self._shots.append({
+                    "px": float(owner.rect.centerx + owner.facing * 28),
+                    "py": float(owner.rect.centery - 4),
+                    "vx": self.PROJ_SPEED * owner.facing,
+                    "vy": 0.0, "t": 0, "delay": delay, "alive": True,
+                    "phase": random.uniform(0, math.pi*2)
+                })
+            if psys:
+                psys.spawn(owner.rect.centerx, owner.rect.centery,
+                           (100,200,255), count=20, speed=5, gravity=-0.04, life=24, r=5, glow=True)
+                psys.spawn(owner.rect.centerx, owner.rect.centery,
+                           (160,80,255), count=10, speed=3, gravity=-0.02, life=18, r=3, glow=True)
+        else:
+            # 거대 붕괴 구체
+            self._px  = float(owner.rect.centerx + owner.facing * 32)
+            self._py  = float(owner.rect.centery - 4)
+            self._vx  = (self.PROJ_SPEED * 0.55) * owner.facing
+            self._vy  = 0.0
+            if psys:
+                for _ in range(24):
+                    ang = random.uniform(0, math.pi*2)
+                    psys.spawn(owner.rect.centerx + math.cos(ang)*40,
+                               owner.rect.centery + math.sin(ang)*40,
+                               random.choice(ATOM_COLORS),
+                               count=1, speed=random.uniform(3,8),
+                               gravity=-0.03, life=random.randint(18,32), r=random.randint(4,8), glow=True)
+
+    def on_update(self, owner, event_bus=None, psys=None):
+        if self._mode == "alive":
+            for s in self._shots:
+                if not s["alive"]: continue
+                s["t"] += 1
+                if s["t"] < s["delay"]: continue
+                s["px"] += s["vx"]
+                s["py"] += math.sin((s["t"]-s["delay"])*0.3 + s["phase"]) * 1.5
+                if abs(s["px"]-owner.rect.centerx) > 720:
+                    s["alive"] = False
+                if psys and s["t"] % 4 == 0:
+                    psys.spawn(s["px"],s["py"],random.choice(ATOM_COLORS),
+                               count=1,speed=1.5,gravity=0,life=10,r=3,glow=True)
+        else:
+            if not getattr(self,"_alive",False): return
+            self._px += self._vx; self._spin += 6
+            if abs(self._px - owner.rect.centerx) > 680:
+                self._alive = False
+            if psys and self.timer % 3 == 0:
+                ang = random.uniform(0, math.pi*2)
+                r   = max(4, int(self.PROJ_SIZE * 1.2))
+                psys.spawn(self._px + math.cos(ang)*r,
+                           self._py + math.sin(ang)*r,
+                           random.choice(ATOM_COLORS),
+                           count=1, speed=1, gravity=0, life=12, r=4, glow=True)
+
+    def get_hitbox(self, owner):
+        if self._mode == "alive":
+            for s in self._shots:
+                if s["alive"] and s["t"] >= s["delay"]:
+                    r = self.PROJ_SIZE - 4
+                    return pygame.Rect(int(s["px"])-r, int(s["py"])-r, r*2, r*2)
+            return None
+        else:
+            if not getattr(self,"_alive",False): return None
+            r = int(self.PROJ_SIZE * 1.5)
+            return pygame.Rect(int(self._px)-r, int(self._py)-r, r*2, r*2)
+
+    def on_hit(self, owner, target, event_bus, psys=None, fsys=None):
+        if self._mode == "dead":
+            # dead 모드: 데미지 2배 + 강한 넉백
+            target.vel.x += owner.facing * 10
+            target.vel.y -= 7
         if psys:
-            for _ in range(24):
-                psys.spawn(self._px, self._py, random.choice(ATOM_COLORS),
-                           count=1, speed=random.uniform(3, 8), gravity=-0.05,
-                           life=random.randint(18, 32), r=random.randint(3, 6), glow=True)
+            col = (100,200,255) if self._mode=="alive" else (220,80,255)
+            psys.spawn(target.rect.centerx, target.rect.centery,
+                       col, count=22, speed=7, gravity=-0.04, life=26, r=6, glow=True)
+        super().on_hit(owner, target, event_bus, psys, fsys)
+
+    def draw_front(self, owner, screen, camera, dr, bob, z):
+        if self._mode == "alive":
+            for s in self._shots:
+                if not s["alive"] or s["t"] < s["delay"]: continue
+                sx, sy = camera.world_to_screen(s["px"], s["py"])
+                r = max(4, int((self.PROJ_SIZE-4)*z))
+                elapsed = s["t"] - s["delay"]
+                # 파동 원
+                rs = pygame.Surface((r*4, r*4), pygame.SRCALPHA)
+                rc = r*2
+                pygame.draw.circle(rs, (*self.PROJ_GLOW, 100), (rc,rc), r+5)
+                pygame.draw.circle(rs, (95,220,255,200), (rc,rc), r)
+                pygame.draw.circle(rs, (255,255,255,180), (rc,rc), r//3)
+                # 파동 흔적
+                for i in range(4):
+                    wx = sx - owner.facing * int((i+1)*12*z)
+                    wy = sy + int(math.sin(elapsed*0.3 - i*0.6 + s["phase"])*8*z)
+                    ws = pygame.Surface((r*2, r*2), pygame.SRCALPHA)
+                    pygame.draw.circle(ws, (95,220,255,_alpha(80-i*18)), (r,r), r-i*2)
+                    screen.blit(ws, (wx-r, wy-r))
+                screen.blit(rs, (sx-rc, sy-rc))
+        else:
+            if not getattr(self,"_alive",False): return
+            sx, sy = camera.world_to_screen(self._px, self._py)
+            r  = max(5, int(self.PROJ_SIZE * 1.5 * z))
+            ang = math.radians(self._spin)
+
+            # 거대 구체 (붕괴 에너지)
+            rs = pygame.Surface((r*4, r*4), pygame.SRCALPHA)
+            rc = r*2
+            # 외곽 글로우 다중
+            for gi, (ga, gr) in enumerate([(40,r+16),(80,r+8),(150,r)]):
+                pygame.draw.circle(rs, (*ATOM_COLORS[gi%len(ATOM_COLORS)], _alpha(ga)),
+                                   (rc,rc), gr)
+            # 교차 타원 (슈뢰딩거 심볼)
+            for aoff in (0, math.pi/3, -math.pi/3, math.pi/2):
+                ew, eh = int(r*1.6), int(r*0.45)
+                es = pygame.Surface((ew+4, eh+4), pygame.SRCALPHA)
+                pygame.draw.ellipse(es, (200,80,255,120), (2,2,ew,eh), max(1,int(2*z)))
+                rot = pygame.transform.rotate(es, math.degrees(ang+aoff))
+                rs.blit(rot, (rc-rot.get_width()//2, rc-rot.get_height()//2),
+                        special_flags=pygame.BLEND_RGBA_ADD)
+            # "?" 중심
+            fnt2 = pygame.font.SysFont(None, max(12,int(28*z)), bold=True)
+            qlbl = fnt2.render("?", True, (255,220,255))
+            rs.blit(qlbl, (rc-qlbl.get_width()//2, rc-qlbl.get_height()//2))
+            screen.blit(rs, (sx-rc, sy-rc))
 
 
 class ProbabilityStorm(_DomainOnlyMixin, SummonZoneSkill):
@@ -690,7 +905,7 @@ class Schrödinger(Player):
         self.attack_damage = self.ATTACK_DMG
 
     def _init_skills(self):
-        self.skills["skill_Q"] = AtomicWave()
+        self.skills["skill_Q"] = WaveParticle()
         self.skills["skill_E"] = QuantumCollapseZone()
         self.skills["skill_R"] = SchrodingerDomain()
         self.skills["skill_Q_domain"] = QuantumPacket()
