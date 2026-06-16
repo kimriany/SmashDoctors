@@ -2,28 +2,28 @@
   "id": "stage_04",
   "title": "물리 스테이지",
   "next_on_win": "stage_05",
-  "boss_class": "entities.characters.Einstein.Einstein",
+  "boss_class": "entities.Boss_characters.einstein_boss.EinsteinBoss",
   "boss_name": "아인슈타인",
   "boss_stocks": 4,
   "stage_json": "data/stages/stage_04.json",
   "battle_configs": {
     "1": {
-      "boss_class": "entities.characters.Pita.Pita",
+      "boss_class": "entities.Boss_characters.newton_boss.NewtonBoss",
       "boss_name": "뉴턴",
       "boss_stocks": 3
     },
     "2": {
-      "boss_class": "entities.characters.Hoking.Hoking",
+      "boss_class": "entities.Boss_characters.hoking_boss.HokingBoss",
       "boss_name": "호킹",
       "boss_stocks": 3
     },
     "3": {
-      "boss_class": "entities.characters.Einstein.Einstein",
+      "boss_class": "entities.Boss_characters.einstein_boss.EinsteinBoss",
       "boss_name": "아인슈타인 1페이즈",
       "boss_stocks": 3
     },
     "4": {
-      "boss_class": "entities.characters.Einstein.Einstein",
+      "boss_class": "entities.Boss_characters.einstein_boss.EinsteinBoss",
       "boss_name": "아인슈타인 2페이즈",
       "boss_stocks": 4
     }

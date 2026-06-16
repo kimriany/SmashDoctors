@@ -2,18 +2,18 @@
   "id": "stage_02",
   "title": "화학 스테이지",
   "next_on_win": "stage_03",
-  "boss_class": "entities.characters.Curie.Curie",
+  "boss_class": "entities.Boss_characters.curie_boss.CurieBoss",
   "boss_name": "퀴리",
   "boss_stocks": 3,
   "stage_json": "data/stages/stage_02.json",
   "battle_configs": {
     "1": {
-      "boss_class": "entities.characters.Curie.Curie",
+      "boss_class": "entities.Boss_characters.curie_boss.CurieBoss",
       "boss_name": "퀴리",
       "boss_stocks": 3
     },
     "2": {
-      "boss_class": "entities.characters.Schrödinger.Schrödinger",
+      "boss_class": "entities.Boss_characters.schrodinger_boss.SchrodingerBoss",
       "boss_name": "슈뢰딩거",
       "boss_stocks": 3
     }

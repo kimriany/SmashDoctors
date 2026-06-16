@@ -11,11 +11,14 @@ from scenes.character_select import CharacterSelect
 from scenes.story_intro import StoryIntro
 from scenes.story_stage_select import StoryStageSelect
 from scenes.story_scene import StoryScene
+from scenes.story_skill_select import StorySkillSelect
 
 from systems.story_save import StorySave
 from systems.story_loader import StoryLoader
 
 from engine.battle_session import BattleSession
+from entities.boss import Boss
+from entities.characters.StoryPlayer import StoryPlayer
 
 
 class StoryState:
@@ -23,6 +26,7 @@ class StoryState:
     STAGE_SELECT = "stage_select"
     CHAR_SELECT = "char_select"
     SCENE = "scene"
+    SKILL_SELECT = "skill_select"
     BATTLE = "battle"
     WIN = "win"
     LOSE = "lose"
@@ -47,12 +51,14 @@ class StoryGame:
 
         self.char_select = None
         self.story_scene = None
+        self.skill_select = None
         self.battle = None
 
         self.chapter = None
         self.player_cls = None
         self.battle_num = 1
         self.ending_type = None
+        self.story_skill_loadout = None
 
     # ─────────────────────────────────────────────
     # 외부 호출
@@ -78,6 +84,9 @@ class StoryGame:
 
             elif self.state == StoryState.SCENE:
                 self._handle_story_scene_event(event)
+
+            elif self.state == StoryState.SKILL_SELECT:
+                self._handle_skill_select_event(event)
 
             elif self.state == StoryState.BATTLE:
                 result = self.battle.update([event])
@@ -118,6 +127,10 @@ class StoryGame:
                 self.story_scene.update()
                 self.story_scene.draw()
 
+        elif self.state == StoryState.SKILL_SELECT:
+            if self.skill_select:
+                self.skill_select.draw()
+
         elif self.state == StoryState.BATTLE:
             if self.battle:
                 self.battle.draw()
@@ -150,6 +163,7 @@ class StoryGame:
         if self.state in (
             StoryState.CHAR_SELECT,
             StoryState.SCENE,
+            StoryState.SKILL_SELECT,
             StoryState.BATTLE,
             StoryState.WIN,
             StoryState.LOSE,
@@ -181,9 +195,11 @@ class StoryGame:
             self.chapter = None
             self.player_cls = None
             self.story_scene = None
+            self.skill_select = None
             self.battle = None
             self.battle_num = 1
             self.ending_type = None
+            self.story_skill_loadout = None
 
         self._reset_stage_select()
         self.state = StoryState.STAGE_SELECT
@@ -206,8 +222,9 @@ class StoryGame:
             return
 
         self.chapter = ch
-        self.char_select = CharacterSelect(self.screen)
-        self.state = StoryState.CHAR_SELECT
+        self.player_cls = StoryPlayer
+        self.story_save.set_character(StoryPlayer.DISPLAY_NAME)
+        self._start_story_scene()
 
     def _reset_stage_select(self):
         self.stage_select = StoryStageSelect(
@@ -267,14 +284,14 @@ class StoryGame:
 
         if result == "battle":
             self.battle_num = 1
-            self._start_story_battle()
+            self._start_story_skill_select()
 
         elif result and result.startswith("battle_"):
             try:
                 self.battle_num = int(result.rsplit("_", 1)[-1])
             except ValueError:
                 self.battle_num = 1
-            self._start_story_battle()
+            self._start_story_skill_select()
 
 
         elif result == "end":
@@ -333,6 +350,42 @@ class StoryGame:
     # ─────────────────────────────────────────────
     # BATTLE
     # ─────────────────────────────────────────────
+    def _start_story_skill_select(self):
+        if self.chapter is None:
+            self._reset_stage_select()
+            self.state = StoryState.STAGE_SELECT
+            return
+
+        battle_config = self._current_battle_config()
+        if not battle_config.get("stage_json"):
+            self._go_next_chapter_or_stage_select()
+            return
+
+        boss_key = Boss.profile_key_for(
+            f"{battle_config.get('boss_class', '')} {battle_config.get('boss_name', '')}"
+        )
+        select_config = dict(battle_config)
+        select_config["boss_key"] = boss_key
+
+        self.skill_select = StorySkillSelect(
+            self.screen,
+            select_config,
+            initial_loadout=self.story_skill_loadout,
+        )
+        self.state = StoryState.SKILL_SELECT
+
+    def _handle_skill_select_event(self, event):
+        if self.skill_select is None:
+            self._start_story_battle()
+            return
+
+        self.skill_select.handle_event(event)
+        if not self.skill_select.done:
+            return
+
+        self.story_skill_loadout = self.skill_select.result or {}
+        self._start_story_battle()
+
     def _current_battle_config(self):
         config = dict(self.chapter or {})
 
@@ -390,11 +443,7 @@ class StoryGame:
             self._go_next_chapter_or_stage_select()
             return
 
-        boss_cls = self.story_loader.get_boss_class(battle_config)
-
-        if boss_cls is None:
-            from entities.characters.Einstein import Einstein
-            boss_cls = Einstein
+        boss_cls = self._resolve_story_boss_class(battle_config)
 
         self.battle = BattleSession(
             screen=self.screen,
@@ -405,13 +454,53 @@ class StoryGame:
             player1_cls=self.player_cls,
             player2_cls=boss_cls,
             mode="story",
-            player1_name="Player",
+            player1_name=getattr(self.player_cls, "DISPLAY_NAME", "Player"),
             player2_name=battle_config.get("boss_name", "Boss"),
             player1_stocks=3,
-            player2_stocks=battle_config.get("boss_stocks", 3),
+            player2_stocks=1,
+            story_boss_profile={
+                "class_path": battle_config.get("boss_class", ""),
+                "boss_name": battle_config.get("boss_name", "Boss"),
+                "chapter_id": self.chapter.get("id"),
+                "battle_num": self.battle_num,
+            },
+            story_player_skills=self.story_skill_loadout,
         )
 
         self.state = StoryState.BATTLE
+
+    def _resolve_story_boss_class(self, battle_config):
+        boss_key = Boss.profile_key_for(
+            f"{battle_config.get('boss_class', '')} {battle_config.get('boss_name', '')}"
+        )
+        boss_map = {
+            "crick": "entities.Boss_characters.cric_boss.CricBoss",
+            "darwin": "entities.Boss_characters.darwin_boss.DarwinBoss",
+            "curie": "entities.Boss_characters.curie_boss.CurieBoss",
+            "schrodinger": "entities.Boss_characters.schrodinger_boss.SchrodingerBoss",
+            "einstein": "entities.Boss_characters.einstein_boss.EinsteinBoss",
+            "hoking": "entities.Boss_characters.hoking_boss.HokingBoss",
+            "pita": "entities.Boss_characters.newton_boss.NewtonBoss",
+            "turing": "entities.Boss_characters.turing_boss.TuringBoss",
+        }
+        if "뉴턴" in str(battle_config.get("boss_name", "")):
+            boss_key = "pita"
+
+        mapped = boss_map.get(boss_key)
+        if mapped:
+            mapped_cls = self.story_loader.get_boss_class({"boss_class": mapped})
+            if mapped_cls is not None:
+                return mapped_cls
+
+        boss_cls = self.story_loader.get_boss_class(battle_config)
+        if boss_cls is not None and issubclass(boss_cls, Boss):
+            return boss_cls
+
+        if boss_key == "crick":
+            from entities.Boss_characters.cric_boss import CricBoss
+            return CricBoss
+
+        return Boss
 
     def _handle_battle_result(self, result):
         if result == "back":
@@ -444,7 +533,7 @@ class StoryGame:
             return
 
         if event.key in (pygame.K_RETURN, pygame.K_r):
-            self._start_story_battle()
+            self._start_story_skill_select()
 
     # ─────────────────────────────────────────────
     # DRAW RESULT

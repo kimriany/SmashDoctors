@@ -8,14 +8,17 @@
   "boss_stocks": 3,
   "battle_configs": {
     "1": {
+      "boss_class": "entities.Boss_characters.turing_boss.TuringBoss",
       "boss_name": "RO2T",
       "boss_stocks": 2
     },
     "2": {
+      "boss_class": "entities.Boss_characters.cric_boss.CricBoss",
       "boss_name": "크릭",
       "boss_stocks": 3
     },
     "3": {
+      "boss_class": "entities.Boss_characters.darwin_boss.DarwinBoss",
       "boss_name": "다윈",
       "boss_stocks": 3
     }

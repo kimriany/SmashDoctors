@@ -301,10 +301,13 @@ class Renderer:
         domain_value = getattr(player, "domain_charge_stack", 0.0)
         domain_required = getattr(player, "domain_charge_required", 8.0)
         domain_active = getattr(player, "domain_active", False)
+        domain_locked = getattr(player, "domain_locked", False)
         domain_ready = getattr(player, "domain_ready", False) or domain_value >= domain_required
 
         if domain_active:
             domain_text = "ON"
+        elif domain_locked:
+            domain_text = None
         elif domain_ready:
             domain_text = "READY"
         else:
@@ -317,7 +320,7 @@ class Renderer:
             y,
             player.glow_color,
             ready_text=domain_text,
-            locked=False,
+            locked=domain_locked,
         )
 
         # -----------------------------

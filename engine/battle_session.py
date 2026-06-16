@@ -3,6 +3,7 @@
 import pygame
 
 from settings import SCREEN_WIDTH, SCREEN_HEIGHT, BLAST_MARGIN
+from systems.font_manager import font
 
 from engine.camera import Camera
 from engine.renderer import Renderer
@@ -43,6 +44,8 @@ class BattleSession:
         player1_stocks=3,
         player2_stocks=3,
         dual_domain_bg_path="assets/images/Double_domain.jpeg",
+        story_boss_profile=None,
+        story_player_skills=None,
     ):
         self.screen = screen
         self.stage_info = stage_info
@@ -74,6 +77,16 @@ class BattleSession:
         self.winner_color = (255, 255, 255)
 
         self.dual_domain_bg_path = dual_domain_bg_path
+        self.story_boss_profile = story_boss_profile or {}
+        self.story_player_skills = story_player_skills or {}
+
+        self.story_state = "INTRO"
+        self.boss_domain_started = False
+        self.boss_domain_broken = False
+        self.domain_survive_timer = 0
+        self.domain_survive_required = 30 * 60
+        self.story_message = ""
+        self.story_message_timer = 0
 
         self._setup_battle()
 
@@ -107,6 +120,12 @@ class BattleSession:
             player_id=2,
         )
 
+        if self.mode == "story" and hasattr(self.player1, "configure_story_skills"):
+            self.player1.configure_story_skills(self.story_player_skills)
+
+        if self.mode == "story" and hasattr(self.player2, "configure_profile"):
+            self.player2.configure_profile(self.story_boss_profile)
+
         self.player1.spawn_x = sp1[0]
         self.player1.spawn_y = sp1[1]
         self.player2.spawn_x = sp2[0]
@@ -118,6 +137,9 @@ class BattleSession:
 
         self.player1.stocks = self.player1_stocks
         self.player2.stocks = self.player2_stocks
+
+        if self.mode == "story":
+            self._configure_story_battle()
 
         stage_id = self.stage_info.get("id")
         if stage_id is not None:
@@ -145,6 +167,28 @@ class BattleSession:
         self.event_bus.subscribe("entity_dead", self._on_entity_dead)
 
         self.event_bus.subscribe("stock_lost", self._on_stock_lost)
+
+    def _configure_story_battle(self):
+        self.story_state = "PHASE_1"
+        self.boss_domain_started = False
+        self.boss_domain_broken = False
+        self.domain_survive_timer = 0
+        self.story_message = "Boss battle started"
+        self.story_message_timer = 150
+
+        self.player1.stocks = 3
+        self.player1.domain_locked = True
+        self.player1.domain_charge_stack = 0.0
+        self.player1.domain_ready = False
+        self.player1.finisher_charge_stack = 0.0
+        self.player1.finisher_ready = False
+        self.player1.finisher_locked = True
+
+        self.player2.stocks = 1
+        if hasattr(self.player2, "set_target"):
+            self.player2.set_target(self.player1)
+        if hasattr(self.player2, "final_lock"):
+            self.player2.final_lock = True
 
     def _snap_spawn_to_platform(self, player):
         if player is None or not self.platforms:
@@ -224,6 +268,10 @@ class BattleSession:
             elif lost_player is self.player2:
                 killer = self.player1
 
+        if self.mode == "story":
+            self._on_story_stock_lost(lost_player, killer, data)
+            return
+
         # 모든 영역 배경/상태 제거
         if hasattr(self, "domain_sys") and self.domain_sys:
             if hasattr(self.domain_sys, "force_clear_all"):
@@ -234,6 +282,29 @@ class BattleSession:
         for p in (self.player1, self.player2):
             if hasattr(p, "reset_domain_state"):
                 p.reset_domain_state()
+
+    def _on_story_stock_lost(self, lost_player, killer, data):
+        if lost_player is self.player1:
+            pid = getattr(self.player1, "player_id", None)
+            if self.domain_sys and pid in getattr(self.domain_sys, "active_domains", {}):
+                self.domain_sys.break_domain(self.player1)
+
+            if hasattr(self.player1, "reset_domain_state"):
+                self.player1.reset_domain_state()
+
+            if self.player1.stocks > 0 and self.boss_domain_started and not self.boss_domain_broken:
+                self.player1.domain_locked = True
+                self.player1.finisher_locked = True
+                self._set_story_message("Boss domain remains active", 150)
+            return
+
+        if lost_player is self.player2:
+            if self.domain_sys and hasattr(self.domain_sys, "force_clear_all"):
+                cutscene = data.get("reason") != "finisher"
+                self.domain_sys.force_clear_all(winner=killer, cutscene=cutscene)
+            for p in (self.player1, self.player2):
+                if hasattr(p, "reset_domain_state"):
+                    p.reset_domain_state()
     # ─────────────────────────────────────────────
     # 외부 호출
     # ─────────────────────────────────────────────
@@ -322,6 +393,9 @@ class BattleSession:
 
         self._check_blast_zones()
 
+        if self.mode == "story":
+            self._update_story_boss_flow()
+
         ps.update()
         fs.update()
 
@@ -338,6 +412,110 @@ class BattleSession:
 
         elif hasattr(self.player2, "handle_ai"):
             self.player2.handle_ai(self.player1)
+
+    def _update_story_boss_flow(self):
+        boss = self.player2
+        player = self.player1
+        if boss is None or player is None or boss.dead or player.dead:
+            return
+
+        if self.story_message_timer > 0:
+            self.story_message_timer -= 1
+
+        hp_ratio = getattr(boss, "hp_ratio", 1.0)
+        if not self.boss_domain_started:
+            if hp_ratio <= 0.50:
+                self._start_boss_domain()
+            elif hp_ratio <= 0.75:
+                self.story_state = "PHASE_2"
+            else:
+                self.story_state = "PHASE_1"
+            return
+
+        boss_domain_active = getattr(boss, "domain_active", False)
+        player_domain_active = getattr(player, "domain_active", False)
+
+        if boss_domain_active and not player_domain_active and not self.boss_domain_broken:
+            self.story_state = "SURVIVE_DOMAIN"
+            self.domain_survive_timer = min(
+                self.domain_survive_required,
+                self.domain_survive_timer + 1,
+            )
+            if self.domain_survive_timer >= self.domain_survive_required:
+                self._unlock_player_domain()
+            return
+
+        if boss_domain_active and player_domain_active and not self.boss_domain_broken:
+            self.story_state = "DOUBLE_DOMAIN"
+            player.finisher_locked = True
+            player.finisher_ready = False
+            return
+
+        if self.boss_domain_broken and player_domain_active:
+            self.story_state = "PLAYER_ULTIMATE_READY"
+            self._force_player_finisher_ready()
+
+    def _start_boss_domain(self):
+        self.boss_domain_started = True
+        self.domain_survive_timer = 0
+        self.story_state = "BOSS_DOMAIN"
+        self._set_story_message("Boss domain expansion", 180)
+
+        if hasattr(self.player2, "open_domain"):
+            self.player2.open_domain(self.event_bus)
+
+    def _unlock_player_domain(self):
+        player = self.player1
+        if getattr(player, "domain_ready", False) and not getattr(player, "domain_locked", False):
+            self.story_state = "PLAYER_DOMAIN_READY"
+            return
+
+        player.domain_locked = False
+        player.domain_charge_stack = getattr(player, "domain_charge_required", 8.0)
+        player.domain_ready = True
+        player.finisher_locked = True
+        player.finisher_ready = False
+        player.finisher_charge_stack = 0.0
+        self.story_state = "PLAYER_DOMAIN_READY"
+        self._set_story_message("R: Counter Domain ready", 180)
+
+    def _damage_boss_domain(self, amount):
+        boss = self.player2
+        if self.boss_domain_broken:
+            return
+        if not getattr(boss, "domain_active", False):
+            return
+        if not getattr(self.player1, "domain_active", False):
+            return
+
+        boss.boss_domain_hp = max(0.0, getattr(boss, "boss_domain_hp", 0.0) - float(amount))
+        if boss.boss_domain_hp <= 0:
+            self._break_boss_domain()
+
+    def _break_boss_domain(self):
+        boss = self.player2
+        self.boss_domain_broken = True
+        self.story_state = "BOSS_DOMAIN_BROKEN"
+        self._set_story_message("Boss domain broken. Finish it.", 210)
+
+        boss.domain_broken = True
+        boss.weakened_timer = max(getattr(boss, "weakened_timer", 0), 240)
+        boss.stagger_timer = max(getattr(boss, "stagger_timer", 0), 80)
+
+        if self.domain_sys:
+            self.domain_sys.break_domain(boss)
+
+        self._force_player_finisher_ready()
+
+    def _force_player_finisher_ready(self):
+        player = self.player1
+        player.finisher_locked = False
+        player.finisher_charge_stack = getattr(player, "finisher_charge_required", 5.0)
+        player.finisher_ready = True
+
+    def _set_story_message(self, text, frames=150):
+        self.story_message = text
+        self.story_message_timer = frames
 
     def _update_camera(self):
         active = []
@@ -372,7 +550,12 @@ class BattleSession:
                 or p.rect.top > self.blast_bounds.bottom
             ):
                 if hasattr(p, "lose_stock"):
-                    p.lose_stock(self.event_bus)
+                    if self.mode == "story" and p is self.player2:
+                        p.rect.x = p.spawn_x
+                        p.rect.y = p.spawn_y
+                        p.vel = pygame.Vector2(0, 0)
+                    else:
+                        p.lose_stock(self.event_bus)
 
     # ─────────────────────────────────────────────
     # 이벤트 버스 콜백
@@ -390,6 +573,14 @@ class BattleSession:
 
         if not data.get("skip_knockback", False):
             target.apply_knockback(attacker, damage)
+
+        if (
+            self.mode == "story"
+            and attacker is self.player1
+            and target is self.player2
+            and bool(data.get("is_skill", False))
+        ):
+            self._damage_boss_domain(float(damage) * 1.25)
 
         if ps:
             ps.spawn_hit(
@@ -499,3 +690,62 @@ class BattleSession:
             self.finisher_sys.draw_overlay()
 
         self.renderer.draw_hud([self.player1, self.player2])
+
+        if self.mode == "story":
+            self._draw_story_boss_ui()
+
+    def _draw_story_boss_ui(self):
+        boss = self.player2
+        player = self.player1
+        W = self.screen.get_width()
+
+        hp = max(0.0, float(getattr(boss, "hp", 0.0)))
+        max_hp = max(1.0, float(getattr(boss, "max_hp", 1.0)))
+        ratio = max(0.0, min(1.0, hp / max_hp))
+
+        x, y, bw, bh = 260, 54, W - 520, 20
+        pygame.draw.rect(self.screen, (14, 10, 20), (x, y, bw, bh), border_radius=8)
+        if ratio > 0:
+            fill_col = (225, 62, 74) if ratio > 0.2 else (255, 122, 68)
+            pygame.draw.rect(self.screen, fill_col, (x, y, int(bw * ratio), bh), border_radius=8)
+        pygame.draw.rect(self.screen, (255, 185, 165), (x, y, bw, bh), 1, border_radius=8)
+
+        name_f = font(18, bold=True)
+        sm_f = font(13, bold=True)
+        boss_key = getattr(boss, "profile_key", "boss")
+        name = name_f.render(
+            f"{boss.name}  [{boss_key}]  PHASE {getattr(boss, 'phase', 1)}",
+            True,
+            (255, 210, 200),
+        )
+        self.screen.blit(name, (x, y - 28))
+        hp_txt = sm_f.render(f"{int(hp)} / {int(max_hp)}", True, (245, 230, 225))
+        self.screen.blit(hp_txt, (x + bw - hp_txt.get_width(), y - 22))
+
+        if self.boss_domain_started and not self.boss_domain_broken:
+            if getattr(boss, "domain_active", False) and not getattr(player, "domain_active", False):
+                remain = max(0, (self.domain_survive_required - self.domain_survive_timer) // 60)
+                text = f"Boss domain active  |  Counter available in {remain}s"
+                if remain <= 0:
+                    text = "R: Counter Domain available"
+                col = (255, 210, 120)
+            elif getattr(boss, "domain_active", False) and getattr(player, "domain_active", False):
+                dhp = max(0.0, getattr(boss, "boss_domain_hp", 0.0))
+                dmax = max(1.0, getattr(boss, "boss_domain_max_hp", 1.0))
+                text = f"Double Domain  |  Boss Domain HP {int(dhp)} / {int(dmax)}"
+                col = (120, 235, 255)
+            else:
+                text = self.story_state.replace("_", " ")
+                col = (205, 205, 225)
+
+            status = sm_f.render(text, True, col)
+            self.screen.blit(status, (W // 2 - status.get_width() // 2, y + 30))
+
+        if self.story_message_timer > 0 and self.story_message:
+            alpha = min(220, int(220 * self.story_message_timer / 45)) if self.story_message_timer < 45 else 220
+            msg = font(24, bold=True).render(self.story_message, True, (255, 245, 220))
+            bg = pygame.Surface((msg.get_width() + 34, msg.get_height() + 18), pygame.SRCALPHA)
+            bg.fill((0, 0, 0, alpha // 2))
+            pygame.draw.rect(bg, (255, 220, 160, alpha), bg.get_rect(), 1, border_radius=8)
+            bg.blit(msg, (17, 9))
+            self.screen.blit(bg, (W // 2 - bg.get_width() // 2, 96))

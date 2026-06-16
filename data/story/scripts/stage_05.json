@@ -2,13 +2,13 @@
   "id": "stage_05",
   "title": "5.NULL:ETER",
   "next_on_win": "ending",
-  "boss_class": "entities.characters.Einstein.Einstein",
+  "boss_class": "entities.Boss_characters.einstein_boss.EinsteinBoss",
   "boss_name": "미래의 Hora",
   "boss_stocks": 5,
   "stage_json": "data/stages/stage_04.json",
   "battle_configs": {
     "1": {
-      "boss_class": "entities.characters.Einstein.Einstein",
+      "boss_class": "entities.Boss_characters.einstein_boss.EinsteinBoss",
       "boss_name": "미래의 Hora",
       "boss_stocks": 5
     }
@@ -82,7 +82,7 @@
     },
     {
       "cmd": "bg",
-      "image": "assets/images/story/vsme.jpg",
+      "image": "assets/images/story/vsme.jpg"
     },
     {
       "cmd": "dialog",
