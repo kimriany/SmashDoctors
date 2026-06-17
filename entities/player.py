@@ -39,7 +39,7 @@ class Player(BaseEntity):
     BASE_KB    = 30
     WALK_SPEED = 6.5
     JUMP_POWER = -15.5
-    MAX_JUMPS  = 2
+    MAX_JUMPS  = 3
     ATTACK_DMG = 12
     ATK_FRAMES = 20
     ATK_CD     = 34
@@ -253,10 +253,13 @@ class Player(BaseEntity):
             self._do_skill(event_bus, psys, "skill_E")
         elif key == self.key_skill_R:
             self._do_r_action(event_bus, psys)
+    # 점프 단계별 파워 배율: 1단 100%, 2단 83%, 3단 70%
+    JUMP_POWER_MULTIPLIERS = (1.0, 0.83, 0.70)
+
     def _jump(self, psys):
         if self.jump_count < self.MAX_JUMPS:
-            power = self.JUMP_POWER if self.jump_count == 0 \
-                    else self.JUMP_POWER * 0.83
+            idx = min(self.jump_count, len(self.JUMP_POWER_MULTIPLIERS) - 1)
+            power = self.JUMP_POWER * self.JUMP_POWER_MULTIPLIERS[idx]
             self.vel.y      = power
             self.jump_count += 1
 
@@ -396,7 +399,7 @@ class Player(BaseEntity):
 
         print(f"[DOMAIN STAT OFF] {self.name}")
 
-    def reset_domain_state(self, domain_locked=False, finisher_locked=False):
+    def reset_domain_state(self):
         """
         영역 관련 상태값 전체 초기화.
         사망/스톡 감소/강제 영역 해제 때 사용.
@@ -404,7 +407,7 @@ class Player(BaseEntity):
         self.clear_domain_stats()
 
         self.domain_active = False
-        self.domain_locked = bool(domain_locked)
+        self.domain_locked = False
         self.domain_break_hits_taken = 0
         self.domain_break_hits_limit = 0
 
@@ -413,7 +416,7 @@ class Player(BaseEntity):
 
         self.finisher_charge_stack = 0.0
         self.finisher_ready = False
-        self.finisher_locked = bool(finisher_locked)
+        self.finisher_locked = False
         self.finisher_unlock_timer = 0
 
         # 대시 2단 강화 같은 게 있다면 같이 초기화
@@ -447,16 +450,9 @@ class Player(BaseEntity):
     def lose_stock(self, event_bus, killer=None, reason="blast"):
         self.stocks -= 1
 
-        was_domain_active = getattr(self, "domain_active", False)
-        was_domain_locked = getattr(self, "domain_locked", False)
-        was_finisher_locked = getattr(self, "finisher_locked", False)
-
-        # 죽는 순간 영역 스탯/스택/상태를 초기화하되, 걸려 있던 잠금은 유지한다.
+        # 죽는 순간 영역 스탯/스택/상태 전부 초기화
         if hasattr(self, "reset_domain_state"):
-            self.reset_domain_state(
-                domain_locked=was_domain_locked,
-                finisher_locked=was_finisher_locked,
-            )
+            self.reset_domain_state()
 
         self.damage_pct = 0.0
         self.vel = pygame.Vector2(0, 0)
@@ -465,9 +461,6 @@ class Player(BaseEntity):
             "player": self,
             "killer": killer,
             "reason": reason,
-            "was_domain_active": was_domain_active,
-            "was_domain_locked": was_domain_locked,
-            "was_finisher_locked": was_finisher_locked,
         })
 
         if self.stocks <= 0:

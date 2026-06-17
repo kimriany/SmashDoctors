@@ -188,7 +188,7 @@ class BaseEntity:
         speed = max(6.0, min(speed, 120.0))
 
         dir_x      = 1 if attacker.rect.centerx < self.rect.centerx else -1
-        vel_x      = dir_x * speed * 2.6          # 좌우 강화 (기존 1.8 → 2.6)
+        vel_x      = dir_x * speed * 7.0         # 좌우 강화 (기존 1.8 → 2.6)
         vel_y      = -(speed * 0.10)               # 위 억제 (기존 0.20 → 0.10)
         # vel.x 최종 클램프 (배율 적용 후) — 최대 속도는 기존과 동일하게 유지
         MAX_VEL_X  = 90.0
