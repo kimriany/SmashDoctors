@@ -26,7 +26,7 @@ class BaseEntity:
     BASE_KB      = 30     # 기본 넉백 (b)
     WALK_SPEED   = 6.5
     JUMP_POWER   = -15.5
-    MAX_JUMPS    = 2
+    MAX_JUMPS    = 3
     ATTACK_DMG   = 12
     ATK_FRAMES   = 20    # 공격 총 프레임
     ATK_CD       = 34
