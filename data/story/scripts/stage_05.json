@@ -31,8 +31,7 @@
     },
     {
       "cmd": "bg",
-      "image": "assets/images/story/vsme.png",
-      "transition": null
+      "image": "assets/images/story/vsme.png"
     },
     {
       "cmd": "dialog",
@@ -82,7 +81,7 @@
     },
     {
       "cmd": "bg",
-      "image": "assets/images/story/vsme.jpg"
+      "image": "assets/images/story/vsme.png"
     },
     {
       "cmd": "dialog",
@@ -183,10 +182,6 @@
       "cmd": "dialog",
       "speaker": "",
       "text": "누군가가 서 있다."
-    },
-    {
-      "cmd": "show_image",
-      "image": "assets/images/story/future_hora.png"
     },
     {
       "cmd": "dialog",
@@ -1405,7 +1400,7 @@
     },
     {
       "cmd": "bg",
-      "image": "assets/images/story/apple_tree.jpg",
+      "image": "assets/images/story/apple_tree.png",
       "transition": "fade"
     },
     {
