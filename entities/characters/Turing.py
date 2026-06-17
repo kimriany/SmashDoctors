@@ -27,6 +27,7 @@ def _alpha(v): return max(0, min(255, int(v)))
 BIT_COLORS  = [(80,235,190),(120,200,255),(60,160,140),(200,255,240)]
 GEAR_COL    = (180,160,100)
 CODE_CHARS  = ["0","1","{}","[]","//","()","&&","||","==","!=","NP","++","KEY","ENC"]
+HACK_SEAL_KEYS = ("skill_Q", "skill_E")
 
 
 # ══════════════════════════════════════════════════════
@@ -58,6 +59,8 @@ class HackVirus(_NormalOnlyMixin, Skill):
         self.charge_value = 1.0
         self._frame       = 0   # 내부 프레임 카운터
         self._glitches    = []
+        self._status_target = None
+        self._status_timer = 0
 
     @property
     def _phase(self):
@@ -70,6 +73,8 @@ class HackVirus(_NormalOnlyMixin, Skill):
     def on_start(self, owner, event_bus=None, psys=None):
         self._frame    = 0
         self._glitches = []
+        self._status_target = None
+        self._status_timer = 0
         self.has_hit   = False
         if psys:
             psys.spawn(owner.rect.centerx + owner.facing*20, owner.rect.centery,
@@ -90,6 +95,8 @@ class HackVirus(_NormalOnlyMixin, Skill):
             g["x"]+=g["vx"]; g["y"]+=g["vy"]
             g["vy"]+=0.2; g["vx"]*=0.94; g["life"]-=1
         self._glitches = [g for g in self._glitches if g["life"] > 0]
+        if self._status_timer > 0:
+            self._status_timer -= 1
 
         phase = self._phase
         if phase == "charge":
@@ -108,16 +115,17 @@ class HackVirus(_NormalOnlyMixin, Skill):
     def on_hit(self, owner, target, event_bus, psys=None, fsys=None):
         self._hitting = False
 
-        # 랜덤 스킬 봉인
-        sealable = [k for k,s in target.skills.items()
-                    if "domain" not in k and k != "skill_R"
-                    and not getattr(s, "_hacked", False)]
+        # Q/E만 봉인한다. R과 강화 슬롯은 직접 건드리지 않는다.
+        sealable = [k for k in HACK_SEAL_KEYS
+                    if k in target.skills and not getattr(target.skills[k], "_hacked", False)]
         if sealable:
             seal_key = random.choice(sealable)
             sk = target.skills[seal_key]
             sk._hacked       = True
             sk._hack_timer   = self.SEAL_DURATION
             sk.current_cooldown = max(sk.current_cooldown, self.SEAL_DURATION)
+        self._status_target = target
+        self._status_timer = min(self.SEAL_DURATION, self.duration)
 
         # 넉백
         target.vel.x = owner.facing * 8
@@ -193,6 +201,18 @@ class HackVirus(_NormalOnlyMixin, Skill):
             cs = fnt.render(g["char"], True, g["col"])
             cs.set_alpha(a)
             screen.blit(cs,(gsx-cs.get_width()//2,gsy-cs.get_height()//2))
+
+        if self._status_timer > 0 and self._status_target and not self._status_target.dead:
+            tx, ty = camera.world_to_screen(self._status_target.rect.centerx,
+                                            self._status_target.rect.centery)
+            pulse = abs(math.sin(tick * 0.018))
+            rr = max(12, int((28 + pulse * 10) * z))
+            hs = pygame.Surface((rr*2+12, rr*2+12), pygame.SRCALPHA)
+            pygame.draw.rect(hs, (80,235,190,_alpha(120+80*pulse)),
+                             (6,6,rr*2,rr*2), max(2,int(3*z)), border_radius=max(2,int(5*z)))
+            pygame.draw.line(hs, (200,255,240,170), (6, rr+6), (rr*2+6, rr+6), max(1,int(2*z)))
+            pygame.draw.line(hs, (200,255,240,170), (rr+6, 6), (rr+6, rr*2+6), max(1,int(2*z)))
+            screen.blit(hs, (tx-rr-6, ty-rr-6))
 
 
 class HaltingProblem(_NormalOnlyMixin, SummonZoneSkill):
@@ -449,11 +469,12 @@ class DecryptionBlitz(_DomainOnlyMixin, Skill):
         self._exp_y      = float(target.rect.centery)
         owner.vel.x *= 0.15; owner.vel.y *= 0.15
 
-        # 모든 스킬 봉인
-        for k,s in target.skills.items():
-            if "domain" not in k and k != "skill_R":
-                s._sealed       = True
-                s._seal_timer   = self.SEAL_DURATION
+        # Q/E만 봉인한다.
+        for k in HACK_SEAL_KEYS:
+            s = target.skills.get(k)
+            if s is not None:
+                s._sealed = True
+                s._seal_timer = self.SEAL_DURATION
                 s.current_cooldown = max(s.current_cooldown, self.SEAL_DURATION)
 
         target.vel.x = owner.facing * 16; target.vel.y = -9

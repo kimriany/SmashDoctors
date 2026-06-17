@@ -480,6 +480,196 @@ class Singularity(_DomainOnlyMixin, SummonZoneSkill):
             screen.blit(ws, (sx-warn_r-5, sy-warn_r-5))
 
 
+class PhotoelectricBurst(_NormalOnlyMixin, BeamSkill):
+    DISPLAY_NAME = "Photoelectric Burst"
+    DESCRIPTION = "Fire a photon packet that kicks electrons forward."
+    BEAM_LENGTH = 260
+    BEAM_WIDTH = 26
+    BEAM_COLOR = (255, 210, 90)
+    BEAM_GLOW = (255, 245, 185)
+    COOLDOWN_SEC = 4.8
+
+    def __init__(self):
+        super().__init__("Photoelectric Burst", damage=24, cooldown=288, duration=18)
+        self.charge_value = 1.1
+        self._cast_facing = 1
+
+    def on_start(self, owner, event_bus=None, psys=None):
+        self._cast_facing = owner.facing
+        if psys:
+            for _ in range(20):
+                px = owner.rect.centerx + self._cast_facing * random.randint(18, 72)
+                py = owner.rect.centery + random.randint(-24, 24)
+                psys.spawn(px, py, random.choice([(255,210,90), (255,245,185), (120,190,255)]),
+                           count=1, speed=random.uniform(3, 8), gravity=-0.04,
+                           life=random.randint(10, 20), r=random.randint(2, 5), glow=True)
+
+    def get_hitbox(self, owner):
+        if not self.active:
+            return None
+        w = self.BEAM_LENGTH
+        h = self.BEAM_WIDTH + 18
+        facing = getattr(self, "_cast_facing", owner.facing)
+        ox = owner.rect.right - 6 if facing == 1 else owner.rect.left - w + 6
+        return pygame.Rect(ox, owner.rect.centery - h//2, w, h)
+
+    def on_hit(self, owner, target, event_bus, psys=None, fsys=None):
+        facing = getattr(self, "_cast_facing", owner.facing)
+        target.vel.x += facing * 12
+        target.vel.y -= 3
+        if psys:
+            psys.spawn(target.rect.centerx, target.rect.centery, (255,245,185),
+                       count=22, speed=8, gravity=-0.05, life=20, r=4, glow=True)
+        super().on_hit(owner, target, event_bus, psys, fsys)
+
+    def draw_front(self, owner, screen, camera, dr, bob, z):
+        if not self.active:
+            return
+        facing = getattr(self, "_cast_facing", owner.facing)
+        t = self.timer / max(1, self.duration)
+        alpha = _alpha(230 * t)
+        length = int(self.BEAM_LENGTH * z)
+        sx = dr.right - int(6*z) if facing == 1 else dr.left - length + int(6*z)
+        sy = dr.centery + bob
+        for i in range(7):
+            px = sx + (i * length // 7 if facing == 1 else length - i * length // 7)
+            off = int(math.sin(pygame.time.get_ticks()*0.025 + i) * 10 * z)
+            rr = max(3, int((8 + i % 3 * 2) * z))
+            pygame.draw.circle(screen, (255, 220, 110, alpha), (px, sy + off), rr)
+            pygame.draw.circle(screen, (255, 250, 210, _alpha(alpha*0.65)), (px, sy + off), max(1, rr//2))
+
+
+class RelativityFrame(_NormalOnlyMixin, SummonZoneSkill):
+    DISPLAY_NAME = "Relativity Frame"
+    DESCRIPTION = "Bend local time around the enemy. Slows and snaps them outward."
+    WARN_FRAMES = 22
+    ZONE_W = 180
+    ZONE_H = 150
+    ZONE_COLOR = (80, 150, 255)
+    ZONE_GLOW = (255, 245, 185)
+    COOLDOWN_SEC = 8.5
+    SNAP_FRAME = 62
+
+    def __init__(self):
+        super().__init__("Relativity Frame", damage=30, cooldown=510, duration=105)
+        self.charge_value = 1.35
+        self._snapped = False
+        self._rings = []
+
+    def on_start(self, owner, event_bus=None, psys=None):
+        target = getattr(owner, "_skill_target", None)
+        if target and not target.dead:
+            self._zone_x = target.rect.centerx
+            self._zone_y = target.rect.centery
+        else:
+            self._zone_x = owner.rect.centerx + owner.facing * 210
+            self._zone_y = owner.rect.centery
+        self._snapped = False
+        self._rings = []
+        self.has_hit = False
+
+    def on_update(self, owner, event_bus=None, psys=None):
+        elapsed = self.duration - self.timer
+        for r in self._rings:
+            r["r"] += r["speed"]
+            r["a"] = max(0, r["a"] - 10)
+        self._rings = [r for r in self._rings if r["a"] > 0]
+
+        target = getattr(owner, "_skill_target", None)
+        zone = self.get_hitbox(owner)
+        if target and not target.dead and zone and zone.colliderect(target.rect):
+            target.vel.x *= 0.68
+            target.vel.y *= 0.74
+            if psys and self.timer % 5 == 0:
+                psys.spawn(target.rect.centerx, target.rect.centery,
+                           random.choice([(255,245,185), (80,150,255)]),
+                           count=2, speed=1.4, gravity=0, life=12, r=3, glow=True)
+
+        if elapsed >= self.SNAP_FRAME and not self._snapped:
+            self._snapped = True
+            self.has_hit = False
+            self._rings.append({"r": 16, "speed": 10, "a": 230})
+
+    def on_hit(self, owner, target, event_bus, psys=None, fsys=None):
+        dx = target.rect.centerx - self._zone_x
+        dy = target.rect.centery - self._zone_y
+        dist = max(1, math.sqrt(dx*dx + dy*dy))
+        target.vel.x = dx / dist * 18
+        target.vel.y = dy / dist * 10 - 7
+        if psys:
+            psys.spawn(self._zone_x, self._zone_y, (255,245,185),
+                       count=30, speed=9, gravity=-0.04, life=28, r=5, glow=True)
+        super().on_hit(owner, target, event_bus, psys, fsys)
+
+    def get_hitbox(self, owner):
+        if not self.active:
+            return None
+        elapsed = self.duration - self.timer
+        if elapsed < self.WARN_FRAMES:
+            return None
+        return pygame.Rect(int(self._zone_x)-self.ZONE_W//2,
+                           int(self._zone_y)-self.ZONE_H//2,
+                           self.ZONE_W, self.ZONE_H)
+
+    def draw_behind(self, owner, screen, camera, dr, bob, z):
+        if not self.active:
+            return
+        sx, sy = camera.world_to_screen(int(self._zone_x), int(self._zone_y))
+        elapsed = self.duration - self.timer
+        warn = elapsed < self.WARN_FRAMES
+        alpha = _alpha(95 + 80 * abs(math.sin(elapsed * 0.23))) if warn else _alpha(120 * self.timer / self.duration)
+        base = int(self.ZONE_W * 0.5 * z)
+        tick = pygame.time.get_ticks()
+        for i in range(5):
+            rr = max(2, int(base * (0.35 + i*0.18)))
+            surf = pygame.Surface((rr*2+8, rr*2+8), pygame.SRCALPHA)
+            pygame.draw.circle(surf, (255,245,185,_alpha(alpha - i*12)), (rr+4, rr+4), rr, max(1, int(2*z)))
+            wobble = int(math.sin(tick*0.012+i) * 5 * z)
+            screen.blit(surf, (sx-rr-4+wobble, sy-rr-4))
+        for r in self._rings:
+            rr = int(r["r"] * z)
+            surf = pygame.Surface((rr*2+8, rr*2+8), pygame.SRCALPHA)
+            pygame.draw.circle(surf, (80,150,255,_alpha(r["a"])), (rr+4, rr+4), rr, max(2,int(4*z)))
+            screen.blit(surf, (sx-rr-4, sy-rr-4))
+
+
+class LightConeCascade(_DomainOnlyMixin, PhotoelectricBurst):
+    DISPLAY_NAME = "Light Cone Cascade"
+    DESCRIPTION = "Domain — fire stacked light-cone photon pulses."
+    BEAM_LENGTH = 390
+    BEAM_WIDTH = 42
+    COOLDOWN_SEC = 5.5
+
+    def __init__(self):
+        BeamSkill.__init__(self, "Light Cone Cascade", damage=42, cooldown=330, duration=26)
+        self.charge_value = 0.0
+        self.finisher_charge_value = 2.1
+        self._cast_facing = 1
+
+    def on_hit(self, owner, target, event_bus, psys=None, fsys=None):
+        facing = getattr(self, "_cast_facing", owner.facing)
+        target.vel.x = facing * 20
+        target.vel.y -= 8
+        super().on_hit(owner, target, event_bus, psys, fsys)
+
+
+class TwinParadox(_DomainOnlyMixin, RelativityFrame):
+    DISPLAY_NAME = "Twin Paradox"
+    DESCRIPTION = "Domain — split the enemy's frame of reference, then snap it shut."
+    WARN_FRAMES = 12
+    ZONE_W = 320
+    ZONE_H = 260
+    COOLDOWN_SEC = 12.0
+    SNAP_FRAME = 76
+
+    def __init__(self):
+        SummonZoneSkill.__init__(self, "Twin Paradox", damage=48, cooldown=720, duration=140)
+        self.charge_value = 0.0
+        self.finisher_charge_value = 2.8
+        self._snapped = False
+        self._rings = []
+
+
 # ── 캐릭터 ───────────────────────────────────────────────────────────────────
 class Einstein(Player):
     WEIGHT     = 112; KB_GROWTH = 72;  BASE_KB   = 38
@@ -507,10 +697,10 @@ class Einstein(Player):
         self.max_jumps = self.MAX_JUMPS; self.attack_damage = self.ATTACK_DMG
 
     def _init_skills(self):
-        self.skills["skill_Q"]        = GravityLash()
-        self.skills["skill_E"]        = EventHorizon()
+        self.skills["skill_Q"]        = PhotoelectricBurst()
+        self.skills["skill_E"]        = RelativityFrame()
         self.skills["skill_R"]        = EinsteinDomain()
-        self.skills["skill_Q_domain"] = SpacetimeRend()
-        self.skills["skill_E_domain"] = Singularity()
+        self.skills["skill_Q_domain"] = LightConeCascade()
+        self.skills["skill_E_domain"] = TwinParadox()
 
     def get_char_name(self): return "Einstein"

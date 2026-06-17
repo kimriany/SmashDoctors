@@ -40,10 +40,12 @@ class DecisiveStrike(_NormalOnlyMixin, Skill):
         self.charge_value     = 1.1
         self._hit_done        = False
         self._speed_boosted   = False
+        self._cast_facing     = 1
 
     def on_start(self, owner, event_bus=None, psys=None):
         self._hit_done      = False
         self._speed_boosted = False
+        self._cast_facing   = owner.facing
         # 공격속도 증가 (ATK_CD 절반으로)
         self._orig_atk_cd       = owner.ATK_CD
         owner._atk_cd_override  = max(10, owner.ATK_CD // 2)
@@ -63,17 +65,19 @@ class DecisiveStrike(_NormalOnlyMixin, Skill):
             return None
         w = int(owner.rect.w * 2.2)
         h = int(owner.rect.h * 1.6)
-        x = owner.rect.centerx if owner.facing == 1 else owner.rect.centerx - w
+        facing = getattr(self, "_cast_facing", owner.facing)
+        x = owner.rect.centerx if facing == 1 else owner.rect.centerx - w
         return pygame.Rect(x, owner.rect.centery - h//2, w, h)
 
     def on_update(self, owner, event_bus=None, psys=None):
         elapsed = self.duration - self.timer
         # 판정 타이밍에 파티클
         if elapsed == self.HIT_FRAME and psys:
-            cx = owner.rect.centerx + owner.facing * int(owner.rect.w * 0.9)
+            facing = getattr(self, "_cast_facing", owner.facing)
+            cx = owner.rect.centerx + facing * int(owner.rect.w * 0.9)
             cy = owner.rect.centery
             for _ in range(18):
-                ang = random.uniform(-math.pi/2, math.pi/2) * owner.facing
+                ang = random.uniform(-math.pi/2, math.pi/2) * facing
                 psys.spawn(cx, cy, random.choice([(110,185,255),(255,255,255),(80,140,255)]),
                            count=1, speed=random.uniform(4,10),
                            gravity=0.2, life=random.randint(12,22), r=random.randint(3,6), glow=True)
@@ -84,7 +88,8 @@ class DecisiveStrike(_NormalOnlyMixin, Skill):
             self._speed_boosted = False
 
     def on_hit(self, owner, target, event_bus, psys=None, fsys=None):
-        target.vel.x += owner.facing * 5
+        facing = getattr(self, "_cast_facing", owner.facing)
+        target.vel.x += facing * 5
         target.vel.y -= 2
         super().on_hit(owner, target, event_bus, psys, fsys)
 
@@ -95,19 +100,23 @@ class DecisiveStrike(_NormalOnlyMixin, Skill):
         if elapsed < 4 or elapsed > self.HIT_FRAME + 10: return
 
         swing_t  = min(1.0, elapsed / (self.HIT_FRAME + 4))
+        facing   = getattr(self, "_cast_facing", owner.facing)
         angle    = -60 + swing_t * 120   # -60° → +60°
-        cx, cy   = dr.centerx + dr.w // 2 * owner.facing, dr.centery + bob
+        cx, cy   = dr.centerx + dr.w // 2 * facing, dr.centery + bob
         size     = int(dr.w * 2.2 * z)
         alpha    = _alpha(200 * (1 - abs(swing_t * 2 - 1) * 0.5))
 
-        sf = pygame.Surface((size * 3, size * 3), pygame.SRCALPHA)
-        sc = size
-        rad = math.radians(angle * owner.facing)
+        canvas = size * 4
+        sf = pygame.Surface((canvas, canvas), pygame.SRCALPHA)
+        sc = canvas // 2
+        rad = math.radians(angle)
         # 직각삼각자 세 꼭짓점
         pts = [
             (sc, sc),
-            (sc + int(math.cos(rad) * size * 1.8), sc + int(math.sin(rad) * size * 1.8)),
-            (sc + int(math.cos(rad + math.pi/2) * size), sc + int(math.sin(rad + math.pi/2) * size)),
+            (sc + int(math.cos(rad) * size * 1.8) * facing,
+             sc + int(math.sin(rad) * size * 1.8)),
+            (sc + int(math.cos(rad + math.pi/2) * size) * facing,
+             sc + int(math.sin(rad + math.pi/2) * size)),
         ]
         pygame.draw.polygon(sf, (80, 160, 255, _alpha(alpha * 0.3)), pts)
         pygame.draw.polygon(sf, (220, 245, 255, alpha), pts, max(2, int(3*z)))
@@ -223,6 +232,7 @@ class GeometricVerdict(_DomainOnlyMixin, DecisiveStrike):
         self.finisher_charge_value = 2.0
         self._hit_done      = False
         self._speed_boosted = False
+        self._cast_facing   = 1
 
     def get_hitbox(self, owner):
         if not self.active: return None
@@ -232,12 +242,14 @@ class GeometricVerdict(_DomainOnlyMixin, DecisiveStrike):
         # 더 넓은 판정
         w = int(owner.rect.w * 3.5)
         h = int(owner.rect.h * 2.2)
-        x = owner.rect.centerx if owner.facing == 1 else owner.rect.centerx - w
+        facing = getattr(self, "_cast_facing", owner.facing)
+        x = owner.rect.centerx if facing == 1 else owner.rect.centerx - w
         return pygame.Rect(x, owner.rect.centery - h//2, w, h)
 
     def on_start(self, owner, event_bus=None, psys=None):
         self._hit_done = False
         self._speed_boosted = False
+        self._cast_facing = owner.facing
         if psys:
             for _ in range(20):
                 ang = random.uniform(0, math.pi * 2)
@@ -248,7 +260,8 @@ class GeometricVerdict(_DomainOnlyMixin, DecisiveStrike):
                            gravity=0.1, life=random.randint(16,30), r=random.randint(4,8), glow=True)
 
     def on_hit(self, owner, target, event_bus, psys=None, fsys=None):
-        target.vel.x += owner.facing * 10
+        facing = getattr(self, "_cast_facing", owner.facing)
+        target.vel.x += facing * 10
         target.vel.y -= 6
         super().on_hit(owner, target, event_bus, psys, fsys)
 
@@ -257,17 +270,21 @@ class GeometricVerdict(_DomainOnlyMixin, DecisiveStrike):
         elapsed = self.duration - self.timer
         if elapsed < 3 or elapsed > self.HIT_FRAME + 14: return
         swing_t = min(1.0, elapsed / (self.HIT_FRAME + 6))
+        facing  = getattr(self, "_cast_facing", owner.facing)
         angle   = -90 + swing_t * 180
-        cx, cy  = dr.centerx + dr.w // 2 * owner.facing, dr.centery + bob
+        cx, cy  = dr.centerx + dr.w // 2 * facing, dr.centery + bob
         size    = int(dr.w * 3.0 * z)
         alpha   = _alpha(230 * (1 - abs(swing_t * 2 - 1) * 0.4))
-        sf  = pygame.Surface((size * 3, size * 3), pygame.SRCALPHA)
-        sc  = size
-        rad = math.radians(angle * owner.facing)
+        canvas = size * 5
+        sf  = pygame.Surface((canvas, canvas), pygame.SRCALPHA)
+        sc  = canvas // 2
+        rad = math.radians(angle)
         pts = [
             (sc, sc),
-            (sc + int(math.cos(rad) * size * 2.0), sc + int(math.sin(rad) * size * 2.0)),
-            (sc + int(math.cos(rad + math.pi/2) * size * 1.2), sc + int(math.sin(rad + math.pi/2) * size * 1.2)),
+            (sc + int(math.cos(rad) * size * 2.0) * facing,
+             sc + int(math.sin(rad) * size * 2.0)),
+            (sc + int(math.cos(rad + math.pi/2) * size * 1.2) * facing,
+             sc + int(math.sin(rad + math.pi/2) * size * 1.2)),
         ]
         pygame.draw.polygon(sf, (255, 220, 60, _alpha(alpha * 0.35)), pts)
         pygame.draw.polygon(sf, (255, 250, 180, alpha), pts, max(3, int(4*z)))

@@ -172,6 +172,7 @@ class BattleSession:
         self.story_state = "PHASE_1"
         self.boss_domain_started = False
         self.boss_domain_broken = False
+        self.player_counter_domain_unlocked = False
         self.domain_survive_timer = 0
         self.story_message = "Boss battle started"
         self.story_message_timer = 150
@@ -285,17 +286,30 @@ class BattleSession:
 
     def _on_story_stock_lost(self, lost_player, killer, data):
         if lost_player is self.player1:
+            was_counter_domain_active = bool(data.get("was_domain_active"))
             pid = getattr(self.player1, "player_id", None)
             if self.domain_sys and pid in getattr(self.domain_sys, "active_domains", {}):
                 self.domain_sys.break_domain(self.player1)
 
             if hasattr(self.player1, "reset_domain_state"):
-                self.player1.reset_domain_state()
+                self.player1.reset_domain_state(
+                    domain_locked=bool(data.get("was_domain_locked")),
+                    finisher_locked=True,
+                )
 
             if self.player1.stocks > 0 and self.boss_domain_started and not self.boss_domain_broken:
-                self.player1.domain_locked = True
+                if was_counter_domain_active:
+                    self.player_counter_domain_unlocked = True
+                    self.player1.domain_locked = False
+                    self.player1.domain_charge_stack = 0.0
+                    self.player1.domain_ready = False
+                    self._set_story_message("Counter domain lost. Rebuild stacks.", 180)
+                else:
+                    self.player1.domain_locked = True
+                    self._set_story_message("Boss domain remains active", 150)
                 self.player1.finisher_locked = True
-                self._set_story_message("Boss domain remains active", 150)
+                self.player1.finisher_ready = False
+                self.player1.finisher_charge_stack = 0.0
             return
 
         if lost_player is self.player2:
@@ -442,7 +456,12 @@ class BattleSession:
                 self.domain_survive_timer + 1,
             )
             if self.domain_survive_timer >= self.domain_survive_required:
-                self._unlock_player_domain()
+                if self.player_counter_domain_unlocked:
+                    player.domain_locked = False
+                    player.finisher_locked = True
+                    player.finisher_ready = False
+                else:
+                    self._unlock_player_domain()
             return
 
         if boss_domain_active and player_domain_active and not self.boss_domain_broken:
@@ -471,6 +490,7 @@ class BattleSession:
             return
 
         player.domain_locked = False
+        self.player_counter_domain_unlocked = True
         player.domain_charge_stack = getattr(player, "domain_charge_required", 8.0)
         player.domain_ready = True
         player.finisher_locked = True

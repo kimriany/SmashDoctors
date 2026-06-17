@@ -11,7 +11,7 @@ Hoking — 블랙홀과 시간 지연으로 공간을 잠그는 중거리 캐릭
   E / '  Entropy Horizon    — 넓은 다단 블랙홀 구역
 """
 from entities.player import Player
-from systems.skill import ProjectileSkill, SummonZoneSkill, DomainUltimateSkill
+from systems.skill import Skill, BeamSkill, ProjectileSkill, SummonZoneSkill, DomainUltimateSkill
 import pygame
 import math
 import random
@@ -26,6 +26,10 @@ VOID_COLORS = (
     (45, 145, 255),
     (190, 230, 255),
 )
+
+
+def _alpha(v):
+    return max(0, min(255, int(v)))
 
 
 class _DomainOnlyMixin:
@@ -368,6 +372,235 @@ class EntropyHorizon(_DomainOnlyMixin, SummonZoneSkill):
             screen.blit(ring, (sx - rr - 5, sy - rr - 5))
 
 
+class HawkingRadiation(_NormalOnlyMixin, BeamSkill):
+    DISPLAY_NAME = "Hawking Radiation"
+    DESCRIPTION = "Emit a thin radiation jet. Fast, clean, and precise."
+    BEAM_LENGTH = 310
+    BEAM_WIDTH = 22
+    BEAM_COLOR = (120, 225, 255)
+    BEAM_GLOW = (245, 255, 255)
+    COOLDOWN_SEC = 4.0
+
+    def __init__(self):
+        super().__init__("Hawking Radiation", damage=23, cooldown=240, duration=20)
+        self.charge_value = 1.0
+        self._cast_facing = 1
+
+    def on_start(self, owner, event_bus=None, psys=None):
+        self._cast_facing = owner.facing
+        if psys:
+            for _ in range(18):
+                psys.spawn(owner.rect.centerx + self._cast_facing * random.randint(20, 80),
+                           owner.rect.centery + random.randint(-18, 18),
+                           random.choice([(120,225,255), (245,255,255), (45,145,255)]),
+                           count=1, speed=random.uniform(3, 8), gravity=-0.06,
+                           life=random.randint(12, 24), r=random.randint(2, 5), glow=True)
+
+    def get_hitbox(self, owner):
+        if not self.active:
+            return None
+        w = self.BEAM_LENGTH
+        h = self.BEAM_WIDTH + 18
+        facing = getattr(self, "_cast_facing", owner.facing)
+        ox = owner.rect.right - 6 if facing == 1 else owner.rect.left - w + 6
+        return pygame.Rect(ox, owner.rect.centery - h//2, w, h)
+
+    def on_hit(self, owner, target, event_bus, psys=None, fsys=None):
+        facing = getattr(self, "_cast_facing", owner.facing)
+        target.vel.x += facing * 9
+        target.vel.y -= 2
+        if psys:
+            psys.spawn(target.rect.centerx, target.rect.centery, (245,255,255),
+                       count=18, speed=7, gravity=-0.05, life=22, r=4, glow=True)
+        super().on_hit(owner, target, event_bus, psys, fsys)
+
+    def draw_front(self, owner, screen, camera, dr, bob, z):
+        if not self.active:
+            return
+        facing = getattr(self, "_cast_facing", owner.facing)
+        t = self.timer / max(1, self.duration)
+        alpha = max(30, int(230 * t))
+        length = int(self.BEAM_LENGTH * z)
+        sx = dr.right - int(6*z) if facing == 1 else dr.left - length + int(6*z)
+        sy = dr.centery + bob
+        for i in range(4):
+            width = max(1, int((self.BEAM_WIDTH - i*4) * z * t))
+            surf = pygame.Surface((length, width + 12), pygame.SRCALPHA)
+            pygame.draw.rect(surf, (120,225,255,_alpha(alpha - i*35)),
+                             (0, 6, length, width), border_radius=max(1,int(3*z)))
+            pygame.draw.rect(surf, (245,255,255,_alpha((alpha - i*35)*0.55)),
+                             (0, 6+width//2, length, max(1,int(2*z))))
+            screen.blit(surf, (sx, sy - width//2 - 6 + int(math.sin(i+pygame.time.get_ticks()*0.02)*4*z)))
+
+
+class TimeSlip(_NormalOnlyMixin, Skill):
+    DISPLAY_NAME = "Time Slip"
+    DESCRIPTION = "Slip through time and leave a delayed radiation burst."
+    COOLDOWN_SEC = 8.0
+    SLIP_DISTANCE = 145
+    BURST_FRAME = 18
+
+    def __init__(self):
+        super().__init__("Time Slip", damage=28, cooldown=480, duration=46)
+        self.charge_value = 1.3
+        self._origin = (0, 0)
+        self._burst_done = False
+        self._cast_facing = 1
+
+    def on_start(self, owner, event_bus=None, psys=None):
+        self._cast_facing = owner.facing
+        self._origin = (owner.rect.centerx, owner.rect.centery)
+        self._burst_done = False
+        owner.rect.x += self._cast_facing * self.SLIP_DISTANCE
+        owner.invincible = max(owner.invincible, 20)
+        if psys:
+            psys.spawn(self._origin[0], self._origin[1], (120,225,255),
+                       count=24, speed=7, gravity=-0.05, life=26, r=5, glow=True)
+            psys.spawn(owner.rect.centerx, owner.rect.centery, (245,255,255),
+                       count=18, speed=5, gravity=-0.04, life=22, r=4, glow=True)
+
+    def get_hitbox(self, owner):
+        if not self.active:
+            return None
+        elapsed = self.duration - self.timer
+        if elapsed < self.BURST_FRAME or elapsed > self.BURST_FRAME + 8:
+            return None
+        r = 76
+        return pygame.Rect(self._origin[0]-r, self._origin[1]-r, r*2, r*2)
+
+    def on_update(self, owner, event_bus=None, psys=None):
+        elapsed = self.duration - self.timer
+        if elapsed == self.BURST_FRAME:
+            self.has_hit = False
+            self._burst_done = True
+            if psys:
+                psys.spawn(self._origin[0], self._origin[1], (245,255,255),
+                           count=34, speed=9, gravity=-0.04, life=30, r=6, glow=True)
+
+    def on_hit(self, owner, target, event_bus, psys=None, fsys=None):
+        target.vel.x += self._cast_facing * 10
+        target.vel.y -= 7
+        super().on_hit(owner, target, event_bus, psys, fsys)
+
+    def draw_behind(self, owner, screen, camera, dr, bob, z):
+        if not self.active:
+            return
+        ox, oy = camera.world_to_screen(*self._origin)
+        t = self.timer / max(1, self.duration)
+        rr = max(8, int((50 + 22 * math.sin(pygame.time.get_ticks()*0.015)) * z))
+        surf = pygame.Surface((rr*2+8, rr*2+8), pygame.SRCALPHA)
+        pygame.draw.circle(surf, (120,225,255,_alpha(90*t)), (rr+4, rr+4), rr)
+        pygame.draw.circle(surf, (245,255,255,_alpha(160*t)), (rr+4, rr+4), rr, max(2,int(3*z)))
+        screen.blit(surf, (ox-rr-4, oy-rr-4))
+
+
+class GammaRayBurst(_DomainOnlyMixin, HawkingRadiation):
+    DISPLAY_NAME = "Gamma-Ray Burst"
+    DESCRIPTION = "Domain — three stacked radiation jets tear through spacetime."
+    BEAM_LENGTH = 430
+    BEAM_WIDTH = 34
+    COOLDOWN_SEC = 4.5
+
+    def __init__(self):
+        BeamSkill.__init__(self, "Gamma-Ray Burst", damage=40, cooldown=270, duration=28)
+        self.charge_value = 0.0
+        self.finisher_charge_value = 2.0
+        self._cast_facing = 1
+
+    def on_hit(self, owner, target, event_bus, psys=None, fsys=None):
+        facing = getattr(self, "_cast_facing", owner.facing)
+        target.vel.x = facing * 18
+        target.vel.y -= 8
+        super().on_hit(owner, target, event_bus, psys, fsys)
+
+
+class InformationParadox(_DomainOnlyMixin, SummonZoneSkill):
+    DISPLAY_NAME = "Information Paradox"
+    DESCRIPTION = "Domain — mark a zone that replays damage as delayed radiation."
+    WARN_FRAMES = 12
+    ZONE_W = 300
+    ZONE_H = 220
+    ZONE_COLOR = (70, 170, 255)
+    ZONE_GLOW = (245, 255, 255)
+    COOLDOWN_SEC = 10.5
+    TICK_INTERVAL = 26
+
+    def __init__(self):
+        super().__init__("Information Paradox", damage=15, cooldown=630, duration=170)
+        self.charge_value = 0.0
+        self.finisher_charge_value = 2.6
+        self._tick_timer = 0
+        self._phase = 0.0
+
+    def on_start(self, owner, event_bus=None, psys=None):
+        target = getattr(owner, "_skill_target", None)
+        if target and not target.dead:
+            self._zone_x = target.rect.centerx
+            self._zone_y = target.rect.centery
+        else:
+            self._zone_x = owner.rect.centerx + owner.facing * 190
+            self._zone_y = owner.rect.centery
+        self._tick_timer = 0
+        self._phase = random.uniform(0, math.pi*2)
+        self.has_hit = False
+        if psys:
+            psys.spawn(self._zone_x, self._zone_y, (245,255,255),
+                       count=36, speed=8, gravity=-0.05, life=38, r=5, glow=True)
+
+    def on_update(self, owner, event_bus=None, psys=None):
+        self._phase += 0.08
+        target = getattr(owner, "_skill_target", None)
+        zone = self.get_hitbox(owner)
+        if target and not target.dead and zone and zone.colliderect(target.rect):
+            target.vel.x *= 0.78
+            target.vel.y *= 0.86
+            self._tick_timer += 1
+            if self._tick_timer >= self.TICK_INTERVAL:
+                self._tick_timer = 0
+                self.has_hit = False
+        if psys and self.timer % 4 == 0:
+            ang = self._phase + random.uniform(0, math.pi*2)
+            rad = random.uniform(30, self.ZONE_W * 0.45)
+            psys.spawn(self._zone_x + math.cos(ang)*rad,
+                       self._zone_y + math.sin(ang)*rad,
+                       random.choice([(120,225,255), (245,255,255), (30,80,180)]),
+                       count=1, speed=1.2, gravity=-0.03, life=18, r=random.randint(2, 5), glow=True)
+
+    def get_hitbox(self, owner):
+        if not self.active:
+            return None
+        elapsed = self.duration - self.timer
+        if elapsed < self.WARN_FRAMES:
+            return None
+        return pygame.Rect(int(self._zone_x)-self.ZONE_W//2,
+                           int(self._zone_y)-self.ZONE_H//2,
+                           self.ZONE_W, self.ZONE_H)
+
+    def on_hit(self, owner, target, event_bus, psys=None, fsys=None):
+        target.vel.x *= 0.55
+        target.vel.y -= 4
+        if psys:
+            psys.spawn(target.rect.centerx, target.rect.centery, (245,255,255),
+                       count=22, speed=7, gravity=-0.04, life=24, r=4, glow=True)
+        super().on_hit(owner, target, event_bus, psys, fsys)
+
+    def draw_behind(self, owner, screen, camera, dr, bob, z):
+        if not self.active:
+            return
+        sx, sy = camera.world_to_screen(int(self._zone_x), int(self._zone_y))
+        elapsed = self.duration - self.timer
+        warn = elapsed < self.WARN_FRAMES
+        alpha = _alpha(90 + 90 * abs(math.sin(elapsed*0.22))) if warn else _alpha(120*self.timer/self.duration)
+        zw, zh = int(self.ZONE_W*z), int(self.ZONE_H*z)
+        surf = pygame.Surface((zw+12, zh+12), pygame.SRCALPHA)
+        pygame.draw.ellipse(surf, (70,170,255,_alpha(alpha*0.22)), (6,6,zw,zh))
+        pygame.draw.ellipse(surf, (245,255,255,alpha), (6,6,zw,zh), max(2,int(3*z)))
+        for i in range(7):
+            x = 6 + int((i+1) * zw / 8)
+            pygame.draw.line(surf, (245,255,255,_alpha(alpha*0.45)), (x, 12), (x, zh), max(1,int(1*z)))
+        screen.blit(surf, (sx-zw//2-6, sy-zh//2-6))
+
+
 class Hoking(Player):
     WEIGHT = 98
     KB_GROWTH = 80
@@ -405,8 +638,8 @@ class Hoking(Player):
     SPRITE_OFFSET_Y = 6
 
     SKILL_DEFS_META = {
-        "basic": ("Hawking Shard", "ProjectileSkill", 21, 26, 4.2),
-        "cc": ("Time Dilation", "SummonZoneSkill", 20, 38, 8.0),
+        "basic": ("Hawking Radiation", "BeamSkill", 23, 26, 4.0),
+        "cc": ("Time Slip", "Skill", 28, 38, 8.0),
         "enhance": ("Hoking Domain", "DomainUltimateSkill", 0, 0, 0.0),
     }
 
@@ -420,11 +653,11 @@ class Hoking(Player):
         self.attack_damage = self.ATTACK_DMG
 
     def _init_skills(self):
-        self.skills["skill_Q"] = HawkingShard()
-        self.skills["skill_E"] = TimeDilation()
+        self.skills["skill_Q"] = HawkingRadiation()
+        self.skills["skill_E"] = TimeSlip()
         self.skills["skill_R"] = HokingDomain()
-        self.skills["skill_Q_domain"] = SingularityShard()
-        self.skills["skill_E_domain"] = EntropyHorizon()
+        self.skills["skill_Q_domain"] = GammaRayBurst()
+        self.skills["skill_E_domain"] = InformationParadox()
 
     def use_skill(self, skill_key: str, event_bus=None, psys=None) -> bool:
         domain_key = skill_key + "_domain"

@@ -173,11 +173,12 @@ class MegaBombDrop(_NormalOnlyMixin, SummonZoneSkill):
 
     def on_start(self, owner, event_bus=None, psys=None):
         target = getattr(owner, "_skill_target", None)
-        if target and not target.dead and abs(target.rect.centerx - owner.rect.centerx) < 400:
+        if target and not target.dead:
             self._zone_x = target.rect.centerx
+            self._zone_y = target.rect.bottom
         else:
             self._zone_x = owner.rect.centerx + owner.facing * 220
-        self._zone_y  = owner.rect.bottom
+            self._zone_y = owner.rect.bottom
         self._bomb_y  = self._zone_y - 500   # 위에서 낙하
         self._landed  = False
         self.has_hit  = False
