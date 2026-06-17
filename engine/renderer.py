@@ -623,6 +623,14 @@ class Renderer:
     def _get_skill_hud_state(self, player, skill):
         fps = getattr(self, "FPS", 60)
 
+        if getattr(skill, "_skill_locked", False):
+            return {
+                "usable": False,
+                "reason": "locked",
+                "cooldown_ratio": 1.0,
+                "text": "LOCK"
+            }
+
         cd_left = max(0, int(getattr(skill, "current_cooldown", 0)))
         cd_max = int(getattr(skill, "cooldown", 0) or 0)
 

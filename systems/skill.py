@@ -99,6 +99,14 @@ class Skill:
 
     # ── 발동 조건 ────────────────────────────────────────────
     def can_use(self, owner) -> bool:
+        if getattr(self, "_skill_locked", False):
+            return False
+        if getattr(self, "_dirac_sealed", False):
+            return False
+        if getattr(self, "_hacked", False) and getattr(self, "_hack_timer", 0) > 0:
+            return False
+        if getattr(self, "_sealed", False) and getattr(self, "_seal_timer", 0) > 0:
+            return False
         if self.has_cooldown() and self.current_cooldown > 0:
             return False
         return self.can_activate(owner)
@@ -121,8 +129,25 @@ class Skill:
         self.has_hit = False
         self.on_start(owner, event_bus, psys)
 
+    def lock(self):
+        self._skill_locked = True
+        self.current_cooldown = 0
+
+    def unlock(self):
+        self._skill_locked = False
+
     # ── 업데이트 ─────────────────────────────────────────────
     def update_cooldown(self):
+        if getattr(self, "_hack_timer", 0) > 0:
+            self._hack_timer -= 1
+            if self._hack_timer <= 0:
+                self._hacked = False
+                self._hack_timer = 0
+        if getattr(self, "_seal_timer", 0) > 0:
+            self._seal_timer -= 1
+            if self._seal_timer <= 0:
+                self._sealed = False
+                self._seal_timer = 0
         if self.has_cooldown() and self.current_cooldown > 0:
             self.current_cooldown -= 1
 

@@ -50,7 +50,7 @@ class HackVirus(_NormalOnlyMixin, Skill):
     HIT_RANGE     = 240
     CHARGE_FRAMES = 10   # 선딜 (내부 카운터 기반)
     HIT_FRAMES    = 14
-    SEAL_DURATION = 180  # 3초
+    SEAL_DURATION = 300  # 5초
     GLITCH_COUNT  = 18
 
     def __init__(self):
@@ -113,17 +113,24 @@ class HackVirus(_NormalOnlyMixin, Skill):
                            count=2, speed=3, gravity=0, life=8, r=3, glow=True)
 
     def on_hit(self, owner, target, event_bus, psys=None, fsys=None):
+        if self.has_hit:
+            return
+        self.has_hit = True
         self._hitting = False
 
         # Q/E만 봉인한다. R과 강화 슬롯은 직접 건드리지 않는다.
         sealable = [k for k in HACK_SEAL_KEYS
-                    if k in target.skills and not getattr(target.skills[k], "_hacked", False)]
+                    if k in target.skills
+                    and not (
+                        getattr(target.skills[k], "_hacked", False)
+                        and getattr(target.skills[k], "_hack_timer", 0) > 0
+                    )]
         if sealable:
             seal_key = random.choice(sealable)
             sk = target.skills[seal_key]
             sk._hacked       = True
             sk._hack_timer   = self.SEAL_DURATION
-            sk.current_cooldown = max(sk.current_cooldown, self.SEAL_DURATION)
+            sk.current_cooldown += self.SEAL_DURATION
         self._status_target = target
         self._status_timer = min(self.SEAL_DURATION, self.duration)
 
