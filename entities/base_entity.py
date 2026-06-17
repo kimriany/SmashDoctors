@@ -154,55 +154,89 @@ class BaseEntity:
     def apply_knockback(self, attacker: "BaseEntity", damage: float,
                         camera=None):
         """
-        넉백 공식 (Smash Ultimate 기반, 스케일 대폭 상향)
+        Smash 스타일 넉백
 
-        기본 공식:
-            raw = (((p/10 + p*d/20) * (200/(w+100)) * 1.4) + 18) * (s/100) + b
-
-        조정 사항:
-            1. 스케일 계수 0.026 → 0.072  (약 2.8배 상향)
-            2. 최대 클램프 28 → 55
-            4. 넉백 저항(_kb_resist) 지원
+        특징:
+            - 저퍼센트에서는 비교적 안정적
+            - 100% 이후부터 급격히 증가
+            - 150~200%부터는 킬각이 자주 나옴
+            - 250% 이상은 거의 확정 킬
         """
         p = self.damage_pct
         d = damage
-        w = getattr(self, "WEIGHT",    100)
-        s = getattr(self, "KB_GROWTH",  80)
-        b = getattr(self, "BASE_KB",    30)
+        w = getattr(self, "WEIGHT", 100)
+        s = getattr(self, "KB_GROWTH", 80)
+        b = getattr(self, "BASE_KB", 30)
 
-        # 기본 넉백 계산
-        raw = (((p / 10.0 + p * d / 20.0) * (200.0 / (w + 100.0)) * 1.4)
-               + 18.0) * (s / 100.0) + b
+        # ─────────────────────────────────────────────
+        # 기본 Smash 넉백 공식
+        # ─────────────────────────────────────────────
+        raw = (
+                      (
+                              (p / 10.0 + p * d / 20.0)
+                              * (200.0 / (w + 100.0))
+                              * 1.4
+                      )
+                      + 18.0
+              ) * (s / 100.0) + b
 
-        # ── 스케일 (크게 올림) ──────────────────────────────
-        # 기본 타격: 데미지 누적에 따라 점점 날아가는 느낌
-        speed = raw * 0.32
+        # ─────────────────────────────────────────────
+        # 퍼센트 기반 비선형 증폭
+        # ─────────────────────────────────────────────
+        pct_scale = 1.0 + (p / 120.0) ** 1.7
 
+        speed = raw * 0.20 * pct_scale
 
-        # ── 넉백 저항 ────────────────────────────────────────
+        # ─────────────────────────────────────────────
+        # 넉백 저항
+        # ─────────────────────────────────────────────
         resist = getattr(self, "_kb_resist", 0.0)
         speed *= (1.0 - resist)
 
-        # ── 클램프 ───────────────────────────────────────────
-        # 최솟값을 높여 약한 공격도 확실히 밀림
-        speed = max(6.0, min(speed, 120.0))
+        # ─────────────────────────────────────────────
+        # 최종 클램프
+        # ─────────────────────────────────────────────
+        speed = max(6.0, min(speed, 180.0))
 
-        dir_x      = 1 if attacker.rect.centerx < self.rect.centerx else -1
-        vel_x      = dir_x * speed * 7.0         # 좌우 강화 (기존 1.8 → 2.6)
-        vel_y      = -(speed * 0.10)               # 위 억제 (기존 0.20 → 0.10)
-        # vel.x 최종 클램프 (배율 적용 후) — 최대 속도는 기존과 동일하게 유지
-        MAX_VEL_X  = 90.0
-        vel_x      = max(-MAX_VEL_X, min(MAX_VEL_X, vel_x))
+        # ─────────────────────────────────────────────
+        # 방향 계산
+        # ─────────────────────────────────────────────
+        dir_x = (
+            1
+            if attacker.rect.centerx < self.rect.centerx
+            else -1
+        )
+
+        # ─────────────────────────────────────────────
+        # 발사 속도
+        # ─────────────────────────────────────────────
+        vel_x = dir_x * speed * 7.0
+        vel_y = -(speed * 0.18)
+
+        # 좌우 최대속도 제한
+        MAX_VEL_X = 180.0
+        vel_x = max(-MAX_VEL_X, min(MAX_VEL_X, vel_x))
+
         self.vel.x = vel_x
         self.vel.y = vel_y
-        self.shake_x = dir_x * min(18, int(abs(vel_x) * 0.3))
-        self.shake_y = -min(6, int(speed * 0.15))
+
+        # ─────────────────────────────────────────────
+        # 히트 쉐이크
+        # ─────────────────────────────────────────────
+        self.shake_x = dir_x * min(28, int(abs(vel_x) * 0.25))
+        self.shake_y = -min(10, int(speed * 0.18))
+
         self.is_launched = True
 
-        # Special Zoom 트리거
+        # ─────────────────────────────────────────────
+        # Special Zoom
+        # ─────────────────────────────────────────────
         if camera is not None and hasattr(camera, "SZOOM_THRESHOLD"):
             if speed >= camera.SZOOM_THRESHOLD:
-                camera.trigger_special_zoom(self.rect.centerx, self.rect.centery)
+                camera.trigger_special_zoom(
+                    self.rect.centerx,
+                    self.rect.centery
+                )
 
     # ═══════════════════════════════════════════════════════════
     #  update (공통)
