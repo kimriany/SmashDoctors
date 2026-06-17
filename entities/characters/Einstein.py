@@ -770,7 +770,7 @@ class Einstein(Player):
     LIGHT_ATK_CD = 24
     LIGHT_HIT_START = 4
     LIGHT_HIT_END = 13
-    LIGHT_RIFT_EXPLODE_DELAY = 30
+    LIGHT_RIFT_EXPLODE_DELAY = 120
 
     BODY_COLOR    = (225, 55, 55);  TRIM_COLOR  = (145, 20, 20)
     GLOW_COLOR    = (255, 130, 110); DARK_COLOR = (110, 15, 15)
@@ -802,6 +802,26 @@ class Einstein(Player):
         self.skills["skill_R"]        = EinsteinDomain()
         self.skills["skill_Q_domain"] = DomainLightSwordAwakening()
         self.skills["skill_E_domain"] = Singularity()
+
+    def _reset_light_sword_state(self):
+        self._light_sword_mode = False
+        self._light_sword_domain_mode = False
+        self._light_rifts = []
+        self.attack_timer = 0
+        self.attack_cooldown = 0
+        self.has_hit = False
+
+        for key in ("skill_Q", "skill_Q_domain"):
+            skill = self.skills.get(key)
+            if skill is not None and hasattr(skill, "unlock"):
+                skill.unlock()
+
+    def reset_domain_state(self):
+        super().reset_domain_state()
+        self._reset_light_sword_state()
+
+    def on_domain_closed(self):
+        self._reset_light_sword_state()
 
     def start_attack(self):
         if getattr(self, "_light_sword_mode", False):
