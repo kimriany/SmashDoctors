@@ -816,8 +816,8 @@ class Einstein(Player):
             if skill is not None and hasattr(skill, "unlock"):
                 skill.unlock()
 
-    def reset_domain_state(self):
-        super().reset_domain_state()
+    def reset_domain_state(self, domain_locked=False, finisher_locked=False):
+        super().reset_domain_state(domain_locked=domain_locked, finisher_locked=finisher_locked)
         self._reset_light_sword_state()
 
     def on_domain_closed(self):

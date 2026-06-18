@@ -1,3 +1,5 @@
+import random
+
 from entities.Boss_characters.sprite_boss_base import ConceptBoss
 
 
@@ -30,6 +32,33 @@ class TuringBoss(ConceptBoss):
         self.domain_particle_color = self.glow_color
         self.profile_key = "turing"
         self.WALK_SPEED = 2.15
+        self._wander_x = x
+        self._wander_rethink = 0
+        self.pattern_cooldown = 300
+
+    def _move_toward_combat_range(self, platforms):
+        if not platforms:
+            return super()._move_toward_combat_range(platforms)
+
+        floor = self._platform_under_x(self.rect.centerx) or self._main_platform()
+        if floor is None:
+            return super()._move_toward_combat_range(platforms)
+
+        self._wander_rethink -= 1
+        needs_new_target = (
+            abs(self.rect.centerx - self._wander_x) < 16
+            or not (floor.left + 70 <= self._wander_x <= floor.right - 70)
+        )
+        if needs_new_target and self._wander_rethink <= 0:
+            self._wander_x = random.randint(floor.left + 80, floor.right - 80)
+            self._wander_rethink = 42
+
+        dx = self._wander_x - self.rect.centerx
+        self.vel.x += ((1 if dx > 0 else -1) * self.WALK_SPEED - self.vel.x) * 0.045
+        if abs(dx) < 20:
+            self.vel.x *= 0.72
+        if self.target and abs(self.target.rect.centerx - self.rect.centerx) > 30:
+            self.facing = 1 if self.target.rect.centerx > self.rect.centerx else -1
 
     def _spawn_concept_projectiles(self, count=3, spread=0.45, damage=None, speed=None, size=None):
         for i, offset in enumerate((-0.28, 0.0, 0.28)):
@@ -42,6 +71,36 @@ class TuringBoss(ConceptBoss):
                 size=18,
                 kind="logic",
             )
+
+    def _choose_next_pattern(self):
+        self.cast_action = "ro2t_whip"
+        self.cast_label = "WHIP FIELD"
+        self.cast_timer = 28
+        self.cast_total = 28
+        self.pattern_cooldown = 300
+
+    def _resolve_cast(self, event_bus, psys):
+        action = self.cast_action
+        self.cast_action = None
+        self.cast_label = ""
+        if action == "ro2t_whip":
+            self._spawn_zone_at(
+                self.rect.centerx,
+                self.rect.bottom + 30,
+                280,
+                190,
+                warn=22,
+                active=28,
+                damage=22,
+                kind="grid",
+                slow=True,
+                slow_x=0.65,
+            )
+            if psys:
+                psys.spawn(self.rect.centerx, self.rect.centery, self.glow_color,
+                           count=26, speed=7, gravity=0, life=28, r=5, glow=True)
+            return
+        super()._resolve_cast(event_bus, psys)
 
     def _spawn_concept_zones(self):
         for i, ox in enumerate((-180, -90, 0, 90, 180)):

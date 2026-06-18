@@ -219,12 +219,15 @@ class Player(BaseEntity):
         if self.dead or self.respawning:
             return
         moving = False
+        speed = getattr(self, "_speed_override", self.WALK_SPEED)
+        if getattr(self, "_speed_debuff_timer", 0) > 0:
+            speed *= getattr(self, "_speed_debuff_mult", 0.55)
         if keys[self.key_left]:
-            self.vel.x  = -self.WALK_SPEED
+            self.vel.x  = -speed
             self.facing = -1
             moving      = True
         if keys[self.key_right]:
-            self.vel.x  = self.WALK_SPEED
+            self.vel.x  = speed
             self.facing = 1
             moving      = True
         if not moving:
@@ -260,6 +263,8 @@ class Player(BaseEntity):
         if self.jump_count < self.MAX_JUMPS:
             idx = min(self.jump_count, len(self.JUMP_POWER_MULTIPLIERS) - 1)
             power = self.JUMP_POWER * self.JUMP_POWER_MULTIPLIERS[idx]
+            if getattr(self, "_jump_power_scale_timer", 0) > 0:
+                power *= getattr(self, "_jump_power_scale", 1.0)
             self.vel.y      = power
             self.jump_count += 1
 
@@ -271,6 +276,8 @@ class Player(BaseEntity):
                 psys.spawn_jump(px, py, self.glow_color)
 
     def _do_attack(self, psys):
+        if getattr(self, "_attack_lock_timer", 0) > 0:
+            return
         self.start_attack()
         if psys:
             px, py = self._sprite_front_world(y_ratio=0.45, extra=6)
@@ -399,7 +406,7 @@ class Player(BaseEntity):
 
         print(f"[DOMAIN STAT OFF] {self.name}")
 
-    def reset_domain_state(self):
+    def reset_domain_state(self, domain_locked=False, finisher_locked=False):
         """
         영역 관련 상태값 전체 초기화.
         사망/스톡 감소/강제 영역 해제 때 사용.
@@ -407,7 +414,7 @@ class Player(BaseEntity):
         self.clear_domain_stats()
 
         self.domain_active = False
-        self.domain_locked = False
+        self.domain_locked = bool(domain_locked)
         self.domain_break_hits_taken = 0
         self.domain_break_hits_limit = 0
 
@@ -416,7 +423,7 @@ class Player(BaseEntity):
 
         self.finisher_charge_stack = 0.0
         self.finisher_ready = False
-        self.finisher_locked = False
+        self.finisher_locked = bool(finisher_locked)
         self.finisher_unlock_timer = 0
 
         # 대시 2단 강화 같은 게 있다면 같이 초기화
@@ -448,6 +455,8 @@ class Player(BaseEntity):
     #  스톡 / 리스폰
     # ═══════════════════════════════════════════════════════════
     def lose_stock(self, event_bus, killer=None, reason="blast"):
+        was_domain_active = bool(getattr(self, "domain_active", False))
+        was_domain_locked = bool(getattr(self, "domain_locked", False))
         self.stocks -= 1
 
         # 죽는 순간 영역 스탯/스택/상태 전부 초기화
@@ -461,6 +470,8 @@ class Player(BaseEntity):
             "player": self,
             "killer": killer,
             "reason": reason,
+            "was_domain_active": was_domain_active,
+            "was_domain_locked": was_domain_locked,
         })
 
         if self.stocks <= 0:
@@ -510,6 +521,10 @@ class Player(BaseEntity):
 
             if not self.active_skill.active:
                 self.active_skill = None
+
+        for attr in ("_speed_debuff_timer", "_attack_lock_timer", "_jump_power_scale_timer"):
+            if getattr(self, attr, 0) > 0:
+                setattr(self, attr, getattr(self, attr) - 1)
 
         self.bob_t  += 0.065
         if abs(self.vel.x) > 0.4:

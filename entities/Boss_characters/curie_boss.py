@@ -1,3 +1,4 @@
+import math
 import random
 
 from entities.Boss_characters.sprite_boss_base import ConceptBoss
@@ -32,6 +33,62 @@ class CurieBoss(ConceptBoss):
         self.domain_particle_color = self.glow_color
         self.profile_key = "curie"
         self.WALK_SPEED = 2.05
+        self._curie_mode = "floor"
+        self._curie_timer = 600
+        self._curie_dir = 1
+        self.pattern_cooldown = 999999
+
+    def _choose_next_pattern(self):
+        self.pattern_cooldown = 999999
+
+    def _move_toward_combat_range(self, platforms):
+        floor = self._main_platform()
+        self._curie_timer -= 1
+        if self._curie_timer <= 0:
+            self._curie_mode = "x" if self._curie_mode == "floor" else "floor"
+            self._curie_timer = 260 if self._curie_mode == "x" else 600
+
+        if self._curie_mode == "floor":
+            if floor:
+                self.rect.bottom = floor.top
+                if self.rect.left <= floor.left + 20:
+                    self._curie_dir = 1
+                elif self.rect.right >= floor.right - 20:
+                    self._curie_dir = -1
+            self.vel.x += (self._curie_dir * 4.2 - self.vel.x) * 0.08
+            self.facing = self._curie_dir
+            if self._curie_timer % 18 == 0:
+                self._spawn_zone_at(self.rect.centerx, self.rect.bottom + 4, 96, 150,
+                                    warn=60, active=18, damage=17, kind="radiation")
+        else:
+            main = floor or self._platform_under_x(self.rect.centerx)
+            if main:
+                t = 1.0 - self._curie_timer / 260
+                left = main.left + 130
+                right = main.right - 130
+                top = main.top - 230
+                bottom = main.top - 30
+                if t < 0.5:
+                    k = t / 0.5
+                    self.rect.centerx = int(left + (right - left) * k)
+                    self.rect.centery = int(bottom + (top - bottom) * k)
+                else:
+                    k = (t - 0.5) / 0.5
+                    self.rect.centerx = int(right + (left - right) * k)
+                    self.rect.centery = int(bottom + (top - bottom) * k)
+                self.vel.x = 0
+                self.vel.y = 0
+            if self._curie_timer % 16 == 0:
+                self._spawn_curie_x_mark()
+
+    def _spawn_curie_x_mark(self):
+        if not self.target:
+            return
+        cx = self.target.rect.centerx
+        bottom = self.target.rect.bottom
+        for ox in (-72, 72):
+            self._spawn_zone_at(cx + ox, bottom, 92, 190, warn=22, active=18,
+                                damage=14, kind="radiation")
 
     def _spawn_concept_projectiles(self, count=3, spread=0.5, damage=None, speed=None, size=None):
         for i, offset in enumerate((-0.32, 0.0, 0.32)):

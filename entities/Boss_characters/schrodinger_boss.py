@@ -1,3 +1,5 @@
+import random
+
 from entities.Boss_characters.sprite_boss_base import ConceptBoss
 
 
@@ -30,6 +32,40 @@ class SchrodingerBoss(ConceptBoss):
         self.domain_particle_color = self.glow_color
         self.profile_key = "schrodinger"
         self.WALK_SPEED = 2.2
+        self.pattern_cooldown = 120
+
+    def _choose_next_pattern(self):
+        self.cast_action = "cat_cycle"
+        self.cast_label = "CAT BOX"
+        self.cast_timer = 24
+        self.cast_total = 24
+        self.pattern_cooldown = 360
+
+    def _resolve_cast(self, event_bus, psys):
+        action = self.cast_action
+        self.cast_action = None
+        self.cast_label = ""
+        if action == "cat_cycle":
+            self._teleport_behind_target(psys)
+            self._schedule(18, self._spawn_uncertain_box)
+            self._schedule(86, self._spawn_cat_rain)
+            return
+        super()._resolve_cast(event_bus, psys)
+
+    def _spawn_uncertain_box(self):
+        if random.random() < 0.5:
+            self._spawn_zone_at(self.rect.centerx + self.facing * 70, self.rect.bottom,
+                                190, 150, warn=38, active=20, damage=24, kind="zone")
+        else:
+            self.afterimages.append({"rect": self.rect.inflate(80, 40), "life": 36})
+
+    def _spawn_cat_rain(self):
+        if not self.target:
+            return
+        for i in range(9):
+            cx = self.target.rect.centerx + random.randint(-260, 260)
+            self._spawn_zone_at(cx, self.target.rect.bottom, 64, 250,
+                                warn=18 + i * 7, active=12, damage=12, kind="zone")
 
     def _spawn_concept_projectiles(self, count=4, spread=0.8, damage=None, speed=None, size=None):
         for i, offset in enumerate((-0.52, -0.17, 0.17, 0.52)):

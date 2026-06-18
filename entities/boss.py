@@ -192,6 +192,8 @@ class Boss(BaseEntity):
         self.projectiles = []
         self.zones = []
         self.afterimages = []
+        self._scheduled_actions = []
+        self._platforms = []
         self._zone_serial = 0
         self.skills = {}
 
@@ -321,16 +323,16 @@ class Boss(BaseEntity):
         """Pattern objects handle their own collisions during ai_update."""
         return
 
-    def reset_domain_state(self):
+    def reset_domain_state(self, domain_locked=False, finisher_locked=True):
         self.domain_active = False
-        self.domain_locked = False
+        self.domain_locked = bool(domain_locked)
         self.domain_break_hits_taken = 0
         self.domain_break_hits_limit = 999
         self.domain_charge_stack = 0.0
         self.domain_ready = False
         self.finisher_charge_stack = 0.0
         self.finisher_ready = False
-        self.finisher_locked = True
+        self.finisher_locked = bool(finisher_locked)
 
     def open_domain(self, event_bus):
         if self.dead or self.domain_active or self.domain_broken:
@@ -352,6 +354,7 @@ class Boss(BaseEntity):
             return
 
         self.target = target
+        self._platforms = platforms or []
         self._update_phase()
         self._update_pattern_objects(target, event_bus, psys)
 
@@ -628,6 +631,104 @@ class Boss(BaseEntity):
             "kind": kind,
         })
 
+    def _spawn_zone_at(self, cx, bottom, w, h, warn, active, damage, kind="zone", **extra):
+        if self.domain_active:
+            w = int(w * 1.18)
+            damage += 4
+
+        self._zone_serial += 1
+        data = {
+            "id": self._zone_serial,
+            "rect": pygame.Rect(int(cx - w / 2), int(bottom - h), int(w), int(h)),
+            "warn": warn,
+            "active": active,
+            "damage": damage,
+            "hit": False,
+            "kind": kind,
+        }
+        data.update(extra)
+        self.zones.append(data)
+
+    def _schedule(self, frames, func, *args, **kwargs):
+        self._scheduled_actions.append({
+            "timer": max(0, int(frames)),
+            "func": func,
+            "args": args,
+            "kwargs": kwargs,
+        })
+
+    def _aimed_projectile_from(
+        self,
+        x,
+        y,
+        speed=6.0,
+        damage=14,
+        size=18,
+        kind="orb",
+        angle_offset=0.0,
+        life=160,
+        target=None,
+    ):
+        target = target or self.target
+        if target is None:
+            return
+        dx = target.rect.centerx - x
+        dy = target.rect.centery - y
+        base = math.atan2(dy, dx) + angle_offset
+        self.projectiles.append({
+            "x": float(x),
+            "y": float(y),
+            "vx": math.cos(base) * speed,
+            "vy": math.sin(base) * speed,
+            "speed": speed,
+            "angle_offset": 0.0,
+            "state": "fly",
+            "orbit": 0,
+            "orbit_total": 1,
+            "angle": 0.0,
+            "orbit_radius": 0.0,
+            "orbit_speed": 0.0,
+            "r": size,
+            "damage": damage + (4 if self.domain_active else 0),
+            "life": life,
+            "delay": 0,
+            "hit": False,
+            "kind": kind,
+            "age": 0,
+        })
+
+    def _platform_under_x(self, x):
+        candidates = [p for p in self._platforms if p.left <= x <= p.right]
+        if candidates:
+            return min(candidates, key=lambda p: abs(p.top - self.rect.bottom))
+        if self._platforms:
+            return min(self._platforms, key=lambda p: abs(p.centerx - x))
+        return None
+
+    def _random_platform(self):
+        return random.choice(self._platforms) if self._platforms else None
+
+    def _main_platform(self):
+        if not self._platforms:
+            return None
+        return max(self._platforms, key=lambda p: p.w)
+
+    def _teleport_to_platform(self, platform, x=None, psys=None):
+        if platform is None:
+            return
+        old = self.rect.copy()
+        if x is None:
+            x = random.randint(platform.left + self.rect.w // 2, platform.right - self.rect.w // 2)
+        x = max(platform.left + self.rect.w // 2, min(platform.right - self.rect.w // 2, int(x)))
+        self.rect.centerx = x
+        self.rect.bottom = platform.top
+        self.vel.x = 0
+        self.vel.y = 0
+        self.afterimages.append({"rect": old, "life": 28})
+        if psys:
+            psys.spawn(old.centerx, old.centery, self.glow_color, count=20, speed=6, life=24, r=4, glow=True)
+            psys.spawn(self.rect.centerx, self.rect.centery, self.glow_color, count=22, speed=6, life=26, r=5, glow=True)
+
     def _teleport_behind_target(self, psys=None):
         if self.target is None:
             return
@@ -659,6 +760,17 @@ class Boss(BaseEntity):
             })
 
     def _update_pattern_objects(self, target, event_bus, psys):
+        actions = self._scheduled_actions
+        self._scheduled_actions = []
+        pending = []
+        for action in actions:
+            action["timer"] -= 1
+            if action["timer"] <= 0:
+                action["func"](*action["args"], **action["kwargs"])
+            else:
+                pending.append(action)
+        self._scheduled_actions = pending + self._scheduled_actions
+
         alive_projectiles = []
         for p in self.projectiles:
             if p["delay"] > 0:
@@ -686,6 +798,14 @@ class Boss(BaseEntity):
 
             p["x"] += p["vx"]
             p["y"] += p["vy"]
+            p["age"] = p.get("age", 0) + 1
+            if p.get("retarget_at") is not None and p["age"] == p["retarget_at"] and target and not target.dead:
+                dx = target.rect.centerx - p["x"]
+                dy = target.rect.centery - p["y"]
+                base = math.atan2(dy, dx) + p.get("angle_offset", 0.0)
+                speed = p.get("speed", math.sqrt(p["vx"] * p["vx"] + p["vy"] * p["vy"]))
+                p["vx"] = math.cos(base) * speed * p.get("retarget_boost", 1.0)
+                p["vy"] = math.sin(base) * speed * p.get("retarget_boost", 1.0)
             p["life"] -= 1
             hit_rect = pygame.Rect(int(p["x"] - p["r"]), int(p["y"] - p["r"]), p["r"] * 2, p["r"] * 2)
             if target and not target.dead and target.invincible <= 0 and hit_rect.colliderect(target.rect):
@@ -714,9 +834,23 @@ class Boss(BaseEntity):
                 z["active"] -= 1
                 if z.get("kind") == "gravity" and target and not target.dead:
                     self._pull_target_toward_zone(target, z["rect"], strength=0.22)
-                if target and not target.dead and target.invincible <= 0 and not z["hit"]:
+                if z.get("slow") and target and not target.dead and z["rect"].colliderect(target.rect):
+                    target.vel.x *= z.get("slow_x", 0.75)
+                    target.vel.y *= z.get("slow_y", 0.88)
+                if z.get("jump_scale") and target and not target.dead and z["rect"].colliderect(target.rect):
+                    target._jump_power_scale_timer = max(getattr(target, "_jump_power_scale_timer", 0), 8)
+                    target._jump_power_scale = z.get("jump_scale", 1.0)
+
+                can_hit = not z["hit"]
+                if z.get("tick_interval"):
+                    z["tick_timer"] = z.get("tick_timer", 0) - 1
+                    can_hit = z["tick_timer"] <= 0
+                if target and not target.dead and target.invincible <= 0 and can_hit:
                     if z["rect"].colliderect(target.rect):
-                        z["hit"] = True
+                        if z.get("tick_interval"):
+                            z["tick_timer"] = z.get("tick_interval", 24)
+                        else:
+                            z["hit"] = True
                         event_bus.emit("attack_hit", {
                             "attacker": self,
                             "target": target,
@@ -863,4 +997,8 @@ class Boss(BaseEntity):
             return (80, 120, 255)
         if kind == "grid":
             return (70, 220, 215)
+        if kind == "snare":
+            return (120, 225, 255)
+        if kind == "time":
+            return (245, 245, 255)
         return self.zone_color

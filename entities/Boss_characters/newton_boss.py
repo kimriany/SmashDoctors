@@ -1,3 +1,6 @@
+import math
+import random
+
 from entities.Boss_characters.sprite_boss_base import ConceptBoss, first_existing
 
 
@@ -32,6 +35,62 @@ class NewtonBoss(ConceptBoss):
         self.domain_particle_color = self.glow_color
         self.profile_key = "newton"
         self.WALK_SPEED = 2.0
+        self._parabola_timer = 0
+        self.pattern_cooldown = 90
+
+    def _choose_next_pattern(self):
+        self.cast_action = "newton_cycle"
+        self.cast_label = "GRAVITY LAW"
+        self.cast_timer = 30
+        self.cast_total = 30
+        self.pattern_cooldown = 360
+
+    def _resolve_cast(self, event_bus, psys):
+        action = self.cast_action
+        self.cast_action = None
+        self.cast_label = ""
+        if action == "newton_cycle":
+            self._rise_and_drop()
+            self._schedule(130, self._start_parabola)
+            return
+        super()._resolve_cast(event_bus, psys)
+
+    def _move_toward_combat_range(self, platforms):
+        if self._parabola_timer > 0:
+            self._parabola_timer -= 1
+            t = 1.0 - self._parabola_timer / 110
+            direction = self.facing or 1
+            self.vel.x = direction * 4.8
+            self.vel.y = math.sin(t * math.pi * 2) * 1.8
+            if self._parabola_timer % 8 == 0:
+                self._spawn_zone_at(self.rect.centerx, self.rect.bottom + 30,
+                                    88, 92, warn=20, active=20, damage=11, kind="bomb")
+            return
+        super()._move_toward_combat_range(platforms)
+
+    def _rise_and_drop(self):
+        main = self._main_platform()
+        if main:
+            x = self.target.rect.centerx if self.target else main.centerx
+            self.rect.centerx = max(main.left + 90, min(main.right - 90, x))
+            self.rect.bottom = main.top - 190
+            self.vel.x = 0
+            self.vel.y = 0
+        for i in range(8):
+            self._schedule(i * 14, self._drop_gravity_object, i)
+
+    def _drop_gravity_object(self, index):
+        if not self.target:
+            return
+        cx = self.target.rect.centerx + random.randint(-180, 180)
+        damage = 15 if index % 2 else 22
+        width = 72 if index % 2 else 96
+        self._spawn_zone_at(cx, self.target.rect.bottom, width, 260,
+                            warn=22, active=14, damage=damage, kind="bomb")
+
+    def _start_parabola(self):
+        self._parabola_timer = 110
+        self.facing = 1 if not self.target or self.target.rect.centerx > self.rect.centerx else -1
 
     def _spawn_concept_projectiles(self, count=2, spread=0.28, damage=None, speed=None, size=None):
         for i, offset in enumerate((-0.18, 0.18)):

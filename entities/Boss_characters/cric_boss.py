@@ -48,44 +48,20 @@ class CricBoss(SpriteBoss):
         self.WALK_SPEED = 2.05
         self.boss_domain_max_hp = 360.0
         self.boss_domain_hp = self.boss_domain_max_hp
+        self.pattern_cooldown = 90
+        self._retreat_dir = 1
+        self._retreat_rethink = 0
 
     def configure_profile(self, profile):
         # CricBoss is already a concrete boss, so keep its own art and pattern.
         return
 
     def _choose_next_pattern(self):
-        if self.phase <= 1:
-            options = ["helix_orbs", "base_pair_zone", "replication_dash"]
-        elif self.phase == 2:
-            options = ["helix_orbs", "base_pair_zone", "replication_dash", "codon_rain"]
-        elif self.phase == 3:
-            options = ["helix_orbs", "codon_rain", "double_helix", "replication_dash"]
-        else:
-            options = ["double_helix", "codon_rain", "helix_orbs", "replication_dash"]
-
-        choice = random.choice(options)
-        cast_frames = {
-            "helix_orbs": 40,
-            "base_pair_zone": 42,
-            "replication_dash": 28,
-            "codon_rain": 52,
-            "double_helix": 62,
-        }[choice]
-        if self.domain_active:
-            cast_frames = max(18, int(cast_frames * 0.75))
-
-        labels = {
-            "helix_orbs": "HELIX ORBS",
-            "base_pair_zone": "BASE PAIR",
-            "replication_dash": "REPLICATION",
-            "codon_rain": "CODON RAIN",
-            "double_helix": "DOUBLE HELIX",
-        }
-        self.cast_action = choice
-        self.cast_label = labels[choice]
-        self.cast_timer = cast_frames
-        self.cast_total = cast_frames
-        self.pattern_cooldown = 48 + random.randint(0, 28)
+        self.cast_action = "rna_cycle"
+        self.cast_label = "RNA SEQUENCE"
+        self.cast_timer = 30
+        self.cast_total = 30
+        self.pattern_cooldown = 300
 
     def _resolve_cast(self, event_bus, psys):
         action = self.cast_action
@@ -105,6 +81,70 @@ class CricBoss(SpriteBoss):
             self._spawn_codon_rain()
         elif action == "double_helix":
             self._spawn_double_helix()
+        elif action == "rna_cycle":
+            self._spawn_rna_cycle()
+
+    def _move_toward_combat_range(self, platforms):
+        if self.target is None:
+            return super()._move_toward_combat_range(platforms)
+        dx = self.rect.centerx - self.target.rect.centerx
+        if self._retreat_rethink <= 0:
+            self._retreat_dir = 1 if dx >= 0 else -1
+            self._retreat_rethink = 36
+        else:
+            self._retreat_rethink -= 1
+
+        floor = self._platform_under_x(self.rect.centerx)
+        if floor and self.on_ground:
+            if self.rect.left <= floor.left + 36:
+                self._retreat_dir = 1
+                self._retreat_rethink = 24
+            elif self.rect.right >= floor.right - 36:
+                self._retreat_dir = -1
+                self._retreat_rethink = 24
+
+        desired = self._retreat_dir
+        self.vel.x += (desired * (self.WALK_SPEED + 0.45) - self.vel.x) * 0.038
+        self.facing = -desired
+        if self.on_ground and abs(dx) < 240 and random.random() < 0.015:
+            self.vel.y = -10.5
+
+    def _spawn_rna_cycle(self):
+        for i in range(5):
+            self._schedule(i * 60, self._spawn_rna_missile)
+        self._schedule(300, self._spawn_rna_prison)
+
+    def _spawn_rna_missile(self):
+        if not self.target:
+            return
+        self._aimed_projectile_from(
+            self.rect.centerx,
+            self.rect.centery - 26,
+            speed=6.2,
+            damage=14,
+            size=18,
+            kind="dna",
+            life=150,
+        )
+
+    def _spawn_rna_prison(self):
+        if not self.target:
+            return
+        self._spawn_zone_on_target(
+            210,
+            190,
+            warn=34,
+            active=76,
+            damage=18,
+            kind="snare",
+        )
+        if self.zones:
+            self.zones[-1].update({
+                "slow": True,
+                "slow_x": 0.35,
+                "slow_y": 0.55,
+                "tick_interval": 32,
+            })
 
     def _spawn_helix_orbs(self, count=2):
         offsets = [-0.28, 0.28] if count == 2 else [-0.42, 0.0, 0.42]
