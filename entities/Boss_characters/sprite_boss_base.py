@@ -25,6 +25,32 @@ def load_img(path):
         return None
 
 
+def _clamp_color_channel(value):
+    try:
+        return max(0, min(255, int(value)))
+    except (TypeError, ValueError):
+        return 255
+
+
+def _rgb_color(color, fallback=(255, 255, 255)):
+    if isinstance(color, pygame.Color):
+        values = (color.r, color.g, color.b)
+    else:
+        try:
+            values = tuple(color)
+        except TypeError:
+            values = fallback
+
+    if len(values) < 3:
+        values = fallback
+
+    return tuple(_clamp_color_channel(channel) for channel in values[:3])
+
+
+def _rgba_color(color, alpha, fallback=(255, 255, 255)):
+    return (*_rgb_color(color, fallback), _clamp_color_channel(alpha))
+
+
 class SpriteBoss(Boss):
     SPRITE_IDLE = None
     SPRITE_ATTACK = None
@@ -119,7 +145,7 @@ class SpriteBoss(Boss):
             r = camera.apply_rect(img["rect"])
             a = int(88 * img["life"] / 28)
             sf = pygame.Surface((r.w, r.h), pygame.SRCALPHA)
-            pygame.draw.rect(sf, (*self.glow_color,a), sf.get_rect(), border_radius=10)
+            pygame.draw.rect(sf, _rgba_color(self.glow_color, a), sf.get_rect(), border_radius=10)
             screen.blit(sf, (r.x, r.y))
 
         if self.on_ground:
@@ -144,7 +170,7 @@ class SpriteBoss(Boss):
         screen.blit(img, (draw_x, draw_y))
 
         if self.cast_timer > 0 and self.cast_label:
-            txt = font(12, bold=True).render(self.cast_label, True, self.glow_color)
+            txt = font(12, bold=True).render(self.cast_label, True, _rgb_color(self.glow_color))
             screen.blit(txt, (dr.centerx - txt.get_width() // 2, draw_y - 22))
 
     def _get_sprite(self, camera):
@@ -167,7 +193,7 @@ class SpriteBoss(Boss):
         surf = pygame.Surface(screen.get_size(), pygame.SRCALPHA)
         cx = dr.centerx
         cy = dr.centery + bob
-        c1, c2 = self.AURA_COLORS
+        c1, c2 = (_rgb_color(color) for color in self.AURA_COLORS)
 
         if self.AURA_KIND == "helix":
             amp = int(28 * camera.zoom)
@@ -182,14 +208,14 @@ class SpriteBoss(Boss):
                 a_pts.append((x1, y))
                 b_pts.append((x2, y))
                 if i % 3 == 0:
-                    pygame.draw.line(surf, (*c2, 70), (x1, y), (x2, y), max(1, int(2 * camera.zoom)))
-            pygame.draw.lines(surf, (*c1, 130), False, a_pts, max(1, int(3 * camera.zoom)))
-            pygame.draw.lines(surf, (*c2, 115), False, b_pts, max(1, int(3 * camera.zoom)))
+                    pygame.draw.line(surf, _rgba_color(c2, 70), (x1, y), (x2, y), max(1, int(2 * camera.zoom)))
+            pygame.draw.lines(surf, _rgba_color(c1, 130), False, a_pts, max(1, int(3 * camera.zoom)))
+            pygame.draw.lines(surf, _rgba_color(c2, 115), False, b_pts, max(1, int(3 * camera.zoom)))
         else:
             for i in range(4):
                 r = int((26 + i * 17 + math.sin(elapsed * 0.12 + i) * 4) * camera.zoom)
                 col = c1 if i % 2 == 0 else c2
-                pygame.draw.circle(surf, (*col, 88 - i * 12), (cx, cy), max(4, r), max(1, int(2 * camera.zoom)))
+                pygame.draw.circle(surf, _rgba_color(col, 88 - i * 12), (cx, cy), max(4, r), max(1, int(2 * camera.zoom)))
 
         screen.blit(surf, (0, 0))
 

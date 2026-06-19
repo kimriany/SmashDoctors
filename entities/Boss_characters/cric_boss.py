@@ -11,6 +11,8 @@ class CricBoss(SpriteBoss):
     SPRITE_ATTACK = "assets/images/charactor/cric/attack.png"
     SPRITE_JUMP = "assets/images/charactor/cric/jump.png"
     DOMAIN_BG_PATH = first_existing([
+        "assets/images/charactor/cric/cric_domain_final.png",
+        "assets/images/charactor/cric/cric_domain_pixel.png",
         "assets/images/charactor/cric/cric_domain.png",
         "assets/images/story/Phylab.png",
     ])

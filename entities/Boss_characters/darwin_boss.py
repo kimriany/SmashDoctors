@@ -19,6 +19,8 @@ class DarwinBoss(ConceptBoss):
     SPRITE_ATTACK = "assets/images/charactor/dawin/attack.png"
     SPRITE_JUMP = "assets/images/charactor/dawin/jump.png"
     DOMAIN_BG_PATH = first_existing([
+        "assets/images/charactor/dawin/darwin_domain_final.png",
+        "assets/images/charactor/dawin/darwin_domain_pixel.png",
         "assets/images/charactor/dawin/darwin_domain.png",
         "assets/images/story/nature.png",
     ])

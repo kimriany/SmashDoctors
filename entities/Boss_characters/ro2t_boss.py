@@ -19,7 +19,7 @@ class Ro2tBoss(ConceptBoss):
     SPRITE_JUMP = "assets/images/charactor/ro2t/jump.png"
     SPRITE_SKILL = "assets/images/charactor/ro2t/skill.png"
 
-    DOMAIN_BG_PATH = "assets/images/charactor/ro2t/domain.png"
+    DOMAIN_BG_PATH = "assets/images/charactor/ro2t/domain_final.png"
 
     AURA_KIND = "rings"
     AURA_COLORS = ((80, 235, 190), (170, 255, 240))

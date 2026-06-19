@@ -10,6 +10,10 @@ class EinsteinBoss(ConceptBoss):
     SPRITE_ATTACK = "assets/images/charactor/Einstein/attack.png"
     SPRITE_JUMP = "assets/images/charactor/Einstein/jump.png"
     DOMAIN_BG_PATH = first_existing([
+        "assets/images/charactor/Einstein/einstein_domain_final.png",
+        "assets/images/charactor/Einstein/einstein_domain_sanabi_pixel.png",
+        "assets/images/charactor/Einstein/einstein_domain_clip_pixel.png",
+        "assets/images/charactor/Einstein/einstein_domain_pixel.png",
         "assets/images/charactor/Einstein/einstein_domain.png",
         "assets/images/Einstein_domain.jpeg",
     ])

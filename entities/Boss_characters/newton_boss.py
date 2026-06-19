@@ -10,6 +10,8 @@ class NewtonBoss(ConceptBoss):
     SPRITE_ATTACK = "assets/images/charactor/newton/attack.png"
     SPRITE_JUMP = "assets/images/charactor/newton/jump.png"
     DOMAIN_BG_PATH = first_existing([
+        "assets/images/charactor/newton/newton_domain_final.png",
+        "assets/images/charactor/newton/newton_domain_pixel.png",
         "assets/images/charactor/newton/newton_domain.png",
         "assets/images/story/Newton.png",
     ])
