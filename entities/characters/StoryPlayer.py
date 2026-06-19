@@ -97,7 +97,7 @@ class StoryAnchor(SummonZoneSkill):
 class StoryDomain(DomainUltimateSkill):
     DISPLAY_NAME = "Counter Domain"
     DESCRIPTION = "Answer the boss domain."
-    DOMAIN_BG_PATH = "assets/images/Turing_domain.jpeg"
+    DOMAIN_BG_PATH = "assets/images/charactor/Hora/hora_domain.png"
     DOMAIN_PARTICLE_COLOR = (80, 220, 255)
     BREAK_HITS = 999
     CUTSCENE_FRAMES = 38

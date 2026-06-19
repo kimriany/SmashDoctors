@@ -18,6 +18,8 @@ BOSS_CLASS_ALIASES = {
     "ro2tboss": "entities.Boss_characters.ro2t_boss.Ro2tBoss",
     "root2": "entities.Boss_characters.ro2t_boss.Ro2tBoss",
     "root2boss": "entities.Boss_characters.ro2t_boss.Ro2tBoss",
+    "hora": "entities.Boss_characters.hora_boss.HoraBoss",
+    "horaboss": "entities.Boss_characters.hora_boss.HoraBoss",
 }
 
 

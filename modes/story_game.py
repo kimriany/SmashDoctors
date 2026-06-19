@@ -480,6 +480,7 @@ class StoryGame:
             "curie": "entities.Boss_characters.curie_boss.CurieBoss",
             "schrodinger": "entities.Boss_characters.schrodinger_boss.SchrodingerBoss",
             "einstein": "entities.Boss_characters.einstein_boss.EinsteinBoss",
+            "hora": "entities.Boss_characters.hora_boss.HoraBoss",
             "hoking": "entities.Boss_characters.hoking_boss.HokingBoss",
             "pita": "entities.Boss_characters.newton_boss.NewtonBoss",
             "turing": "entities.Boss_characters.turing_boss.TuringBoss",
@@ -488,6 +489,8 @@ class StoryGame:
         }
         if "뉴턴" in str(battle_config.get("boss_name", "")):
             boss_key = "pita"
+        if "hora" in str(battle_config.get("boss_name", "")).lower() or "호라" in str(battle_config.get("boss_name", "")):
+            boss_key = "hora"
 
         mapped = boss_map.get(boss_key)
         if mapped:

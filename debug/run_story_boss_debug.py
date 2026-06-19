@@ -16,6 +16,7 @@ from entities.Boss_characters.cric_boss import CricBoss
 from entities.Boss_characters.curie_boss import CurieBoss
 from entities.Boss_characters.darwin_boss import DarwinBoss
 from entities.Boss_characters.einstein_boss import EinsteinBoss
+from entities.Boss_characters.hora_boss import HoraBoss
 from entities.Boss_characters.hoking_boss import HokingBoss
 from entities.Boss_characters.newton_boss import NewtonBoss
 from entities.Boss_characters.ro2t_boss import Ro2tBoss
@@ -31,6 +32,7 @@ BOSSES = [
     ("curie", "Curie", "퀴리", CurieBoss),
     ("darwin", "Darwin", "다윈", DarwinBoss),
     ("einstein", "Einstein", "아인슈타인", EinsteinBoss),
+    ("hora", "Future Hora", "미래의 Hora", HoraBoss),
     ("hoking", "Hoking", "호킹", HokingBoss),
     ("newton", "Newton", "뉴턴", NewtonBoss),
     ("schrodinger", "Schrodinger", "슈뢰딩거", SchrodingerBoss),
@@ -44,7 +46,11 @@ BOSS_ALIASES = {
     "curie": "curie",
     "darwin": "darwin",
     "einstein": "einstein",
+    "future_hora": "hora",
+    "hora": "hora",
     "hawking": "hoking",
+    "미래의hora": "hora",
+    "호라": "hora",
     "hoking": "hoking",
     "newton": "newton",
     "pita": "newton",
@@ -167,6 +173,9 @@ class StoryBossDebugGame:
         if key == pygame.K_F9:
             self._set_boss_ko_ready()
             return True
+        if key == pygame.K_F10:
+            self._force_vulnerable_window()
+            return True
         if key in (pygame.K_LEFTBRACKET, pygame.K_PAGEUP):
             self._switch_boss(-1)
             return True
@@ -180,6 +189,10 @@ class StoryBossDebugGame:
                 self.boss_index = idx
                 self._make_battle()
                 return True
+        if key == pygame.K_0 and len(BOSSES) >= 10:
+            self.boss_index = 9
+            self._make_battle()
+            return True
         return False
 
     def _switch_boss(self, delta):
@@ -242,6 +255,14 @@ class StoryBossDebugGame:
         boss.hit_flash = max(getattr(boss, "hit_flash", 0), 12)
         self._set_message("Boss HP 1, final lock released")
 
+    def _force_vulnerable_window(self):
+        boss = self.battle.player2
+        if hasattr(boss, "_open_vulnerable_window"):
+            boss._open_vulnerable_window(self.battle.particle_sys)
+            self._set_message("Vulnerable window forced")
+            return
+        self._set_message("Current boss has no vulnerable window")
+
     def _set_message(self, text, frames=150):
         self.message = text
         self.message_timer = frames
@@ -275,8 +296,8 @@ class StoryBossDebugGame:
         ]
         if self.show_help:
             lines.extend([
-                "1-9 switch boss   [/] prev/next   F2 reset   F3 boss HP 30%   F4 boss domain",
-                "F5 counter domain ready   F6 break domain + finisher   F7 heal player   F8 heal boss   F9 boss KO-ready   F1 help",
+                "1-9/0 switch boss   [/] prev/next   F2 reset   F3 boss HP 30%   F4 boss domain",
+                "F5 counter domain ready   F6 break domain + finisher   F7 heal player   F8 heal boss   F9 KO-ready   F10 vulnerable   F1 help",
             ])
         if self.message_timer > 0 and self.message:
             lines.append(self.message)

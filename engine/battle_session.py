@@ -436,10 +436,15 @@ class BattleSession:
         self.player1.update(0, self.platforms, self.event_bus, ps)
         self.player2.update(0, self.platforms, self.event_bus, ps)
 
-        self.player1.check_attack_collision(self.player2, self.event_bus, ps, fs)
+        if self.mode == "story" and hasattr(self.player2, "resolve_target_body_collision"):
+            self.player2.resolve_target_body_collision(self.player1, self.platforms)
+
+        if self._can_attack_target(self.player1, self.player2):
+            self.player1.check_attack_collision(self.player2, self.event_bus, ps, fs)
         self.player2.check_attack_collision(self.player1, self.event_bus, ps, fs)
 
-        self.player1.check_skill_collision(self.player2, self.event_bus, ps, fs)
+        if self._can_attack_target(self.player1, self.player2):
+            self.player1.check_skill_collision(self.player2, self.event_bus, ps, fs)
         self.player2.check_skill_collision(self.player1, self.event_bus, ps, fs)
 
         self._check_blast_zones()
@@ -463,6 +468,11 @@ class BattleSession:
 
         elif hasattr(self.player2, "handle_ai"):
             self.player2.handle_ai(self.player1)
+
+    def _can_attack_target(self, attacker, target):
+        if self.mode == "story" and target is self.player2:
+            return bool(getattr(target, "targetable", True))
+        return True
 
     def _update_story_boss_flow(self):
         boss = self.player2
@@ -697,7 +707,9 @@ class BattleSession:
     def _on_attack_hit(self, data):
         attacker = data["attacker"]
         target = data["target"]
-        damage = data["damage"]
+        damage = float(data["damage"])
+        if hasattr(target, "modify_incoming_damage"):
+            damage = float(target.modify_incoming_damage(damage, attacker=attacker, data=data))
 
         ps = data.get("particle_system")
         fs = data.get("floater_system")
@@ -810,6 +822,9 @@ class BattleSession:
             self.domain_sys.draw_background()
         else:
             self.renderer.draw_background()
+
+        if hasattr(self.player2, "draw_background_layer"):
+            self.player2.draw_background_layer(self.screen, self.camera)
 
         self.renderer.draw_platforms(self.platforms, self.camera)
 

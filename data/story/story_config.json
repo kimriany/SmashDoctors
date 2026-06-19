@@ -87,7 +87,7 @@
       "description": "폐허가 된 미래의 시간관리국.\n마침내 모든 진실과 마주한다.",
       "stage_json": "data/story/scripts/stage_05.json",
       "bg_image": "assets/images/story/timecountry_alert.png",
-      "boss_class": "entities.characters.Einstein.Einstein",
+      "boss_class": "entities.Boss_characters.hora_boss.HoraBoss",
       "boss_name": "미래의 Hora",
       "boss_stocks": 5,
       "unlock_condition": {
