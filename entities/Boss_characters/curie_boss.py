@@ -6,6 +6,16 @@ from entities.Boss_characters.sprite_boss_base import ConceptBoss
 
 class CurieBoss(ConceptBoss):
     DISPLAY_NAME = "Curie Boss"
+    STORY_DOMAIN_RULES = {
+        "final_lock": True,
+        "boss_phase2_hp_ratio": 0.65,
+        "boss_domain_start_hp_ratio": 0.35,
+        "boss_domain_hp": 100.0,
+        "counter_domain_delay_frames": 8 * 60,
+        "double_domain_break_delay_frames": 12 * 60,
+        "double_domain_break_boss_hp_ratio": 0.15,
+        "finisher_ready_on_break": True,
+    }
     SPRITE_IDLE = "assets/images/charactor/Curie/IDL.png"
     SPRITE_ATTACK = "assets/images/charactor/Curie/attack.png"
     SPRITE_JUMP = "assets/images/charactor/Curie/jump.png"

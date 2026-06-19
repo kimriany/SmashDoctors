@@ -21,7 +21,7 @@ class HokingBoss(ConceptBoss):
     DASH_LABEL = "HORIZON STEP"
     SPECIAL_LABEL = "ENTROPY HORIZON"
 
-    def __init__(self, x, y, name="호킹", player_id=2, max_hp=1450):
+    def __init__(self, x, y, name="호킹", player_id=2, max_hp=2000):
         super().__init__(x, y, name=name, player_id=player_id, max_hp=max_hp)
         self.color = (44, 72, 150)
         self.trim_color = (12, 20, 62)

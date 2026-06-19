@@ -119,7 +119,7 @@ class SpriteBoss(Boss):
             r = camera.apply_rect(img["rect"])
             a = int(88 * img["life"] / 28)
             sf = pygame.Surface((r.w, r.h), pygame.SRCALPHA)
-            pygame.draw.rect(sf, (*self.glow_color, a), sf.get_rect(), border_radius=10)
+            pygame.draw.rect(sf, (*self.glow_color,a), sf.get_rect(), border_radius=10)
             screen.blit(sf, (r.x, r.y))
 
         if self.on_ground:
