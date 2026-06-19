@@ -1098,10 +1098,6 @@
       "text": "설마..."
     },
     {
-      "cmd": "label",
-      "id": "use_skill"
-    },
-    {
       "cmd": "dialog",
       "speaker": "아인슈타인",
       "text": "자기 자신을 수정한 건가."
@@ -1115,6 +1111,10 @@
       "cmd": "dialog",
       "speaker": "아인슈타인",
       "text": "그건 정말 최악의 선택이었군."
+    },
+    {
+      "cmd": "label",
+      "id": "use_skill"
     },
     {
       "cmd": "dialog",

@@ -38,7 +38,7 @@ class EinsteinBoss(ConceptBoss):
         self.domain_bg_path = self.DOMAIN_BG_PATH
         self.domain_particle_color = self.glow_color
         self.profile_key = "einstein"
-        self.WALK_SPEED = 1.95
+        self.WALK_SPEED = 2.4
         self._cycle_step = 0
         self._clone_timer = 0
         self._clone_count = 0
@@ -46,7 +46,7 @@ class EinsteinBoss(ConceptBoss):
         self._history = []
         self._final_collapse_cd = 0
         self._hora_mode = "hora" in name.lower() or "Hora" in name or "호라" in name
-        self.pattern_cooldown = 70
+        self.pattern_cooldown = 1
 
         if self._hora_mode:
             self.profile_key = "hora"
@@ -194,13 +194,13 @@ class EinsteinBoss(ConceptBoss):
         if not self.target:
             return
         self._spawn_zone_at(self.target.rect.centerx + offset, self.target.rect.bottom,
-                            48, 320, warn=22, active=10, damage=9, kind="time")
+                            100, 320, warn=22, active=10, damage=9, kind="time")
 
     def _spawn_relativity_field(self):
         self._spawn_zone_on_target(310, 230, warn=34, active=120, damage=7, kind="time")
         if self.zones:
             self.zones[-1].update({
-                "tick_interval": 34,
+                "tick_interval": 10,
                 "slow": True,
                 "slow_x": 0.62,
                 "slow_y": 0.95,
@@ -309,7 +309,7 @@ class EinsteinBoss(ConceptBoss):
         cx = main.centerx if main else self.rect.centerx
         bottom = main.top if main else self.rect.bottom
         self._spawn_zone_at(cx, bottom, 410, 300, warn=44, active=180,
-                            damage=8, kind="time", tick_interval=40, slow=True, slow_x=0.72)
+                            damage=8, kind="time", tick_interval=20 , slow=True, slow_x=0.72)
         self._schedule(90, self._time_jump)
         self._schedule(130, self._time_rewind_player)
 
@@ -326,10 +326,10 @@ class EinsteinBoss(ConceptBoss):
         )
 
     def _spawn_concept_zones(self):
-        self._spawn_zone_on_target(235, 168, warn=44, active=54, damage=16, kind="gravity")
+        self._spawn_zone_on_target(300, 250, warn=44, active=54, damage=16, kind="gravity")
 
     def _spawn_concept_special(self, psys=None):
-        self._spawn_zone_on_target(270, 190, warn=48, active=64, damage=18, kind="gravity")
+        self._spawn_zone_on_target(400, 280, warn=48, active=64, damage=18, kind="gravity")
         for i, offset in enumerate((-0.36, 0.0, 0.36)):
             self._spawn_projectile(
                 speed=4.0 + i * 0.35,
