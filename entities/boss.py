@@ -11,8 +11,22 @@ class Boss(BaseEntity):
     """Story-mode HP boss with readable pattern attacks."""
 
     DISPLAY_NAME = "Story Boss"
+    HP_SCALE = 3.0 / 3.0
     DOMAIN_BG_PATH = "assets/images/Einstein_domain.jpeg"
     DOMAIN_PARTICLE_COLOR = (255, 95, 80)
+    STORY_DOMAIN_RULES = {
+        "final_lock": True,
+        "boss_phase2_hp_ratio": 0.75,
+        "boss_domain_start_hp_ratio": 0.50,
+        "boss_domain_hp": 320.0,
+        "counter_domain_delay_frames": 30 * 60,
+        "counter_domain_boss_hp_ratio": None,
+        "counter_domain_player_damage_pct_min": None,
+        "double_domain_break_delay_frames": None,
+        "double_domain_break_boss_hp_ratio": None,
+        "finisher_ready_on_break": True,
+        "release_final_lock_on_domain_break": False,
+    }
     PROFILES = {
         "default": {
             "body": (190, 58, 62),
@@ -35,7 +49,7 @@ class Boss(BaseEntity):
             "projectile": (95, 165, 255),
             "projectile_core": (235, 250, 255),
             "zone": (70, 115, 255),
-            "domain_bg": "assets/images/Einstein_domain.jpeg",
+            "domain_bg": "assets/images/charactor/Einstein/einstein_domain.png",
             "domain_particle": (120, 190, 255),
             "special": "gravity_well",
             "special_label": "EVENT HORIZON",
@@ -92,6 +106,19 @@ class Boss(BaseEntity):
             "special": "logic_grid",
             "special_label": "BOMBE GRID",
         },
+        "ro2t": {
+            "body": (38, 142, 132),
+            "trim": (8, 60, 64),
+            "glow": (80, 235, 190),
+            "dark": (2, 28, 30),
+            "projectile": (75, 235, 190),
+            "projectile_core": (170, 240, 255),
+            "zone": (70, 210, 210),
+            "domain_bg": "assets/images/charactor/ro2t/domain.png",
+            "domain_particle": (80, 235, 190),
+            "special": "logic_grid",
+            "special_label": "SYSTEM CHECK",
+        },
         "hoking": {
             "body": (44, 72, 150),
             "trim": (12, 20, 62),
@@ -126,7 +153,7 @@ class Boss(BaseEntity):
             "projectile": (150, 220, 90),
             "projectile_core": (245, 255, 180),
             "zone": (115, 190, 75),
-            "domain_bg": "assets/images/story/nature.png",
+            "domain_bg": "assets/images/charactor/dawin/darwin_domain.png",
             "domain_particle": (150, 220, 90),
             "special": "mutation",
             "special_label": "MUTATION",
@@ -139,7 +166,7 @@ class Boss(BaseEntity):
             "projectile": (110, 210, 255),
             "projectile_core": (245, 255, 210),
             "zone": (92, 190, 240),
-            "domain_bg": "assets/images/story/Phylab.png",
+            "domain_bg": "assets/images/charactor/cric/cric_domain.png",
             "domain_particle": (125, 225, 255),
             "special": "helix",
             "special_label": "DNA HELIX",
@@ -150,6 +177,8 @@ class Boss(BaseEntity):
         super().__init__(x, y, 78, 104, name)
 
         self.player_id = player_id
+        self.base_max_hp = float(max_hp)
+        max_hp = max(1.0, self.base_max_hp * self.HP_SCALE)
         self.max_hp = float(max_hp)
         self.hp = float(max_hp)
         self.final_lock = True
@@ -261,7 +290,8 @@ class Boss(BaseEntity):
             ("크릭", "crick"),
             ("crick", "crick"),
             ("cric", "crick"),
-            ("ro2t", "turing"),
+            ("root2", "ro2t"),
+            ("ro2t", "ro2t"),
         )
         for token, key in checks:
             if token in low:
@@ -294,6 +324,7 @@ class Boss(BaseEntity):
         self.stagger_timer = max(self.stagger_timer, 6)
 
         if self.hp <= 0 and not self.final_lock:
+            self.stocks = 0
             self.dead = True
 
     def apply_knockback(self, attacker, damage, camera=None):
@@ -958,6 +989,7 @@ class Boss(BaseEntity):
                 pygame.draw.ellipse(fill, (*zcol, 34), fill.get_rect())
                 if zdata.get("kind") in ("grid", "bomb"):
                     pygame.draw.rect(fill, (*self.projectile_core, 55), fill.get_rect(), max(1, int(2 * camera.zoom)))
+                self._draw_zone_motif(fill, zdata, zcol, camera.zoom, warning=True)
                 screen.blit(fill, (r.x, r.y))
             else:
                 fill = pygame.Surface((r.w, r.h), pygame.SRCALPHA)
@@ -967,6 +999,7 @@ class Boss(BaseEntity):
                     for i in range(3):
                         inset = int((i + 1) * 10 * camera.zoom)
                         pygame.draw.ellipse(fill, (*self.projectile_core, 65 - i * 14), fill.get_rect().inflate(-inset, -inset), max(1, int(2 * camera.zoom)))
+                self._draw_zone_motif(fill, zdata, zcol, camera.zoom, warning=False)
                 screen.blit(fill, (r.x, r.y))
 
         for p in self.projectiles:
@@ -980,11 +1013,7 @@ class Boss(BaseEntity):
                 total = max(1, p.get("orbit_total", 1))
                 pulse = 0.75 + 0.35 * (1.0 - p.get("orbit", 0) / total)
             sf = pygame.Surface((rr * 4, rr * 4), pygame.SRCALPHA)
-            pygame.draw.circle(sf, (*self.projectile_color, 76), (rr * 2, rr * 2), int(rr * 2 * pulse))
-            pygame.draw.circle(sf, (*self.projectile_color, 220), (rr * 2, rr * 2), int(rr * pulse))
-            pygame.draw.circle(sf, (*self.projectile_core, 215), (rr * 2, rr * 2), max(2, int(rr * 0.34 * pulse)))
-            if orbiting:
-                pygame.draw.circle(sf, (*self.projectile_core, 120), (rr * 2, rr * 2), int(rr * 1.5), max(1, rr // 5))
+            self._draw_projectile_motif(sf, p, rr, pulse, orbiting)
             screen.blit(sf, (sx - rr * 2, sy - rr * 2))
 
     def _zone_draw_color(self, zdata):
@@ -1001,4 +1030,111 @@ class Boss(BaseEntity):
             return (120, 225, 255)
         if kind == "time":
             return (245, 245, 255)
+        if kind in ("base_pair", "dna"):
+            return (115, 225, 255)
+        if kind in ("codon", "spore"):
+            return (150, 255, 170)
+        if kind == "quantum":
+            return (170, 120, 255)
         return self.zone_color
+
+    def _draw_projectile_motif(self, surface, pdata, rr, pulse, orbiting):
+        kind = pdata.get("kind", "orb")
+        center = (rr * 2, rr * 2)
+        outer = max(2, int(rr * pulse))
+
+        if kind == "singularity":
+            pygame.draw.circle(surface, (8, 12, 34, 235), center, int(rr * 1.15 * pulse))
+            for i in range(3):
+                radius = int(rr * (1.45 + i * 0.34) * pulse)
+                pygame.draw.ellipse(
+                    surface,
+                    (*self.projectile_color, 125 - i * 28),
+                    (center[0] - radius, center[1] - radius // 2, radius * 2, radius),
+                    max(1, rr // 6),
+                )
+            pygame.draw.circle(surface, (*self.projectile_core, 230), center, max(2, rr // 4))
+            return
+
+        if kind == "dna":
+            for i, col in enumerate((self.projectile_color, self.projectile_core)):
+                offset = int(math.sin(pdata.get("age", 0) * 0.24 + i * math.pi) * rr * 0.45)
+                pygame.draw.circle(surface, (*col, 225), (center[0] + offset, center[1] - rr // 3), max(2, rr // 3))
+                pygame.draw.circle(surface, (*col, 225), (center[0] - offset, center[1] + rr // 3), max(2, rr // 3))
+            pygame.draw.line(surface, (*self.projectile_core, 135), (center[0] - rr, center[1]), (center[0] + rr, center[1]), max(1, rr // 5))
+            return
+
+        if kind == "radium":
+            pygame.draw.circle(surface, (*self.projectile_color, 86), center, int(rr * 1.85 * pulse))
+            for ang in (0, math.tau / 3, math.tau * 2 / 3):
+                px = center[0] + int(math.cos(ang) * rr * 0.55)
+                py = center[1] + int(math.sin(ang) * rr * 0.55)
+                pygame.draw.circle(surface, (*self.projectile_color, 230), (px, py), max(2, rr // 2))
+            pygame.draw.circle(surface, (*self.projectile_core, 240), center, max(2, rr // 3))
+            return
+
+        if kind == "quantum":
+            pygame.draw.circle(surface, (*self.projectile_color, 120), (center[0] - rr // 3, center[1]), outer)
+            pygame.draw.circle(surface, (*self.projectile_core, 120), (center[0] + rr // 3, center[1]), outer)
+            pygame.draw.circle(surface, (*self.projectile_core, 230), center, max(2, rr // 3))
+            return
+
+        if kind in ("logic", "grid"):
+            pygame.draw.rect(surface, (*self.projectile_color, 215), (center[0] - outer, center[1] - outer, outer * 2, outer * 2), max(2, rr // 4))
+            pygame.draw.rect(surface, (*self.projectile_core, 220), (center[0] - rr // 2, center[1] - rr // 2, rr, rr), max(1, rr // 5))
+            return
+
+        if kind == "spore":
+            pygame.draw.circle(surface, (*self.projectile_color, 210), center, outer)
+            for ang in (0, 1.7, 3.4, 5.1):
+                px = center[0] + int(math.cos(ang) * rr * 0.9)
+                py = center[1] + int(math.sin(ang) * rr * 0.9)
+                pygame.draw.circle(surface, (*self.projectile_core, 190), (px, py), max(1, rr // 5))
+            return
+
+        pygame.draw.circle(surface, (*self.projectile_color, 76), center, int(rr * 2 * pulse))
+        pygame.draw.circle(surface, (*self.projectile_color, 220), center, outer)
+        pygame.draw.circle(surface, (*self.projectile_core, 215), center, max(2, int(rr * 0.34 * pulse)))
+        if orbiting:
+            pygame.draw.circle(surface, (*self.projectile_core, 120), center, int(rr * 1.5), max(1, rr // 5))
+
+    def _draw_zone_motif(self, surface, zdata, color, zoom, warning):
+        kind = zdata.get("kind", "zone")
+        rect = surface.get_rect()
+        alpha = 65 if warning else 95
+        line_w = max(1, int(2 * zoom))
+
+        if kind in ("grid", "logic"):
+            step = max(12, int(28 * zoom))
+            for x in range(0, rect.w, step):
+                pygame.draw.line(surface, (*color, alpha), (x, 0), (x, rect.h), line_w)
+            for y in range(0, rect.h, step):
+                pygame.draw.line(surface, (*color, alpha), (0, y), (rect.w, y), line_w)
+        elif kind == "radiation":
+            c = rect.center
+            for ang in (0, math.tau / 3, math.tau * 2 / 3):
+                p1 = (c[0], c[1])
+                p2 = (c[0] + int(math.cos(ang - 0.28) * rect.w * 0.38), c[1] + int(math.sin(ang - 0.28) * rect.h * 0.38))
+                p3 = (c[0] + int(math.cos(ang + 0.28) * rect.w * 0.38), c[1] + int(math.sin(ang + 0.28) * rect.h * 0.38))
+                pygame.draw.polygon(surface, (*color, alpha), (p1, p2, p3))
+            pygame.draw.circle(surface, (*self.projectile_core, alpha + 25), c, max(4, int(min(rect.w, rect.h) * 0.11)), line_w)
+        elif kind == "gravity":
+            c = rect.center
+            for i in range(4):
+                inset_x = int(rect.w * (0.12 + i * 0.09))
+                inset_y = int(rect.h * (0.18 + i * 0.06))
+                pygame.draw.ellipse(surface, (*self.projectile_core, max(25, alpha - i * 12)), rect.inflate(-inset_x, -inset_y), line_w)
+            pygame.draw.circle(surface, (8, 12, 34, alpha + 20), c, max(5, int(min(rect.w, rect.h) * 0.14)))
+        elif kind == "time":
+            c = rect.center
+            for i in range(5):
+                x = int(rect.w * (i + 1) / 6)
+                pygame.draw.line(surface, (*color, alpha), (x, 0), (rect.w - x, rect.h), line_w)
+            pygame.draw.circle(surface, (*self.projectile_core, alpha), c, max(5, int(min(rect.w, rect.h) * 0.22)), line_w)
+        elif kind in ("base_pair", "dna", "codon"):
+            y_mid = rect.h // 2
+            for i in range(5):
+                x = int(rect.w * (i + 1) / 6)
+                y1 = y_mid - int(math.sin(i) * rect.h * 0.22)
+                y2 = y_mid + int(math.sin(i) * rect.h * 0.22)
+                pygame.draw.line(surface, (*color, alpha), (x, y1), (rect.w - x, y2), line_w)

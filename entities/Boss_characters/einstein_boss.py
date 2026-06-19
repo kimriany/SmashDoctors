@@ -220,7 +220,7 @@ class EinsteinBoss(ConceptBoss):
             self.rect.centerx = x
             self.rect.bottom = bottom
             self.afterimages.append({"rect": old, "life": 34})
-        self.hp = min(self.max_hp, self.hp + 90)
+        self.hp = min(self.max_hp, self.hp + 60)
         self._clone_timer = 0
         self._clone_count = 0
         self._spawn_zone_at(self.rect.centerx, self.rect.bottom, 240, 150,

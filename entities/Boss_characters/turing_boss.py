@@ -34,7 +34,8 @@ class TuringBoss(ConceptBoss):
         self.WALK_SPEED = 2.15
         self._wander_x = x
         self._wander_rethink = 0
-        self.pattern_cooldown = 300
+        self._cycle_step = 0
+        self.pattern_cooldown = 90
 
     def _move_toward_combat_range(self, platforms):
         if not platforms:
@@ -73,32 +74,41 @@ class TuringBoss(ConceptBoss):
             )
 
     def _choose_next_pattern(self):
-        self.cast_action = "ro2t_whip"
-        self.cast_label = "WHIP FIELD"
-        self.cast_timer = 28
-        self.cast_total = 28
-        self.pattern_cooldown = 300
+        actions = (
+            ("logic_probe", "HACK VIRUS", 26, 76),
+            ("halting_grid", "HALTING GRID", 32, 92),
+            ("code_shift", "CODE SHIFT", 24, 88),
+            ("universal_machine", "UNIVERSAL MACHINE", 44, 150),
+        )
+        action, label, cast, cooldown = actions[self._cycle_step]
+        self._cycle_step = (self._cycle_step + 1) % len(actions)
+        self.cast_action = action
+        self.cast_label = label
+        self.cast_timer = cast
+        self.cast_total = cast
+        self.pattern_cooldown = cooldown
 
     def _resolve_cast(self, event_bus, psys):
         action = self.cast_action
         self.cast_action = None
         self.cast_label = ""
-        if action == "ro2t_whip":
-            self._spawn_zone_at(
-                self.rect.centerx,
-                self.rect.bottom + 30,
-                280,
-                190,
-                warn=22,
-                active=28,
-                damage=22,
-                kind="grid",
-                slow=True,
-                slow_x=0.65,
-            )
+        if action == "logic_probe":
+            self._spawn_concept_projectiles()
+            return
+        if action == "halting_grid":
+            self._spawn_concept_zones()
+            return
+        if action == "code_shift":
+            self._teleport_behind_target(psys)
+            self._spawn_zone_at(self.rect.centerx + self.facing * 80, self.rect.bottom,
+                                180, 150, warn=18, active=24, damage=18,
+                                kind="grid", slow=True, slow_x=0.55)
             if psys:
                 psys.spawn(self.rect.centerx, self.rect.centery, self.glow_color,
                            count=26, speed=7, gravity=0, life=28, r=5, glow=True)
+            return
+        if action == "universal_machine":
+            self._spawn_concept_special(psys)
             return
         super()._resolve_cast(event_bus, psys)
 

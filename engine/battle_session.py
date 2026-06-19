@@ -83,7 +83,9 @@ class BattleSession:
         self.story_state = "INTRO"
         self.boss_domain_started = False
         self.boss_domain_broken = False
+        self.story_domain_rules = {}
         self.domain_survive_timer = 0
+        self.double_domain_timer = 0
         self.domain_survive_required = 30 * 60
         self.story_message = ""
         self.story_message_timer = 0
@@ -169,11 +171,14 @@ class BattleSession:
         self.event_bus.subscribe("stock_lost", self._on_stock_lost)
 
     def _configure_story_battle(self):
+        self.story_domain_rules = self._build_story_domain_rules()
         self.story_state = "PHASE_1"
         self.boss_domain_started = False
         self.boss_domain_broken = False
         self.player_counter_domain_unlocked = False
         self.domain_survive_timer = 0
+        self.double_domain_timer = 0
+        self.domain_survive_required = int(self._story_domain_rule("counter_domain_delay_frames", 30 * 60))
         self.story_message = "Boss battle started"
         self.story_message_timer = 150
 
@@ -186,10 +191,42 @@ class BattleSession:
         self.player1.finisher_locked = True
 
         self.player2.stocks = 1
+        if hasattr(self.player2, "boss_domain_max_hp"):
+            domain_hp = float(self._story_domain_rule("boss_domain_hp", getattr(self.player2, "boss_domain_max_hp", 320.0)))
+            self.player2.boss_domain_max_hp = domain_hp
+            self.player2.boss_domain_hp = domain_hp
         if hasattr(self.player2, "set_target"):
             self.player2.set_target(self.player1)
         if hasattr(self.player2, "final_lock"):
-            self.player2.final_lock = True
+            self.player2.final_lock = bool(self._story_domain_rule("final_lock", True))
+
+    def _build_story_domain_rules(self):
+        rules = {}
+        boss_rules = getattr(self.player2, "STORY_DOMAIN_RULES", None)
+        if isinstance(boss_rules, dict):
+            rules.update(boss_rules)
+
+        profile_rules = {}
+        if isinstance(self.story_boss_profile, dict):
+            profile_rules = self.story_boss_profile.get("domain_rules") or {}
+        if isinstance(profile_rules, dict):
+            rules.update(profile_rules)
+
+        if "requires_finisher" in rules:
+            rules["final_lock"] = bool(rules["requires_finisher"])
+
+        if "counter_domain_cooldown_sec" in rules:
+            rules["counter_domain_delay_frames"] = int(float(rules["counter_domain_cooldown_sec"]) * 60)
+        if "counter_domain_cooldown_frames" in rules:
+            rules["counter_domain_delay_frames"] = rules["counter_domain_cooldown_frames"]
+        if "counter_domain_unlock_hp_ratio" in rules:
+            rules["counter_domain_boss_hp_ratio"] = rules["counter_domain_unlock_hp_ratio"]
+
+        return rules
+
+    def _story_domain_rule(self, key, default=None):
+        value = self.story_domain_rules.get(key, default)
+        return default if value is None else value
 
     def _snap_spawn_to_platform(self, player):
         if player is None or not self.platforms:
@@ -438,9 +475,11 @@ class BattleSession:
 
         hp_ratio = getattr(boss, "hp_ratio", 1.0)
         if not self.boss_domain_started:
-            if hp_ratio <= 0.50:
+            domain_start_ratio = self._story_domain_rule("boss_domain_start_hp_ratio", 0.50)
+            phase2_ratio = self._story_domain_rule("boss_phase2_hp_ratio", 0.75)
+            if domain_start_ratio is not None and hp_ratio <= float(domain_start_ratio):
                 self._start_boss_domain()
-            elif hp_ratio <= 0.75:
+            elif phase2_ratio is not None and hp_ratio <= float(phase2_ratio):
                 self.story_state = "PHASE_2"
             else:
                 self.story_state = "PHASE_1"
@@ -455,7 +494,7 @@ class BattleSession:
                 self.domain_survive_required,
                 self.domain_survive_timer + 1,
             )
-            if self.domain_survive_timer >= self.domain_survive_required:
+            if self._can_unlock_player_domain():
                 if self.player_counter_domain_unlocked:
                     player.domain_locked = False
                     player.finisher_locked = True
@@ -466,22 +505,71 @@ class BattleSession:
 
         if boss_domain_active and player_domain_active and not self.boss_domain_broken:
             self.story_state = "DOUBLE_DOMAIN"
+            self.double_domain_timer += 1
             player.finisher_locked = True
             player.finisher_ready = False
+            if self._should_break_boss_domain():
+                self._break_boss_domain()
             return
 
         if self.boss_domain_broken and player_domain_active:
             self.story_state = "PLAYER_ULTIMATE_READY"
-            self._force_player_finisher_ready()
+            if bool(self._story_domain_rule("finisher_ready_on_break", True)):
+                self._force_player_finisher_ready()
 
     def _start_boss_domain(self):
         self.boss_domain_started = True
         self.domain_survive_timer = 0
+        self.double_domain_timer = 0
         self.story_state = "BOSS_DOMAIN"
         self._set_story_message("Boss domain expansion", 180)
 
+        if hasattr(self.player2, "boss_domain_max_hp"):
+            domain_hp = float(self._story_domain_rule("boss_domain_hp", getattr(self.player2, "boss_domain_max_hp", 320.0)))
+            self.player2.boss_domain_max_hp = domain_hp
+            self.player2.boss_domain_hp = domain_hp
+
         if hasattr(self.player2, "open_domain"):
             self.player2.open_domain(self.event_bus)
+
+    def _can_unlock_player_domain(self):
+        boss = self.player2
+        player = self.player1
+        if self.domain_survive_timer < self.domain_survive_required:
+            return False
+
+        boss_hp_ratio = self.story_domain_rules.get("counter_domain_boss_hp_ratio")
+        if boss_hp_ratio is not None and getattr(boss, "hp_ratio", 1.0) > float(boss_hp_ratio):
+            return False
+
+        boss_hp = self.story_domain_rules.get("counter_domain_boss_hp")
+        if boss_hp is not None and getattr(boss, "hp", 0.0) > float(boss_hp):
+            return False
+
+        player_damage_min = self.story_domain_rules.get("counter_domain_player_damage_pct_min")
+        if player_damage_min is not None and getattr(player, "damage_pct", 0.0) < float(player_damage_min):
+            return False
+
+        return True
+
+    def _should_break_boss_domain(self):
+        boss = self.player2
+        if getattr(boss, "boss_domain_hp", 0.0) <= 0:
+            return True
+
+        break_after = self.story_domain_rules.get("double_domain_break_delay_frames")
+        if break_after is not None and self.double_domain_timer >= int(break_after):
+            return True
+
+        break_hp_ratio = self.story_domain_rules.get("double_domain_break_boss_hp_ratio")
+        if break_hp_ratio is not None and getattr(boss, "hp_ratio", 1.0) <= float(break_hp_ratio):
+            return True
+
+        break_hp = self.story_domain_rules.get("double_domain_break_boss_hp")
+        if break_hp is not None and getattr(boss, "hp", 0.0) <= float(break_hp):
+            return True
+
+        return False
 
     def _unlock_player_domain(self):
         player = self.player1
@@ -508,8 +596,9 @@ class BattleSession:
         if not getattr(self.player1, "domain_active", False):
             return
 
-        boss.boss_domain_hp = max(0.0, getattr(boss, "boss_domain_hp", 0.0) - float(amount))
-        if boss.boss_domain_hp <= 0:
+        scale = float(self._story_domain_rule("boss_domain_damage_scale", 1.0))
+        boss.boss_domain_hp = max(0.0, getattr(boss, "boss_domain_hp", 0.0) - float(amount) * scale)
+        if self._should_break_boss_domain():
             self._break_boss_domain()
 
     def _break_boss_domain(self):
@@ -521,11 +610,14 @@ class BattleSession:
         boss.domain_broken = True
         boss.weakened_timer = max(getattr(boss, "weakened_timer", 0), 240)
         boss.stagger_timer = max(getattr(boss, "stagger_timer", 0), 80)
+        if bool(self._story_domain_rule("release_final_lock_on_domain_break", False)):
+            boss.final_lock = False
 
         if self.domain_sys:
             self.domain_sys.break_domain(boss)
 
-        self._force_player_finisher_ready()
+        if bool(self._story_domain_rule("finisher_ready_on_break", True)):
+            self._force_player_finisher_ready()
 
     def _force_player_finisher_ready(self):
         player = self.player1
@@ -536,6 +628,28 @@ class BattleSession:
     def _set_story_message(self, text, frames=150):
         self.story_message = text
         self.story_message_timer = frames
+
+    def _counter_domain_status_text(self):
+        remain_frames = max(0, self.domain_survive_required - self.domain_survive_timer)
+        parts = []
+        if remain_frames > 0:
+            parts.append(f"{remain_frames // 60}s")
+
+        boss_hp_ratio = self.story_domain_rules.get("counter_domain_boss_hp_ratio")
+        if boss_hp_ratio is not None and getattr(self.player2, "hp_ratio", 1.0) > float(boss_hp_ratio):
+            parts.append(f"boss HP <= {int(float(boss_hp_ratio) * 100)}%")
+
+        boss_hp = self.story_domain_rules.get("counter_domain_boss_hp")
+        if boss_hp is not None and getattr(self.player2, "hp", 0.0) > float(boss_hp):
+            parts.append(f"boss HP <= {int(float(boss_hp))}")
+
+        player_damage_min = self.story_domain_rules.get("counter_domain_player_damage_pct_min")
+        if player_damage_min is not None and getattr(self.player1, "damage_pct", 0.0) < float(player_damage_min):
+            parts.append(f"damage >= {int(float(player_damage_min))}%")
+
+        if parts:
+            return "Boss domain active  |  Counter requires " + ", ".join(parts)
+        return "R: Counter Domain available"
 
     def _update_camera(self):
         active = []
@@ -744,10 +858,7 @@ class BattleSession:
 
         if self.boss_domain_started and not self.boss_domain_broken:
             if getattr(boss, "domain_active", False) and not getattr(player, "domain_active", False):
-                remain = max(0, (self.domain_survive_required - self.domain_survive_timer) // 60)
-                text = f"Boss domain active  |  Counter available in {remain}s"
-                if remain <= 0:
-                    text = "R: Counter Domain available"
+                text = self._counter_domain_status_text()
                 col = (255, 210, 120)
             elif getattr(boss, "domain_active", False) and getattr(player, "domain_active", False):
                 dhp = max(0.0, getattr(boss, "boss_domain_hp", 0.0))

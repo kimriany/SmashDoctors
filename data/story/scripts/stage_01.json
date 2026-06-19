@@ -10,7 +10,17 @@
     "1": {
       "boss_class": "entities.Boss_characters.ro2t_boss.Ro2tBoss",
       "boss_name": "RO2T",
-      "boss_stocks": 3
+      "boss_stocks": 3,
+      "domain_rules": {
+        "final_lock": false,
+        "boss_phase2_hp_ratio": 0.65,
+        "boss_domain_start_hp_ratio": 0.35,
+        "boss_domain_hp": 180,
+        "counter_domain_delay_frames": 480,
+        "double_domain_break_delay_frames": 720,
+        "double_domain_break_boss_hp_ratio": 0.15,
+        "finisher_ready_on_break": false
+      }
     },
     "2": {
       "boss_class": "entities.Boss_characters.cric_boss.CricBoss",

@@ -13,6 +13,13 @@ import os
 
 CONFIG_PATH = "data/story/story_config.json"
 
+BOSS_CLASS_ALIASES = {
+    "ro2t": "entities.Boss_characters.ro2t_boss.Ro2tBoss",
+    "ro2tboss": "entities.Boss_characters.ro2t_boss.Ro2tBoss",
+    "root2": "entities.Boss_characters.ro2t_boss.Ro2tBoss",
+    "root2boss": "entities.Boss_characters.ro2t_boss.Ro2tBoss",
+}
+
 
 class StoryLoader:
     def __init__(self):
@@ -43,6 +50,8 @@ class StoryLoader:
         if not class_path:
             return None
 
+        class_path = self._normalize_boss_class_path(str(class_path))
+
         class_name = class_path.rsplit(".", 1)[-1]
 
         try:
@@ -58,6 +67,19 @@ class StoryLoader:
         except Exception as e:
             print(f"[StoryLoader] 보스 클래스 로드 실패 ({class_path}): {e}")
             return None
+
+    def _normalize_boss_class_path(self, class_path: str) -> str:
+        compact = (
+            class_path.strip()
+            .lower()
+            .replace("_", "")
+            .replace("-", "")
+            .replace(".", "")
+        )
+        for alias, real_path in BOSS_CLASS_ALIASES.items():
+            if alias in compact:
+                return real_path
+        return class_path
 
     def get_chapter(self, chapter_id: int) -> dict | None:
         for c in self.chapters:

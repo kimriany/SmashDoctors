@@ -391,7 +391,7 @@ class StoryGame:
 
         if self.story_scene and hasattr(self.story_scene, "script_data"):
             script_data = self.story_scene.script_data
-            for key in ("stage_json", "boss_class", "boss_name", "boss_stocks"):
+            for key in ("stage_json", "boss_class", "boss_name", "boss_stocks", "domain_rules"):
                 if key in script_data:
                     config[key] = script_data[key]
 
@@ -463,6 +463,7 @@ class StoryGame:
                 "boss_name": battle_config.get("boss_name", "Boss"),
                 "chapter_id": self.chapter.get("id"),
                 "battle_num": self.battle_num,
+                "domain_rules": battle_config.get("domain_rules", {}),
             },
             story_player_skills=self.story_skill_loadout,
         )
@@ -483,6 +484,7 @@ class StoryGame:
             "pita": "entities.Boss_characters.newton_boss.NewtonBoss",
             "turing": "entities.Boss_characters.turing_boss.TuringBoss",
             "ro2t": "entities.Boss_characters.ro2t_boss.Ro2tBoss",
+            "root2": "entities.Boss_characters.ro2t_boss.Ro2tBoss",
         }
         if "뉴턴" in str(battle_config.get("boss_name", "")):
             boss_key = "pita"

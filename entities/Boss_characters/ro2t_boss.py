@@ -3,6 +3,16 @@ from entities.Boss_characters.sprite_boss_base import ConceptBoss
 
 class Ro2tBoss(ConceptBoss):
     DISPLAY_NAME = "Ro2t Boss"
+    STORY_DOMAIN_RULES = {
+        "final_lock": False,
+        "boss_phase2_hp_ratio": 0.65,
+        "boss_domain_start_hp_ratio": 0.35,
+        "boss_domain_hp": 180.0,
+        "counter_domain_delay_frames": 8 * 60,
+        "double_domain_break_delay_frames": 12 * 60,
+        "double_domain_break_boss_hp_ratio": 0.15,
+        "finisher_ready_on_break": False,
+    }
 
     SPRITE_IDLE = "assets/images/charactor/ro2t/idle.png"
     SPRITE_ATTACK = "assets/images/charactor/ro2t/attack.png"
@@ -94,4 +104,3 @@ class Ro2tBoss(ConceptBoss):
             size=22,
             kind="logic",
         )
-
