@@ -6,6 +6,7 @@ from entities.Boss_characters.hoking_boss import HokingBoss
 from entities.Boss_characters.newton_boss import NewtonBoss
 from entities.Boss_characters.schrodinger_boss import SchrodingerBoss
 from entities.Boss_characters.turing_boss import TuringBoss
+from entities.Boss_characters.ro2t_boss import Ro2tBoss
 
 __all__ = [
     "CricBoss",
@@ -16,4 +17,5 @@ __all__ = [
     "NewtonBoss",
     "SchrodingerBoss",
     "TuringBoss",
+    "Ro2tBoss",
 ]

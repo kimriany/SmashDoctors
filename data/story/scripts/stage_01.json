@@ -8,9 +8,9 @@
   "boss_stocks": 3,
   "battle_configs": {
     "1": {
-      "boss_class": "entities.Boss_characters.turing_boss.TuringBoss",
+      "boss_class": "entities.Boss_characters.ro2t_boss.Ro2tBoss",
       "boss_name": "RO2T",
-      "boss_stocks": 2
+      "boss_stocks": 3
     },
     "2": {
       "boss_class": "entities.Boss_characters.cric_boss.CricBoss",

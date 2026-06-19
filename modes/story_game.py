@@ -482,6 +482,7 @@ class StoryGame:
             "hoking": "entities.Boss_characters.hoking_boss.HokingBoss",
             "pita": "entities.Boss_characters.newton_boss.NewtonBoss",
             "turing": "entities.Boss_characters.turing_boss.TuringBoss",
+            "ro2t": "entities.Boss_characters.ro2t_boss.Ro2tBoss",
         }
         if "뉴턴" in str(battle_config.get("boss_name", "")):
             boss_key = "pita"

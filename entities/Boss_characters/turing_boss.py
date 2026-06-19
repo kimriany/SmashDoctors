@@ -20,7 +20,7 @@ class TuringBoss(ConceptBoss):
     DASH_LABEL = "CODE SHIFT"
     SPECIAL_LABEL = "UNIVERSAL MACHINE"
 
-    def __init__(self, x, y, name="RO2T", player_id=2, max_hp=1280):
+    def __init__(self, x, y, name="Turing", player_id=2, max_hp=1280):
         super().__init__(x, y, name=name, player_id=player_id, max_hp=max_hp)
         self.color = (38, 142, 132)
         self.trim_color = (8, 60, 64)

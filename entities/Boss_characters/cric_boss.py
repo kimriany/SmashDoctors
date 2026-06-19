@@ -27,7 +27,7 @@ class CricBoss(SpriteBoss):
         (210, 145, 255),
     )
 
-    def __init__(self, x, y, name="크릭", player_id=2, max_hp=1350):
+    def __init__(self, x, y, name="크릭", player_id=2, max_hp=1000):
         super().__init__(x, y, name=name, player_id=player_id, max_hp=max_hp)
 
         self.rect.w = 70
