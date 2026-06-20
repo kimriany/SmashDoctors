@@ -1440,7 +1440,7 @@
     },
     {
       "cmd": "show_image",
-      "image": "assets/images/story/Newton_young.png"
+      "image": "assets/images/story/img.png"
     },
     {
       "cmd": "dialog",
